@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>小王子（一） | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="小王子（一）小王子活动的空间很小，这个pid为612的进程只有十六位的地址空间。虽然操作系统总是大手大脚地分配虚拟地址，但对小王子来说，十六位已经足够，我们也不需要去纠结为什么64位的系统上会有如此狭小的内存了。 在小王子的进程上，就像其他所有进程一样，有好函数与坏函数，可是，函数的内容是难以预料的，它们沉睡在.text区域，直到其中一个突然被调用……于是它就建立栈帧，开始向着栈顶生长。如果是无副">
+<meta property="og:type" content="article">
+<meta property="og:title" content="小王子（一）">
+<meta property="og:url" content="http://example.com/2025/06/21/%E5%B0%8F%E7%8E%8B%E5%AD%90%EF%BC%88%E4%B8%80%EF%BC%89/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="小王子（一）小王子活动的空间很小，这个pid为612的进程只有十六位的地址空间。虽然操作系统总是大手大脚地分配虚拟地址，但对小王子来说，十六位已经足够，我们也不需要去纠结为什么64位的系统上会有如此狭小的内存了。 在小王子的进程上，就像其他所有进程一样，有好函数与坏函数，可是，函数的内容是难以预料的，它们沉睡在.text区域，直到其中一个突然被调用……于是它就建立栈帧，开始向着栈顶生长。如果是无副">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2025-06-21T04:52:37.000Z">
+<meta property="article:modified_time" content="2025-06-21T05:12:03.387Z">
+<meta property="article:author" content="John Doe">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-小王子（一）" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2025/06/21/%E5%B0%8F%E7%8E%8B%E5%AD%90%EF%BC%88%E4%B8%80%EF%BC%89/" class="article-date">
+  <time class="dt-published" datetime="2025-06-21T04:52:37.000Z" itemprop="datePublished">2025-06-21</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      小王子（一）
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h2 id="小王子（一）"><a href="#小王子（一）" class="headerlink" title="小王子（一）"></a><em>小王子（一）</em></h2><p>小王子活动的空间很小，这个pid为612的进程只有十六位的地址空间。虽然操作系统总是大手大脚地分配虚拟地址，但对小王子来说，十六位已经足够，<br>我们也不需要去纠结为什么64位的系统上会有如此狭小的内存了。</p>
+<p>在小王子的进程上，就像其他所有进程一样，有好函数与坏函数，可是，函数的内容是难以预料的，它们沉睡在.text区域，<br>直到其中一个突然被调用……于是它就建立栈帧，开始向着栈顶生长。如果是无副作用的或者普通的函数就让它自由地去生长。如果是一个坏函数，一旦辨认出来，就应该马上终止它。因为有些非常可怕的函数会无限递归，假如你终止得太迟，栈区向下生长，内存结构就会被破坏。</p>
+<p>至于堆区，小王子的堆没有什么复杂的分配器，各种各样的函数经常在这里建立一些临时的数据结构，然后在返回时忘记清理,<br>于是它们就这样被留了下来。过去堆区一直只有一些简单的结构，或是线性排列，或是在数据后跟上一个字的地址。</p>
+<p>然而不知哪个函数建立了一个与众不同的数据结构，她看着像链表却有三个指针，如同二叉树却有两个数据位。随着一点数据的加入，她的指针开始复杂地切换，然后打着哈欠说到：</p>
+<p>“我刚刚被建立，颜色还是乱糟糟的……”</p>
+<p>“你是多么美丽啊！”</p>
+<p>“是吧，我是与这个进程同时建立的……”</p>
+<p>小王子看出了这红黑树不太谦虚，可是她确实丽姿动人。</p>
+<p>“……我并不怕什么垃圾回收，可我讨厌有数据夹在我中间。你就不能给我一块连续的地址区域？”</p>
+<p>“讨厌中间夹着别的数据……对二叉树来说，真不走运，这红黑树真不太走运。”</p>
+<p>小王子清理了一片足够大的块，把她转移了过去。</p>
+<p>于是这棵红黑树便扎根在了小王子的堆上。</p>
+<p>创建她的函数已经不可考证，每天小王子都手动为她增加着数据，小心翼翼地左旋与右旋，维护着她颜色的平衡，沉醉于其优美的结构。</p>
+<p>……</p>
+<p>小王子出发前，他把几个全局变量重新初始化了一遍——他有两个活跃的库，用来辅助维护堆的状态，只要每次把指针移动到堆的起点，就不会访问到不该访问的内容，让操作系统把进程叫停。小王子还有一个已经废弃的库，他想，说不定哪天它就重新更新了。<br>小王子还把最后几个会无限递归的函数从.text段删去了。他有点忧伤。他以为他再也不会回来了。当他最后一次为红黑树添加数据、梳理层次时，他发觉自己要哭出来。<br>“再见了”，他对她说。</p>
+<p>（……未完待续）</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2025/06/21/%E5%B0%8F%E7%8E%8B%E5%AD%90%EF%BC%88%E4%B8%80%EF%BC%89/" data-id="cmc5tmubw0001zgo59ajahh6c" data-title="小王子（一）" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2025/06/21/hello-world/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Hello World</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/06/">June 2025</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2025/06/21/%E5%B0%8F%E7%8E%8B%E5%AD%90%EF%BC%88%E4%B8%80%EF%BC%89/">小王子（一）</a>
+          </li>
+        
+          <li>
+            <a href="/2025/06/21/hello-world/">Hello World</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2025 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>
