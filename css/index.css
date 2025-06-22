@@ -3002,6 +3002,22 @@ figure.highlight pre .javascript .function {
   -ms-flex-direction: column;
   flex-direction: column;
 }
+.page .card-recent-post {
+  -webkit-box-ordinal-group: 2;
+  -moz-box-ordinal-group: 2;
+  -o-box-ordinal-group: 2;
+  -ms-flex-order: 2;
+  -webkit-order: 2;
+  order: 2;
+}
+.page .card-webinfo {
+  -webkit-box-ordinal-group: 100;
+  -moz-box-ordinal-group: 100;
+  -o-box-ordinal-group: 100;
+  -ms-flex-order: 100;
+  -webkit-order: 100;
+  order: 100;
+}
 @-moz-keyframes more-btn-move {
   0%, 100% {
     -webkit-transform: translateX(0);
