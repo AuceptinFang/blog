@@ -1,0 +1,302 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>lua学习笔记（持续更新中） | Auceptin's Blog</title><meta name="author" content="Auceptin.Fang"><meta name="copyright" content="Auceptin.Fang"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="🌙 前言开始之前先记录一下与lua的结缘过程：  Noita的法术编程系统是用lua写的，早就想从源码层面研究一下noita了 上学期cpp课老师建议我用lua给我的小游戏写个引擎 lua是葡萄牙语中”月亮“的意思，对美丽的名字没有任何抵抗力！ 听说了一些诸如某初中生在 nspire 上用lua 写东西的故事  总而言之，既c和cpp之后第三门认真学的语言（是的到现在py、js、java、htm">
+<meta property="og:type" content="article">
+<meta property="og:title" content="lua学习笔记（持续更新中）">
+<meta property="og:url" content="https://aucept.in/2025/06/24/lua%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="Auceptin&#39;s Blog">
+<meta property="og:description" content="🌙 前言开始之前先记录一下与lua的结缘过程：  Noita的法术编程系统是用lua写的，早就想从源码层面研究一下noita了 上学期cpp课老师建议我用lua给我的小游戏写个引擎 lua是葡萄牙语中”月亮“的意思，对美丽的名字没有任何抵抗力！ 听说了一些诸如某初中生在 nspire 上用lua 写东西的故事  总而言之，既c和cpp之后第三门认真学的语言（是的到现在py、js、java、htm">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://aucept.in/image/cover7_moon.jpg">
+<meta property="article:published_time" content="2025-06-24T03:16:58.000Z">
+<meta property="article:modified_time" content="2025-06-24T03:27:37.140Z">
+<meta property="article:author" content="Auceptin.Fang">
+<meta property="article:tag" content="lua">
+<meta property="article:tag" content="学习笔记">
+<meta property="article:tag" content="编程语言">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://aucept.in/image/cover7_moon.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "lua学习笔记（持续更新中）",
+  "url": "https://aucept.in/2025/06/24/lua%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/",
+  "image": "https://aucept.in/image/cover7_moon.jpg",
+  "datePublished": "2025-06-24T03:16:58.000Z",
+  "dateModified": "2025-06-24T03:27:37.140Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Auceptin.Fang",
+      "url": "https://aucept.in/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://aucept.in/2025/06/24/lua%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: true,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'lua学习笔记（持续更新中）',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-color: #f5f5f5;"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src= "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjZjBmMGYwIi8+Cjwvc3ZnPgo=" data-lazy-src="/img/auceptin-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">6</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/friends/"><span> Friends</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/image/cover2_square.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Auceptin's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">lua学习笔记（持续更新中）</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/friends/"><span> Friends</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">lua学习笔记（持续更新中）</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-06-24T03:16:58.000Z" title="发表于 2025-06-24 11:16:58">2025-06-24</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-06-24T03:27:37.140Z" title="更新于 2025-06-24 11:27:37">2025-06-24</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">学习笔记</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h2 id="🌙-前言"><a href="#🌙-前言" class="headerlink" title="🌙 前言"></a>🌙 前言</h2><p>开始之前先记录一下与lua的结缘过程：</p>
+<ul>
+<li>Noita的法术编程系统是用lua写的，早就想从源码层面研究一下noita了</li>
+<li>上学期cpp课老师建议我用lua给我的小游戏写个引擎</li>
+<li>lua是葡萄牙语中”<strong>月亮</strong>“的意思，对美丽的名字没有任何抵抗力！</li>
+<li>听说了一些诸如某初中生在 nspire 上用lua 写东西的故事</li>
+</ul>
+<p>总而言之，既c和cpp之后第三门认真学的语言（是的到现在py、js、java、html、asm还没认真学过）就这么愉快的决定了</p>
+<h2 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h2><div class="note info flat"><p><strong>在线运行环境</strong>：<a target="_blank" rel="noopener" href="https://wiki.luatos.com/_static/luatos-emulator/lua.html">可以在网页里运行</a></p>
+</div>
+
+<h2 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h2><blockquote>
+<p>这语言还有王法吗？</p>
+</blockquote>
+<h3 id="Hello-world"><a href="#Hello-world" class="headerlink" title="Hello world"></a>Hello world</h3><figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">print</span>(<span class="string">&quot;hello world&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>和python一致</p>
+<h3 id="变量声明"><a href="#变量声明" class="headerlink" title="变量声明"></a>变量声明</h3><p>赋值就是声明，默认为全局变量（好极端），需要手动加local关键字</p>
+<p>一切没声明的变量都是nil</p>
+<p>支持多重赋值</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">a,b = <span class="number">1</span> ,<span class="number">2</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h3><ul>
+<li><strong>number</strong>: lua的数字只有一个类型，为c里的double，支持16进制表示、科学计数法、左移右移运算</li>
+<li><strong>string</strong>: 单&#x2F;双引号之间的就是字符串，支持转义字符。多行文本可以用<code>[[string]]</code>表示，会保存换行。<ul>
+<li>连接字符串使用<code>..</code>运算符</li>
+<li><code>tostring</code> <code>tonumber</code>函数，没有报错只有返回nil</li>
+<li><code>#</code>表示获取长度</li>
+</ul>
+</li>
+</ul>
+<h3 id="函数"><a href="#函数" class="headerlink" title="函数"></a>函数</h3><ul>
+<li>声明函数的关键字 <code>function</code></li>
+<li>作用域用<code>end</code>标识</li>
+<li>返回值默认是nil， 传递的参数少了也默认成nil</li>
+<li>可以有多个返回值</li>
+</ul>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">a</span><span class="params">(b,c)</span></span></span><br><span class="line">    <span class="keyword">local</span> i = <span class="number">1</span> + b </span><br><span class="line">    <span class="keyword">local</span> j = <span class="string">&quot;deadbeef&quot;</span> .. c</span><br><span class="line">    <span class="keyword">return</span> i,j</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">c = <span class="number">1</span></span><br><span class="line">d = <span class="string">&quot;a&quot;</span></span><br><span class="line">e,f = a(c,d)</span><br><span class="line"><span class="built_in">print</span>(e)</span><br><span class="line"><span class="built_in">print</span>(f)</span><br></pre></td></tr></table></figure>
+
+<h3 id="数组"><a href="#数组" class="headerlink" title="数组"></a>数组</h3><p>在lua里叫table，用大括号声明</p>
+<p>不同元素用”,”分隔，可以存任何类型的数据，包括函数</p>
+<p>索引从1开始（大逆不道！）</p>
+<p>同样可以用<code>#</code>获取长度</p>
+<p><strong>插入</strong>：<code>table.insert(tableName, (position), target)</code></p>
+<p><strong>移除</strong>：<code>table.remove(tableName, position)</code> 返回值是对应位置的值</p>
+<p>可以自由的调整table大小</p>
+<p>如果存的是键值对，那table就是map。不符合命名规范的键可以用<code>[]</code>完成转义</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">local</span> <span class="built_in">table</span> = &#123;<span class="number">1</span>, <span class="string">&quot;hello&quot;</span>, <span class="literal">true</span>, <span class="function"><span class="keyword">function</span><span class="params">()</span></span> <span class="built_in">print</span>(<span class="string">&quot;这是一个函数&quot;</span>) <span class="keyword">end</span>&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 访问元素</span></span><br><span class="line"><span class="built_in">print</span>(fruits[<span class="number">1</span>])  <span class="comment">-- 输出: apple</span></span><br><span class="line"><span class="built_in">print</span>(fruits[<span class="number">2</span>])  <span class="comment">-- 输出: banana</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 获取长度</span></span><br><span class="line"><span class="built_in">print</span>(#fruits)    <span class="comment">-- 输出: 3</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 键值对形式（作为map使用）</span></span><br><span class="line"><span class="keyword">local</span> table2 = &#123;</span><br><span class="line">    name = <span class="string">&quot;this is a name&quot;</span>,</span><br><span class="line">    [<span class="number">01101001001</span>] = <span class="number">110011100110</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(table2.name)        <span class="comment">-- 输出: this is a name</span></span><br><span class="line"><span class="built_in">print</span>(table2[<span class="number">01101001001</span>]) <span class="comment">-- 输出: 110011100110.0</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="全局表"><a href="#全局表" class="headerlink" title="全局表"></a>全局表</h3><p>所有的全局变量都以键值对的形式存在一个大表里，即全局表<code>_G</code></p>
+<h3 id="判断语句"><a href="#判断语句" class="headerlink" title="判断语句"></a>判断语句</h3><p>真假为 <code>true</code> 和 <code>false</code></p>
+<p>不等于是 <code>~=</code></p>
+<p>支持<code>and</code> <code>or</code> <code>not</code>逻辑运算</p>
+<div class="note danger flat"><p><strong>重要</strong>：只有<code>nil</code>和<code>false</code>代表假，其余所有包括<code>0</code>都表示真</p>
+</div>
+
+<p>分支判断格式：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> <span class="number">1</span> &lt;= <span class="number">10</span> <span class="keyword">then</span></span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;1 &lt;= 10&quot;</span>)</span><br><span class="line"><span class="keyword">elseif</span> <span class="number">1</span> &gt; <span class="number">10</span> <span class="keyword">then</span> </span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot; 1 &gt; 10&quot;</span>)</span><br><span class="line"><span class="keyword">else</span> </span><br><span class="line">    <span class="built_in">print</span>(<span class="string">&quot;no&quot;</span>)</span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="循环"><a href="#循环" class="headerlink" title="循环"></a>循环</h3><p>for循环，<code>break</code>退出循环</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 数值循环：从1到10，步长为2</span></span><br><span class="line"><span class="keyword">for</span> i = <span class="number">1</span>, <span class="number">10</span>, <span class="number">2</span> <span class="keyword">do</span></span><br><span class="line">    <span class="built_in">print</span>(i)</span><br><span class="line"><span class="keyword">end</span>  </span><br></pre></td></tr></table></figure>
+
+<hr>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/lua/">lua</a><a class="post-meta__tags" href="/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">学习笔记</a><a class="post-meta__tags" href="/tags/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/">编程语言</a></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2025/05/26/%E5%B0%8F%E7%8E%8B%E5%AD%90%EF%BC%88%E4%BA%8C%EF%BC%89/" title="睡前故事：小王子（二）"><img class="cover" src= "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjZjBmMGYwIi8+Cjwvc3ZnPgo=" data-lazy-src="/image/cover3_bottle.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">睡前故事：小王子（二）</div></div><div class="info-2"><div class="info-item-1">...</div></div></div></a></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="giscus-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src= "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjZjBmMGYwIi8+Cjwvc3ZnPgo=" data-lazy-src="/img/auceptin-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Auceptin.Fang</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">6</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">8</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">3</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">welcome to my blog！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%8C%99-%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">🌙 前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%8E%AF%E5%A2%83"><span class="toc-number">2.</span> <span class="toc-text">环境</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AF%AD%E6%B3%95"><span class="toc-number">3.</span> <span class="toc-text">语法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Hello-world"><span class="toc-number">3.1.</span> <span class="toc-text">Hello world</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%98%E9%87%8F%E5%A3%B0%E6%98%8E"><span class="toc-number">3.2.</span> <span class="toc-text">变量声明</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B"><span class="toc-number">3.3.</span> <span class="toc-text">数据类型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%87%BD%E6%95%B0"><span class="toc-number">3.4.</span> <span class="toc-text">函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%B0%E7%BB%84"><span class="toc-number">3.5.</span> <span class="toc-text">数组</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%A8%E5%B1%80%E8%A1%A8"><span class="toc-number">3.6.</span> <span class="toc-text">全局表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%A4%E6%96%AD%E8%AF%AD%E5%8F%A5"><span class="toc-number">3.7.</span> <span class="toc-text">判断语句</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BE%AA%E7%8E%AF"><span class="toc-number">3.8.</span> <span class="toc-text">循环</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2025/06/24/lua%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" title="lua学习笔记（持续更新中）"><img src= "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjZjBmMGYwIi8+Cjwvc3ZnPgo=" data-lazy-src="/image/cover7_moon.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="lua学习笔记（持续更新中）"/></a><div class="content"><a class="title" href="/2025/06/24/lua%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" title="lua学习笔记（持续更新中）">lua学习笔记（持续更新中）</a><time datetime="2025-06-24T03:16:58.000Z" title="发表于 2025-06-24 11:16:58">2025-06-24</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/05/26/%E5%B0%8F%E7%8E%8B%E5%AD%90%EF%BC%88%E4%BA%8C%EF%BC%89/" title="睡前故事：小王子（二）"><img src= "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjZjBmMGYwIi8+Cjwvc3ZnPgo=" data-lazy-src="/image/cover3_bottle.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="睡前故事：小王子（二）"/></a><div class="content"><a class="title" href="/2025/05/26/%E5%B0%8F%E7%8E%8B%E5%AD%90%EF%BC%88%E4%BA%8C%EF%BC%89/" title="睡前故事：小王子（二）">睡前故事：小王子（二）</a><time datetime="2025-05-25T16:22:37.000Z" title="发表于 2025-05-26 00:22:37">2025-05-26</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/05/24/%E5%B0%8F%E7%8E%8B%E5%AD%90%EF%BC%88%E4%B8%80%EF%BC%89/" title="睡前故事：小王子（一）"><img src= "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjZjBmMGYwIi8+Cjwvc3ZnPgo=" data-lazy-src="/image/cover1_cat.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="睡前故事：小王子（一）"/></a><div class="content"><a class="title" href="/2025/05/24/%E5%B0%8F%E7%8E%8B%E5%AD%90%EF%BC%88%E4%B8%80%EF%BC%89/" title="睡前故事：小王子（一）">睡前故事：小王子（一）</a><time datetime="2025-05-24T15:46:37.000Z" title="发表于 2025-05-24 23:46:37">2025-05-24</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/05/22/%E7%9D%A1%E7%BE%8E%E4%BA%BA/" title="睡前故事：睡美人"><img src= "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjZjBmMGYwIi8+Cjwvc3ZnPgo=" data-lazy-src="/image/cover5_beauty.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="睡前故事：睡美人"/></a><div class="content"><a class="title" href="/2025/05/22/%E7%9D%A1%E7%BE%8E%E4%BA%BA/" title="睡前故事：睡美人">睡前故事：睡美人</a><time datetime="2025-05-21T16:17:06.000Z" title="发表于 2025-05-22 00:17:06">2025-05-22</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/05/17/%E7%8B%BC%E6%9D%A5%E4%BA%86/" title="睡前故事：狼来了"><img src= "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHZpZXdCb3g9IjAgMCAxMCAxMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjZjBmMGYwIi8+Cjwvc3ZnPgo=" data-lazy-src="/image/cover4_horse.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="睡前故事：狼来了"/></a><div class="content"><a class="title" href="/2025/05/17/%E7%8B%BC%E6%9D%A5%E4%BA%86/" title="睡前故事：狼来了">睡前故事：狼来了</a><time datetime="2025-05-17T02:02:02.000Z" title="发表于 2025-05-17 10:02:02">2025-05-17</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url(/img/foot.jpg);"><div id="footer-wrap"><div class="copyright">&copy;2025 By Auceptin.Fang</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const getGiscusTheme = theme => theme === 'dark' ? 'dark' : 'light'
+
+  const createScriptElement = config => {
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => {
+      ele.setAttribute(key, value)
+    })
+    return ele
+  }
+
+  const loadGiscus = (el = document, key) => {
+    const mappingConfig = isShuoshuo
+      ? { 'data-mapping': 'specific', 'data-term': key }
+      : { 'data-mapping': (option && option['data-mapping']) || 'pathname' }
+
+    const giscusConfig = {
+      src: 'https://giscus.app/client.js',
+      'data-repo': 'AuceptinFang/blog',
+      'data-repo-id': 'R_kgDOO_UAjA',
+      'data-category-id': 'DIC_kwDOO_UAjM4Cr3mL',
+      'data-theme': getGiscusTheme(document.documentElement.getAttribute('data-theme')),
+      'data-reactions-enabled': '1',
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      ...mappingConfig
+    }
+
+    const scriptElement = createScriptElement(giscusConfig)
+
+    el.querySelector('#giscus-wrap').appendChild(scriptElement)
+
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGiscus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+  }
+
+  const changeGiscusTheme = theme => {
+    const iframe = document.querySelector('#giscus-wrap iframe')
+    if (iframe) {
+      const message = {
+        giscus: {
+          setConfig: {
+            theme: getGiscusTheme(theme)
+          }
+        }
+      }
+      iframe.contentWindow.postMessage(message, 'https://giscus.app')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeGiscusTheme, 'giscus')
+
+  if (isShuoshuo) {
+    'Giscus' === 'Giscus'
+      ? window.shuoshuoComment = { loadComment: loadGiscus }
+      : window.loadOtherComment = loadGiscus
+    return
+  }
+
+  if ('Giscus' === 'Giscus' || !false) {
+    if (false) btf.loadComment(document.getElementById('giscus-wrap'), loadGiscus)
+    else loadGiscus()
+  } else {
+    window.loadOtherComment = loadGiscus
+  }
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
