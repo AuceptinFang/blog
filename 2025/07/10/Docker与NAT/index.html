@@ -1,0 +1,363 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Docker与NAT | Auceptin's Blog</title><meta name="author" content="Auceptin.Fang"><meta name="copyright" content="Auceptin.Fang"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="昨天在火山云上抢到了29&#x2F;年的一台小云服务器，今天用它做一下重做一下内网穿透的实验，顺便系统学习一遍docker的使用方法 实验说明：  目标：借助云服务器完成内网穿透，学习docker的使用 技术选择：frp与vaala的开源项目frp-panel 参考资料：frp-panel的文档 与 B站上的docker入门教程 环境说明：Linux iv-ydzvaocdmobw80cjj4s4 5.15">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Docker与NAT">
+<meta property="og:url" content="https://aucept.in/2025/07/10/Docker%E4%B8%8ENAT/index.html">
+<meta property="og:site_name" content="Auceptin&#39;s Blog">
+<meta property="og:description" content="昨天在火山云上抢到了29&#x2F;年的一台小云服务器，今天用它做一下重做一下内网穿透的实验，顺便系统学习一遍docker的使用方法 实验说明：  目标：借助云服务器完成内网穿透，学习docker的使用 技术选择：frp与vaala的开源项目frp-panel 参考资料：frp-panel的文档 与 B站上的docker入门教程 环境说明：Linux iv-ydzvaocdmobw80cjj4s4 5.15">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://aucept.in/image/cover22_cat.jpg">
+<meta property="article:published_time" content="2025-07-10T14:35:32.000Z">
+<meta property="article:modified_time" content="2025-07-10T14:38:24.536Z">
+<meta property="article:author" content="Auceptin.Fang">
+<meta property="article:tag" content="内网穿透">
+<meta property="article:tag" content="frp-panel">
+<meta property="article:tag" content="docker">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://aucept.in/image/cover22_cat.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Docker与NAT",
+  "url": "https://aucept.in/2025/07/10/Docker%E4%B8%8ENAT/",
+  "image": "https://aucept.in/image/cover22_cat.jpg",
+  "datePublished": "2025-07-10T14:35:32.000Z",
+  "dateModified": "2025-07-10T14:38:24.536Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Auceptin.Fang",
+      "url": "https://aucept.in/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://aucept.in/2025/07/10/Docker%E4%B8%8ENAT/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Docker与NAT',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><style>
+  /* 数学公式美化样式 */
+  .MathJax_Display {
+    margin: 1.5em 0 !important;
+    text-align: center !important;
+  }
+  
+  .MathJax {
+    font-size: 1.1em !important;
+  }
+  
+  /* 行内公式样式 */
+  .MathJax_Preview {
+    color: inherit;
+  }
+  
+  /* 块级公式容器美化 */
+  .MathJax_Display {
+    background: rgba(0,0,0,0.02);
+    border-radius: 8px;
+    padding: 15px 20px;
+    margin: 20px 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-left: 4px solid #49b1f5;
+  }
+  
+  /* 暗色模式下的公式样式 */
+  [data-theme="dark"] .MathJax_Display {
+    background: rgba(255,255,255,0.05);
+    border-left-color: #1f2937;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  
+  /* 公式编号样式 */
+  .MathJax .mjx-math .mjx-mrow .mjx-mtable .mjx-label {
+    color: #666;
+    font-size: 0.9em;
+  }
+  
+  /* 提升公式清晰度 */
+  .MathJax svg {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+</style>
+<meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-color: #f5f5f5;"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/auceptin-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">19</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">21</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/friends/"><span> Friends</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/image/cover2_square.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Auceptin's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">Docker与NAT</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/friends/"><span> Friends</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">Docker与NAT</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-07-10T14:35:32.000Z" title="发表于 2025-07-10 22:35:32">2025-07-10</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-07-10T14:38:24.536Z" title="更新于 2025-07-10 22:38:24">2025-07-10</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%AD%A6%E4%B9%A0%E7%94%9F%E6%B4%BB/">学习生活</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>昨天在火山云上抢到了29/年的一台小云服务器，今天用它做一下重做一下内网穿透的实验，顺便系统学习一遍docker的使用方法</p>
+<p>实验说明：</p>
+<ul>
+<li>目标：借助云服务器完成内网穿透，学习docker的使用</li>
+<li>技术选择：frp与vaala的开源项目frp-panel</li>
+<li>参考资料：<a target="_blank" rel="noopener" href="https://vaala.cat/frp-panel/">frp-panel的文档</a> 与 <a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1THKyzBER6/?spm_id_from=333.337.search-card.all.click">B站上的docker入门教程</a></li>
+<li>环境说明：<code>Linux iv-ydzvaocdmobw80cjj4s4 5.15.120-5.ve2.x86_64 #1 SMP Fri Nov 15 10:09:38 UTC 2024 x86_64 x86_64 x86_64 GNU/Linux</code></li>
+</ul>
+<h2 id="Docker"><a href="#Docker" class="headerlink" title="Docker"></a>Docker</h2><h3 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h3><p><code>容器</code>：一个为特定应用程序封装的独立的运行环境，包含程序本体、依赖库和文件系统。相比于虚拟机没有操作系统部分。</p>
+<p><code>镜像</code>：容器的“安装包”，存在docker仓库以供分享，官方的仓库为dockerhub</p>
+<h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h3><p>Docker技术是基于Linux系统的，所以windows和Mac上需要特殊处理（运行一个linux子系统），centOS直接来即可</p>
+<p>第0步，更新：<code>sudo yum update</code></p>
+<p>然后，<code>curl -fsSL https://get.docker.com -o install-docker.sh</code></p>
+<p><code>sudo sh install-docker.sh</code></p>
+<h3 id="下载镜像"><a href="#下载镜像" class="headerlink" title="下载镜像"></a>下载镜像</h3><p>命令为docker pull XXX，后面的部分由三部分构成，<code>registry</code>类似于github的用户名 + 仓库名 + 镜像名:版本，默认最新</p>
+<p>国内连不上docker的官方网站，需要<del>翻墙</del>改docker的配置文件换镜像站：</p>
+<p><code>sudo vi /etc/docker/daemon.json</code>以超级用户权限用vi打开对应路径下的文件</p>
+<p>添加以下内容<br><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;registry-mirrors&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="string">&quot;https://docker.m.daocloud.io&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="string">&quot;https://docker.1panel.live&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="string">&quot;https://hub.rat.dev&quot;</span></span><br><span class="line">    <span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure></p>
+<p>输入<code>:wq!</code>退出，提示<code>E212: Can&#39;t open file for writing</code>，教程没提到的意外，似乎是权限问题，先退出<code>:q!</code>。经排查docker没有正确完成安装，重装一遍解决。</p>
+<p>然后重启<code>sudo service docker restart</code></p>
+<p>用nginx检验一下<code>docker pull nginx</code></p>
+<p><code>Status: Downloaded newer image for nginx:latest
+docker.io/library/nginx:latest</code>成功</p>
+<h3 id="基本命令"><a href="#基本命令" class="headerlink" title="基本命令"></a>基本命令</h3><p><code>sudo docker images</code>展示所有下载过的镜像</p>
+<p><code>sudo docker rmi XXX</code>remove image，删除一个镜像，填写仓库名或ID</p>
+<p><code>sudo docker run XXX</code>运行一个docker</p>
+<ul>
+<li>-d运行在后台</li>
+<li>-p port1:port2，绑定端口，前为宿主机端口，后为容器内端口</li>
+<li>-v 宿主机目录:容器内目录，绑定目录，建立一个映射</li>
+<li>-e 后面跟着键值对，传递环境变量</li>
+<li>—name 默认 自定义名字 ，给容器起名字，和ID作用相同</li>
+<li>—rm容器停止时删除</li>
+<li>-it让控制台进入容器内部</li>
+<li>—restart 设置停止时的策略，<ul>
+<li>always 停止就重启</li>
+<li>unless stopped 除非手动关闭否则自动重启（意外原因）</li>
+</ul>
+</li>
+</ul>
+<p><code>sudo docker ps</code> process status，查看运行中的容器进程状态,-a all，展示所有容器包括未运行的</p>
+<p><code>sudo docker rm XXX</code>删除一个容器</p>
+<ul>
+<li>-f force，强制删除</li>
+</ul>
+<p>执行docker run一个本地没有的镜像时，默认行为是去仓库pull，所以第一步拉取镜像可以省略</p>
+<p><code>sudo docker start XXX</code>启动一个容器</p>
+<p><code>sudo docker stop XXX</code>停止一个容器</p>
+<p><code>sudo docker inspect XXX</code> 获取容器的配置文件</p>
+<p><code>sudo docker create XXX</code> 只创建容器不运行，参数同docker run</p>
+<p><code>sudo docker logs XXX</code>查看日志，-f滚动查看日志</p>
+<h3 id="Dockerfile"><a href="#Dockerfile" class="headerlink" title="Dockerfile"></a>Dockerfile</h3><p>制作镜像的工具，即从一个本地运行的程序到一个镜像的指导文件</p>
+<p>FROM …… 镜像从哪个镜像基础上构建而来，继承的感觉</p>
+<p>WORKDIR 指定工作目录</p>
+<p>COPY . . 本机当前目录到容器当前工作目录</p>
+<p>RUN <command> 在镜像里执行的命令</p>
+<p>EXPOSE PORT 可不写，指定端口，优先级在运行容器时的-p 之后</p>
+<p>CMD …… 容器运行时的默认启动命令</p>
+<p>在命令行执行<code>docker build -t newName .</code>在当前目录构建镜像</p>
+<h3 id="推送到dockerhub"><a href="#推送到dockerhub" class="headerlink" title="推送到dockerhub"></a>推送到dockerhub</h3><p><code>docker login</code>登录</p>
+<p>docker push address推送，这一步需要镜像包含用户名作为命名空间</p>
+<h3 id="Docker网络"><a href="#Docker网络" class="headerlink" title="Docker网络"></a>Docker网络</h3><p>用于完成不同容器间的通信问题</p>
+<p><code>docker network create XXX</code>创建子网，同一子网之间可以互相通信，支持名称访问，也就是内置了一个小DNS</p>
+<p><code>docker network rm XXX</code>删除子网<br>容器在运行时加入— network netName 完成加入网络</p>
+<p>host模式，直接运行在宿主机的端口，和宿主机共享网络环境</p>
+<p>none模式，不联网</p>
+<h3 id="Docker-compose"><a href="#Docker-compose" class="headerlink" title="Docker compose"></a>Docker compose</h3><p>解决的问题是，对于一个全栈项目把所有组件都打包在一起耦合性过高不便于调试，出错了会比较麻烦，而解决的方法是分开运行在多个容器，而Docker Compose就是用来管理编排多个容器的工具</p>
+<p>用yaml文件统一管理配置，可以简单理解为把指令汇总到一个文件里，换一种记录格式。默认创建一个子网并把所有容器加入进去</p>
+<p><code>sudo docker compose up</code>创建这样一个docker集群，根据当前文件夹下的名为docker-compose.yaml的文件</p>
+<p><code>sudo docker compose down</code>停止并删除</p>
+<p><code>sudo docker compose stop</code>只停止不删除</p>
+<p><code>sudo docker compose start</code>让停止的运行</p>
+<p>K8s：可以简单理解为docker compose plus</p>
+<h2 id="Frp-Panel"><a href="#Frp-Panel" class="headerlink" title="Frp-Panel"></a>Frp-Panel</h2><p>vaala在文档里提供了多种部署方法，选择docker compose的方法，因为编辑内容方便……如果编辑器再方便一点的话</p>
+<p><code>vi docker-compose.yaml</code>然后按照文档换密码和公网IP，然后运行<code>docker compose up</code>，自动拉取镜像并运行</p>
+<p>开一下防火墙，浏览器访问IP:9000端口就可以进入到配置页面了，但是云服务器没有ssl证书，裸ip似乎是不能免费配，忽略吧</p>
+<p>先了解一下frp的基本原理：简单的说就是通过一台公网可访问的服务器做中转，让外部可以访问一个内网设备。需要在云服务器上部署frp服务端，在内网设备上部署frp客户端，主动连接服务端</p>
+<p>也就是说frp的配置是分开的，而frp-panel项目的目的是提供一个中心化的配置方案。设计架构是增加了一个管理server和client的master角色，管理者对master进行配置，而server和client在运行时都去master那里获取配置</p>
+<p>然后……接下来的配置教程呢？……待续吧</p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F/">内网穿透</a><a class="post-meta__tags" href="/tags/frp-panel/">frp-panel</a><a class="post-meta__tags" href="/tags/docker/">docker</a></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2025/07/09/%E4%BB%A3%E7%A0%81%E6%95%B4%E6%B4%81%E4%B9%8B%E9%81%93%EF%BC%9A%E7%A8%8B%E5%BA%8F%E5%91%98%E7%9A%84%E8%81%8C%E4%B8%9A%E7%B4%A0%E5%85%BB/" title="代码整洁之道：程序员的职业素养"><img class="cover" src="/image/cover21_blingbling.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">代码整洁之道：程序员的职业素养</div></div><div class="info-2"><div class="info-item-1">起因是读了浅评计算机专业的课程教育这篇文章，对于文章观点我不予评价，我还不配，但是文中推荐了一本书，即本文的标题，《代码整洁之道：程序员的职业素养》 书并不厚，内容也不硬核，读起来还是没有什么负担的 虽然名字如此，但这本书并不教导组织大型项目代码的技巧，而是一些别的东西，一些被称为“程序员的职业素养”的东西，读完给了我一个从未有过的视角，确实值得推荐，只是在尚未面临就业的当下还是稍有遥远 专业专业意味着负责，意味着不能容忍代码中的任何一个微小的bug，意味着不能因为偷懒放弃任何一个细节的测试。这也就引出了我平时编程不怎么注意的点——测试，大量的、涉及每个模块的、自动化的测试。 TDDTest-Driven-Develop，测试驱动开发：1.先写测试再写功能代码 2.只要不通过测试，就不要继续写代码...</div></div></div></a></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="giscus-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/auceptin-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Auceptin.Fang</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">19</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">21</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">welcome to my blog！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Docker"><span class="toc-number">1.</span> <span class="toc-text">Docker</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="toc-number">1.1.</span> <span class="toc-text">基本概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85"><span class="toc-number">1.2.</span> <span class="toc-text">安装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8B%E8%BD%BD%E9%95%9C%E5%83%8F"><span class="toc-number">1.3.</span> <span class="toc-text">下载镜像</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E5%91%BD%E4%BB%A4"><span class="toc-number">1.4.</span> <span class="toc-text">基本命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Dockerfile"><span class="toc-number">1.5.</span> <span class="toc-text">Dockerfile</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8E%A8%E9%80%81%E5%88%B0dockerhub"><span class="toc-number">1.6.</span> <span class="toc-text">推送到dockerhub</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Docker%E7%BD%91%E7%BB%9C"><span class="toc-number">1.7.</span> <span class="toc-text">Docker网络</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Docker-compose"><span class="toc-number">1.8.</span> <span class="toc-text">Docker compose</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Frp-Panel"><span class="toc-number">2.</span> <span class="toc-text">Frp-Panel</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2025/07/10/Docker%E4%B8%8ENAT/" title="Docker与NAT"><img src="/image/cover22_cat.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Docker与NAT"/></a><div class="content"><a class="title" href="/2025/07/10/Docker%E4%B8%8ENAT/" title="Docker与NAT">Docker与NAT</a><time datetime="2025-07-10T14:35:32.000Z" title="发表于 2025-07-10 22:35:32">2025-07-10</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/07/09/%E4%BB%A3%E7%A0%81%E6%95%B4%E6%B4%81%E4%B9%8B%E9%81%93%EF%BC%9A%E7%A8%8B%E5%BA%8F%E5%91%98%E7%9A%84%E8%81%8C%E4%B8%9A%E7%B4%A0%E5%85%BB/" title="代码整洁之道：程序员的职业素养"><img src="/image/cover21_blingbling.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="代码整洁之道：程序员的职业素养"/></a><div class="content"><a class="title" href="/2025/07/09/%E4%BB%A3%E7%A0%81%E6%95%B4%E6%B4%81%E4%B9%8B%E9%81%93%EF%BC%9A%E7%A8%8B%E5%BA%8F%E5%91%98%E7%9A%84%E8%81%8C%E4%B8%9A%E7%B4%A0%E5%85%BB/" title="代码整洁之道：程序员的职业素养">代码整洁之道：程序员的职业素养</a><time datetime="2025-07-09T15:09:11.000Z" title="发表于 2025-07-09 23:09:11">2025-07-09</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/07/09/%E5%A4%8D%E6%9D%822d%E6%B8%B8%E6%88%8F%E5%9C%B0%E5%9B%BE%E4%B8%8A%E7%9A%84%E8%87%AA%E5%8A%A8%E5%8C%96%E5%AF%BB%E8%B7%AF%E7%AE%97%E6%B3%95%E8%AE%BE%E8%AE%A1/" title="复杂2d游戏地图上的自动化寻路算法设计"><img src="/image/cover18_spirit.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="复杂2d游戏地图上的自动化寻路算法设计"/></a><div class="content"><a class="title" href="/2025/07/09/%E5%A4%8D%E6%9D%822d%E6%B8%B8%E6%88%8F%E5%9C%B0%E5%9B%BE%E4%B8%8A%E7%9A%84%E8%87%AA%E5%8A%A8%E5%8C%96%E5%AF%BB%E8%B7%AF%E7%AE%97%E6%B3%95%E8%AE%BE%E8%AE%A1/" title="复杂2d游戏地图上的自动化寻路算法设计">复杂2d游戏地图上的自动化寻路算法设计</a><time datetime="2025-07-09T13:19:28.000Z" title="发表于 2025-07-09 21:19:28">2025-07-09</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/07/06/%E8%BD%AC%E8%BD%BD-%E4%B8%80%E4%BA%9B%E8%AF%BB%E8%BF%87%E7%9A%84%E6%96%87%E7%AB%A0%E5%88%86%E4%BA%AB/" title="[转载]一些读过的文章分享"><img src="/image/cover20_joy.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="[转载]一些读过的文章分享"/></a><div class="content"><a class="title" href="/2025/07/06/%E8%BD%AC%E8%BD%BD-%E4%B8%80%E4%BA%9B%E8%AF%BB%E8%BF%87%E7%9A%84%E6%96%87%E7%AB%A0%E5%88%86%E4%BA%AB/" title="[转载]一些读过的文章分享">[转载]一些读过的文章分享</a><time datetime="2025-07-06T05:46:49.000Z" title="发表于 2025-07-06 13:46:49">2025-07-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/07/03/CSAPP3-70-3-75/" title="CSAPP3.70-3.75"><img src="/image/cover17_niji.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="CSAPP3.70-3.75"/></a><div class="content"><a class="title" href="/2025/07/03/CSAPP3-70-3-75/" title="CSAPP3.70-3.75">CSAPP3.70-3.75</a><time datetime="2025-07-03T06:11:00.000Z" title="发表于 2025-07-03 14:11:00">2025-07-03</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url(/img/foot.jpg);"><div id="footer-wrap"><div class="copyright">&copy;2025 By Auceptin.Fang</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const getGiscusTheme = theme => theme === 'dark' ? 'dark' : 'light'
+
+  const createScriptElement = config => {
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => {
+      ele.setAttribute(key, value)
+    })
+    return ele
+  }
+
+  const loadGiscus = (el = document, key) => {
+    const mappingConfig = isShuoshuo
+      ? { 'data-mapping': 'specific', 'data-term': key }
+      : { 'data-mapping': (option && option['data-mapping']) || 'pathname' }
+
+    const giscusConfig = {
+      src: 'https://giscus.app/client.js',
+      'data-repo': 'AuceptinFang/blog',
+      'data-repo-id': 'R_kgDOO_UAjA',
+      'data-category-id': 'DIC_kwDOO_UAjM4Cr3mL',
+      'data-theme': getGiscusTheme(document.documentElement.getAttribute('data-theme')),
+      'data-reactions-enabled': '1',
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      ...mappingConfig
+    }
+
+    const scriptElement = createScriptElement(giscusConfig)
+
+    el.querySelector('#giscus-wrap').appendChild(scriptElement)
+
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGiscus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+  }
+
+  const changeGiscusTheme = theme => {
+    const iframe = document.querySelector('#giscus-wrap iframe')
+    if (iframe) {
+      const message = {
+        giscus: {
+          setConfig: {
+            theme: getGiscusTheme(theme)
+          }
+        }
+      }
+      iframe.contentWindow.postMessage(message, 'https://giscus.app')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeGiscusTheme, 'giscus')
+
+  if (isShuoshuo) {
+    'Giscus' === 'Giscus'
+      ? window.shuoshuoComment = { loadComment: loadGiscus }
+      : window.loadOtherComment = loadGiscus
+    return
+  }
+
+  if ('Giscus' === 'Giscus' || !false) {
+    if (false) btf.loadComment(document.getElementById('giscus-wrap'), loadGiscus)
+    else loadGiscus()
+  } else {
+    window.loadOtherComment = loadGiscus
+  }
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
