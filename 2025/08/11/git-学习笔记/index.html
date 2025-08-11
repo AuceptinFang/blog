@@ -1,0 +1,324 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>git 学习笔记 | Auceptin's Blog</title><meta name="author" content="Auceptin.Fang"><meta name="copyright" content="Auceptin.Fang"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="内容来源：  书名：Git从入门到精通 作者：高见龙 出版社：北京大学出版社前言设置用户信息git config --global user.name &quot;Auceptin&quot;  git config --global user.email &quot;me@aucept.in&quot;  git config --list可以查看当前设置 如果想为某个项目设定单独的作者，把gl">
+<meta property="og:type" content="article">
+<meta property="og:title" content="git 学习笔记">
+<meta property="og:url" content="https://aucept.in/2025/08/11/git-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="Auceptin&#39;s Blog">
+<meta property="og:description" content="内容来源：  书名：Git从入门到精通 作者：高见龙 出版社：北京大学出版社前言设置用户信息git config --global user.name &quot;Auceptin&quot;  git config --global user.email &quot;me@aucept.in&quot;  git config --list可以查看当前设置 如果想为某个项目设定单独的作者，把gl">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://aucept.in/image/cover28_she.jpg">
+<meta property="article:published_time" content="2025-08-11T13:16:09.000Z">
+<meta property="article:modified_time" content="2025-08-11T15:40:06.842Z">
+<meta property="article:author" content="Auceptin.Fang">
+<meta property="article:tag" content="git">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://aucept.in/image/cover28_she.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "git 学习笔记",
+  "url": "https://aucept.in/2025/08/11/git-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/",
+  "image": "https://aucept.in/image/cover28_she.jpg",
+  "datePublished": "2025-08-11T13:16:09.000Z",
+  "dateModified": "2025-08-11T15:40:06.842Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Auceptin.Fang",
+      "url": "https://aucept.in/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://aucept.in/2025/08/11/git-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'git 学习笔记',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><style>
+  /* 数学公式美化样式 */
+  .MathJax_Display {
+    margin: 1.5em 0 !important;
+    text-align: center !important;
+  }
+  
+  .MathJax {
+    font-size: 1.1em !important;
+  }
+  
+  /* 行内公式样式 */
+  .MathJax_Preview {
+    color: inherit;
+  }
+  
+  /* 块级公式容器美化 */
+  .MathJax_Display {
+    background: rgba(0,0,0,0.02);
+    border-radius: 8px;
+    padding: 15px 20px;
+    margin: 20px 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-left: 4px solid #49b1f5;
+  }
+  
+  /* 暗色模式下的公式样式 */
+  [data-theme="dark"] .MathJax_Display {
+    background: rgba(255,255,255,0.05);
+    border-left-color: #1f2937;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  
+  /* 公式编号样式 */
+  .MathJax .mjx-math .mjx-mrow .mjx-mtable .mjx-label {
+    color: #666;
+    font-size: 0.9em;
+  }
+  
+  /* 提升公式清晰度 */
+  .MathJax svg {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+</style>
+<meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-color: #f5f5f5;"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/auceptin-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">24</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">23</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/friends/"><span> Friends</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/image/cover2_square.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Auceptin's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">git 学习笔记</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/friends/"><span> Friends</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">git 学习笔记</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-08-11T13:16:09.000Z" title="发表于 2025-08-11 21:16:09">2025-08-11</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-08-11T15:40:06.842Z" title="更新于 2025-08-11 23:40:06">2025-08-11</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%AD%A6%E4%B9%A0%E7%94%9F%E6%B4%BB/">学习生活</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>内容来源：</p>
+<ul>
+<li>书名：Git从入门到精通</li>
+<li>作者：高见龙</li>
+<li>出版社：北京大学出版社<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><h3 id="设置用户信息"><a href="#设置用户信息" class="headerlink" title="设置用户信息"></a>设置用户信息</h3><code>git config --global user.name &quot;Auceptin&quot;</code></li>
+</ul>
+<p><code>git config --global user.email &quot;me@aucept.in&quot;</code> </p>
+<p><code>git config --list</code>可以查看当前设置</p>
+<p>如果想为某个项目设定单独的作者，把global参数换成local</p>
+<h3 id="设置别名（缩写）"><a href="#设置别名（缩写）" class="headerlink" title="设置别名（缩写）"></a>设置别名（缩写）</h3><p><code>git config --global alias.co checkout</code>这样就可以让co等同于checkout</p>
+<p>也可以直接去/.gitconfig文件里改</p>
+<h2 id="主要功能"><a href="#主要功能" class="headerlink" title="主要功能"></a>主要功能</h2><h3 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h3><p><code>git init</code>在项目目录里执行，初始化git，生成一个隐藏的./git文件夹，里面有git生效的全部信息</p>
+<h3 id="获取状态"><a href="#获取状态" class="headerlink" title="获取状态"></a>获取状态</h3><p><code>git status</code>拿手头的项目试一下：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"> D:\steam\steamapps\common\Noita\mods\Noita_Kirous&gt; git status</span><br><span class="line">On branch master</span><br><span class="line">Your branch is up to <span class="built_in">date</span> with <span class="string">&#x27;origin/master&#x27;</span>.</span><br><span class="line"></span><br><span class="line">Changes not staged <span class="keyword">for</span> commit:</span><br><span class="line">  (use <span class="string">&quot;git add &lt;file&gt;...&quot;</span> to update what will be committed)</span><br><span class="line">  (use <span class="string">&quot;git restore &lt;file&gt;...&quot;</span> to discard changes <span class="keyword">in</span> working directory)</span><br><span class="line">        modified:   files/enemy/animal_maggot_tiny_mode/endless/level_endless/death.lua                                                                                                </span><br><span class="line"></span><br><span class="line">no changes added to commit (use <span class="string">&quot;git add&quot;</span> and/or <span class="string">&quot;git commit -a&quot;</span>)</span><br></pre></td></tr></table></figure><br>当前所在分支，版本状态和未提交的修改内容</p>
+<h3 id="提交"><a href="#提交" class="headerlink" title="提交"></a>提交</h3><p>一切修改都在工作目录里完成，而完成提交需要先转移到暂存区，再转移到存储库中。</p>
+<p>注意：Git在计算、产生对象时，是根据“文件的内容”进行计算的，所以只是新增一个目录的话，Git是无法处理它的。</p>
+<p>将修改的文件加入暂存区：</p>
+<p><code>git add filename.md</code>，支持通配符<code>git add *.md</code>，或者<code>git add .</code>把当前目录下的所有加进暂存区，或者<code>git add --all</code>，把整个项目文件都加进去</p>
+<p>提交到存储库：</p>
+<p><code>git commit -m &quot;改动描述&quot;</code>改动描述默认是必须的，否则需要<code>--allow-empty</code>参数</p>
+<p>合并add和commit可以<code>git commit -a -m &quot;update content&quot;</code>，增加一个-a参数，但是只适用于存储库中已有文件的修改，对新加入的文件无效</p>
+<h3 id="查看历史"><a href="#查看历史" class="headerlink" title="查看历史"></a>查看历史</h3><p>git会保留一个项目的历史信息，从github上pull下来后也默认有这些信息</p>
+<p><code>git log</code>查看每一次提交的信息，这一环节是推荐用图形化界面看的，因为清晰。大部分IDE都有集成git图形化的功能</p>
+<p>筛选某个作者的提交<code>git log --oneline --author=&quot;Sherly&quot;</code>可以使用<code>|</code>或符号，但是需要加上转义，像这样<code>git log --oneline --author=&quot;Sherly\|Eddie&quot;</code></p>
+<p>筛选提交描述词<code>git log --oneline --grep=&quot;LOL&quot;</code></p>
+<p>按时间筛选<code>git log --oneline --since=&quot;9am&quot; --until=&quot;12am&quot; --after=&quot;2017-01&quot;</code></p>
+<p>查看单独一个文件<code>git log welcome.html</code></p>
+<h3 id="删除文件"><a href="#删除文件" class="headerlink" title="删除文件"></a>删除文件</h3><p>方案一是删除文件后把该文件提交到暂存区，两个步骤，也可以用<code>git rm filename</code></p>
+<p>以上工作目录里对应文件也会一并删掉，如果只想从暂存区里删掉，不动工作目录<code>git rm welcome --cached</code>用—cached参数</p>
+<h3 id="改文件名"><a href="#改文件名" class="headerlink" title="改文件名"></a>改文件名</h3><p>直观的方式仍然是在工作目录直接改名再提交，本质是删一个文件再加一个文件，也可以用<code>git mv hello.html world.html</code>把hello.html改成world.html</p>
+<p><strong>文件的名称不重要</strong>，Git是根据文件的“内容”来计算SHA-1的值，所以文件的名称不重要，重要的是文件的内容。当更改文件名时，Git并不会为此做出一个新的Blob对象，而只是指向原来的那个Blob对象。但因为文件名变了，所以Git会为此做出一个新的Tree对象</p>
+<h3 id="修改commit描述内容"><a href="#修改commit描述内容" class="headerlink" title="修改commit描述内容"></a>修改commit描述内容</h3><p><code>git commit --amend -m &quot;Something_overwrite&quot;</code></p>
+<h3 id="追加一点修改到上一次commit"><a href="#追加一点修改到上一次commit" class="headerlink" title="追加一点修改到上一次commit"></a>追加一点修改到上一次commit</h3><p>如果不想为了一点微小的改动增加一次commit，比如修改了一下a.c文件，就可以先把它加到暂存区，再<code>git commit --amend --no-edit</code></p>
+<h3 id="gitignore"><a href="#gitignore" class="headerlink" title="gitignore"></a>gitignore</h3><p>某些文件不想提交上去，用此文件标记：<br><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># 忽略secret.yml文件</span><br><span class="line">secret.yml</span><br><span class="line"># 忽略config目录下的database.yml文件</span><br><span class="line">config/database.yml</span><br><span class="line"># 忽略db目录下所有后缀是 .sqlite3的文件</span><br><span class="line">/db/*.sqlite3</span><br><span class="line"># 忽略所有后缀是 .tmp的文件</span><br><span class="line">*.tmp</span><br><span class="line"># 如果想要忽略.gitignore这个文件也可以，只是通常不会这么做</span><br><span class="line"># .gitignore</span><br></pre></td></tr></table></figure><br><code>git add -f 文件名称</code>中，f应该是force，要高过gitignore文件的效果</p>
+<p>对创建前已经存在于暂存区的文件无效，需要用<code>git rm --cached</code>清出去</p>
+<h3 id="出bug后的清算时间"><a href="#出bug后的清算时间" class="headerlink" title="出bug后的清算时间"></a>出bug后的清算时间</h3><p><code>git blame filename</code>可以看到每行代码最后修改于谁、哪次提交</p>
+<h3 id="挽回"><a href="#挽回" class="headerlink" title="挽回"></a>挽回</h3><p><code>git checkout cinderella.html</code>将指定文件恢复回来，同样可以使用通配符：<code>git checkout .</code></p>
+<p><code>git reset XXX</code>回退到XXX次提交，这个细节比较多</p>
+<p>首先需要理解<code>HEAD</code>，它像一个指向分支的指针，一个提交历史可能像这样：<br><code>A-&gt;B-&gt;C</code>HEAD默认就指向C，表示接下来的修改接续在C后面</p>
+<p>依据切换时是否舍弃工作目录、暂存区，reset分为三种模式，<code>git reset --soft</code>保留工作目录和暂存区的修改<code>git reset --mixed</code>，舍弃暂存区，保留工作目录（默认）和<code>git reset --haed</code>，丢弃所有未提交的改动</p>
+<p><code>git reset HEAD^</code>中<code>^</code>表示前一次，这条指令的含义就是reset到前一次提交，这是相对定位，或者<code>git reset 85e7e30</code></p>
+<p>commit不会因为reset消失，但会无法通过log查看，可以通过reflog获取一些信息<code>git reflog</code>展示HEAD移动信息</p>
+<h3 id="SHA-1"><a href="#SHA-1" class="headerlink" title="SHA-1"></a>SHA-1</h3><p>SHA-1（Secure Hash Algorithm 1）是一种杂凑算法，计算之后的结果通常会以40个十六进制的数字形式呈现。该算法的特点之一，就是只要输入一样的值，就会有一样的输出值；反之，如果输入不同的值，就会有不同的输出值。Git中所有对象的编号都是靠这种算法产生的。</p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/git/">git</a></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2025/08/05/%E9%BE%9F%E5%85%94%E8%B5%9B%E8%B7%91/" title="睡前故事：龟兔赛跑"><img class="cover" src="/image/cover27_chinapunk.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">睡前故事：龟兔赛跑</div></div><div class="info-2"><div class="info-item-1">...</div></div></div></a></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="giscus-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/auceptin-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Auceptin.Fang</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">24</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">23</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">welcome to my blog！</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%BE%E7%BD%AE%E7%94%A8%E6%88%B7%E4%BF%A1%E6%81%AF"><span class="toc-number">1.1.</span> <span class="toc-text">设置用户信息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%AE%BE%E7%BD%AE%E5%88%AB%E5%90%8D%EF%BC%88%E7%BC%A9%E5%86%99%EF%BC%89"><span class="toc-number">1.2.</span> <span class="toc-text">设置别名（缩写）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BB%E8%A6%81%E5%8A%9F%E8%83%BD"><span class="toc-number">2.</span> <span class="toc-text">主要功能</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toc-number">2.1.</span> <span class="toc-text">初始化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%8E%B7%E5%8F%96%E7%8A%B6%E6%80%81"><span class="toc-number">2.2.</span> <span class="toc-text">获取状态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8F%90%E4%BA%A4"><span class="toc-number">2.3.</span> <span class="toc-text">提交</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9F%A5%E7%9C%8B%E5%8E%86%E5%8F%B2"><span class="toc-number">2.4.</span> <span class="toc-text">查看历史</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%A0%E9%99%A4%E6%96%87%E4%BB%B6"><span class="toc-number">2.5.</span> <span class="toc-text">删除文件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%94%B9%E6%96%87%E4%BB%B6%E5%90%8D"><span class="toc-number">2.6.</span> <span class="toc-text">改文件名</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BF%AE%E6%94%B9commit%E6%8F%8F%E8%BF%B0%E5%86%85%E5%AE%B9"><span class="toc-number">2.7.</span> <span class="toc-text">修改commit描述内容</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%BD%E5%8A%A0%E4%B8%80%E7%82%B9%E4%BF%AE%E6%94%B9%E5%88%B0%E4%B8%8A%E4%B8%80%E6%AC%A1commit"><span class="toc-number">2.8.</span> <span class="toc-text">追加一点修改到上一次commit</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#gitignore"><span class="toc-number">2.9.</span> <span class="toc-text">gitignore</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%87%BAbug%E5%90%8E%E7%9A%84%E6%B8%85%E7%AE%97%E6%97%B6%E9%97%B4"><span class="toc-number">2.10.</span> <span class="toc-text">出bug后的清算时间</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8C%BD%E5%9B%9E"><span class="toc-number">2.11.</span> <span class="toc-text">挽回</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#SHA-1"><span class="toc-number">2.12.</span> <span class="toc-text">SHA-1</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2025/08/11/git-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" title="git 学习笔记"><img src="/image/cover28_she.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="git 学习笔记"/></a><div class="content"><a class="title" href="/2025/08/11/git-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" title="git 学习笔记">git 学习笔记</a><time datetime="2025-08-11T13:16:09.000Z" title="发表于 2025-08-11 21:16:09">2025-08-11</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/08/05/%E9%BE%9F%E5%85%94%E8%B5%9B%E8%B7%91/" title="睡前故事：龟兔赛跑"><img src="/image/cover27_chinapunk.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="睡前故事：龟兔赛跑"/></a><div class="content"><a class="title" href="/2025/08/05/%E9%BE%9F%E5%85%94%E8%B5%9B%E8%B7%91/" title="睡前故事：龟兔赛跑">睡前故事：龟兔赛跑</a><time datetime="2025-08-05T14:21:57.000Z" title="发表于 2025-08-05 22:21:57">2025-08-05</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/07/29/noita-api/" title="noita_api"><img src="/image/cover25_sunshine.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="noita_api"/></a><div class="content"><a class="title" href="/2025/07/29/noita-api/" title="noita_api">noita_api</a><time datetime="2025-07-29T09:00:00.000Z" title="发表于 2025-07-29 17:00:00">2025-07-29</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/07/28/CSAPP-%E7%AC%AC%E5%9B%9B%E7%AB%A0/" title="CSAPP-第四章"><img src="/image/cover24_joy.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="CSAPP-第四章"/></a><div class="content"><a class="title" href="/2025/07/28/CSAPP-%E7%AC%AC%E5%9B%9B%E7%AB%A0/" title="CSAPP-第四章">CSAPP-第四章</a><time datetime="2025-07-28T04:50:13.000Z" title="发表于 2025-07-28 12:50:13">2025-07-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/07/11/OSTEP-%E7%AC%AC%E5%8D%81%E4%B9%9D%E7%AB%A0/" title="OSTEP-第十九章"><img src="/image/cover23_music.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="OSTEP-第十九章"/></a><div class="content"><a class="title" href="/2025/07/11/OSTEP-%E7%AC%AC%E5%8D%81%E4%B9%9D%E7%AB%A0/" title="OSTEP-第十九章">OSTEP-第十九章</a><time datetime="2025-07-11T00:55:59.000Z" title="发表于 2025-07-11 08:55:59">2025-07-11</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url(/img/foot.jpg);"><div id="footer-wrap"><div class="copyright">&copy;2025 By Auceptin.Fang</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const getGiscusTheme = theme => theme === 'dark' ? 'dark' : 'light'
+
+  const createScriptElement = config => {
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => {
+      ele.setAttribute(key, value)
+    })
+    return ele
+  }
+
+  const loadGiscus = (el = document, key) => {
+    const mappingConfig = isShuoshuo
+      ? { 'data-mapping': 'specific', 'data-term': key }
+      : { 'data-mapping': (option && option['data-mapping']) || 'pathname' }
+
+    const giscusConfig = {
+      src: 'https://giscus.app/client.js',
+      'data-repo': 'AuceptinFang/blog',
+      'data-repo-id': 'R_kgDOO_UAjA',
+      'data-category-id': 'DIC_kwDOO_UAjM4Cr3mL',
+      'data-theme': getGiscusTheme(document.documentElement.getAttribute('data-theme')),
+      'data-reactions-enabled': '1',
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      ...mappingConfig
+    }
+
+    const scriptElement = createScriptElement(giscusConfig)
+
+    el.querySelector('#giscus-wrap').appendChild(scriptElement)
+
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGiscus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+  }
+
+  const changeGiscusTheme = theme => {
+    const iframe = document.querySelector('#giscus-wrap iframe')
+    if (iframe) {
+      const message = {
+        giscus: {
+          setConfig: {
+            theme: getGiscusTheme(theme)
+          }
+        }
+      }
+      iframe.contentWindow.postMessage(message, 'https://giscus.app')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeGiscusTheme, 'giscus')
+
+  if (isShuoshuo) {
+    'Giscus' === 'Giscus'
+      ? window.shuoshuoComment = { loadComment: loadGiscus }
+      : window.loadOtherComment = loadGiscus
+    return
+  }
+
+  if ('Giscus' === 'Giscus' || !false) {
+    if (false) btf.loadComment(document.getElementById('giscus-wrap'), loadGiscus)
+    else loadGiscus()
+  } else {
+    window.loadOtherComment = loadGiscus
+  }
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
