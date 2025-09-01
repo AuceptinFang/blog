@@ -1,0 +1,296 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>手搓一个链表 | Auceptin's Blog</title><meta name="author" content="Auceptin.Fang"><meta name="copyright" content="Auceptin.Fang"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="已经学习rust一周了，是时候尝试一下链表了 按照TDD的规范，先写第一个测试：12345678910&#x2F;&#x2F;lib.rs#[cfg(test)]mod tests &#123;    use super::*;    #[test]    fn test_list_new()&#123;        let list : List &lt;i32&gt; &#x3D; List::new();">
+<meta property="og:type" content="article">
+<meta property="og:title" content="手搓一个链表">
+<meta property="og:url" content="https://aucept.in/2025/08/31/%E6%89%8B%E6%90%93%E4%B8%80%E4%B8%AA%E9%93%BE%E8%A1%A8/index.html">
+<meta property="og:site_name" content="Auceptin&#39;s Blog">
+<meta property="og:description" content="已经学习rust一周了，是时候尝试一下链表了 按照TDD的规范，先写第一个测试：12345678910&#x2F;&#x2F;lib.rs#[cfg(test)]mod tests &#123;    use super::*;    #[test]    fn test_list_new()&#123;        let list : List &lt;i32&gt; &#x3D; List::new();">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://aucept.in/image/cover30_knight.png">
+<meta property="article:published_time" content="2025-08-31T05:40:11.000Z">
+<meta property="article:modified_time" content="2025-09-01T08:02:50.442Z">
+<meta property="article:author" content="Auceptin.Fang">
+<meta property="article:tag" content="rust">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://aucept.in/image/cover30_knight.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "手搓一个链表",
+  "url": "https://aucept.in/2025/08/31/%E6%89%8B%E6%90%93%E4%B8%80%E4%B8%AA%E9%93%BE%E8%A1%A8/",
+  "image": "https://aucept.in/image/cover30_knight.png",
+  "datePublished": "2025-08-31T05:40:11.000Z",
+  "dateModified": "2025-09-01T08:02:50.442Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Auceptin.Fang",
+      "url": "https://aucept.in/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://aucept.in/2025/08/31/%E6%89%8B%E6%90%93%E4%B8%80%E4%B8%AA%E9%93%BE%E8%A1%A8/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '手搓一个链表',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><style>
+  /* 数学公式美化样式 */
+  .MathJax_Display {
+    margin: 1.5em 0 !important;
+    text-align: center !important;
+  }
+  
+  .MathJax {
+    font-size: 1.1em !important;
+  }
+  
+  /* 行内公式样式 */
+  .MathJax_Preview {
+    color: inherit;
+  }
+  
+  /* 块级公式容器美化 */
+  .MathJax_Display {
+    background: rgba(0,0,0,0.02);
+    border-radius: 8px;
+    padding: 15px 20px;
+    margin: 20px 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-left: 4px solid #49b1f5;
+  }
+  
+  /* 暗色模式下的公式样式 */
+  [data-theme="dark"] .MathJax_Display {
+    background: rgba(255,255,255,0.05);
+    border-left-color: #1f2937;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  
+  /* 公式编号样式 */
+  .MathJax .mjx-math .mjx-mrow .mjx-mtable .mjx-label {
+    color: #666;
+    font-size: 0.9em;
+  }
+  
+  /* 提升公式清晰度 */
+  .MathJax svg {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+</style>
+<meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-color: #f5f5f5;"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/auceptin-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">26</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">24</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/friends/"><span> Friends</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/image/cover2_square.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Auceptin's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">手搓一个链表</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/friends/"><span> Friends</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">手搓一个链表</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-08-31T05:40:11.000Z" title="发表于 2025-08-31 13:40:11">2025-08-31</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-09-01T08:02:50.442Z" title="更新于 2025-09-01 16:02:50">2025-09-01</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84rust%E4%B9%8B%E6%97%85/">从0开始的rust之旅</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>已经学习rust一周了，是时候尝试一下链表了</p>
+<p>按照TDD的规范，先写第一个测试：<br><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//lib.rs</span></span><br><span class="line"><span class="meta">#[cfg(test)]</span></span><br><span class="line"><span class="keyword">mod</span> tests &#123;</span><br><span class="line">    <span class="keyword">use</span> super::*;</span><br><span class="line">    <span class="meta">#[test]</span></span><br><span class="line">    <span class="keyword">fn</span> <span class="title function_">test_list_new</span>()&#123;</span><br><span class="line">        <span class="keyword">let</span> <span class="variable">list</span> : List &lt;<span class="type">i32</span>&gt; = List::<span class="title function_ invoke__">new</span>();</span><br><span class="line">        <span class="built_in">assert!</span>(list.<span class="title function_ invoke__">isempty</span>())</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>第一个细节是 <code>use super::*</code>，rust项目在一个crate里的组织是以mod为单元的，也就是说虽然tests模块写在了lib.rs，它和直接写在lib.rs里的函数仍然是分离的。<code>use super::*</code>表示把父模块的全部方法引入进当前模块</p>
+<p>接下来定义List结构体，完成new和isempty方法<br><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//lib.rs</span></span><br><span class="line"><span class="keyword">pub</span> <span class="keyword">struct</span> <span class="title class_">List</span> &lt;T&gt;&#123;</span><br><span class="line">    head : <span class="type">Option</span>&lt;<span class="type">Box</span>&lt;Node&lt;T&gt;&gt;&gt;,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">impl</span>&lt;T&gt; List&lt;T&gt;&#123;</span><br><span class="line">    <span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">new</span>() <span class="punctuation">-&gt;</span> List&lt;T&gt;&#123;</span><br><span class="line">        List&#123;head : <span class="literal">None</span>,&#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">isempty</span>(&amp;<span class="keyword">self</span>) <span class="punctuation">-&gt;</span> <span class="type">bool</span>&#123;</span><br><span class="line">        <span class="keyword">self</span>.head.<span class="title function_ invoke__">is_none</span>()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br><code>Option&lt;Box&lt;Node&lt;T&gt;&gt;&gt;</code>，好冗长的东西。head应该是一个指向链表首地址的指针，而链表的本体要放在堆上。Box用来封装到堆上，类型是，元素为T类型的节点<br><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">type</span> <span class="title class_">Link</span> &lt;T&gt; = <span class="type">Option</span>&lt;<span class="type">Box</span>&lt;Node&lt;T&gt; &gt;&gt;;</span><br></pre></td></tr></table></figure></p>
+<p>所以补充这一行简化代码</p>
+<p>另一个细节是<code>impl&lt;T&gt; List&lt;T&gt;</code>这里有两个&lt; T>，第一个是声明这里要用到一个泛型模板T，第二个则是跟着每个List出现的类型说明</p>
+<p>该写下一个测试了，关于pop和push方法，仅在头部进出元素：<br><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*other tests*/</span></span><br><span class="line">    <span class="meta">#[test]</span></span><br><span class="line">    <span class="keyword">fn</span> <span class="title function_">test_list_push_and_pop</span>()&#123;</span><br><span class="line">        <span class="keyword">let</span> <span class="keyword">mut </span><span class="variable">list</span> : List &lt;<span class="type">i32</span>&gt; = List::<span class="title function_ invoke__">new</span>();</span><br><span class="line">        list.<span class="title function_ invoke__">push</span>(<span class="number">3</span>);</span><br><span class="line">        list.<span class="title function_ invoke__">push</span>(<span class="number">336699</span>);</span><br><span class="line">        <span class="built_in">assert_eq!</span>(list.<span class="title function_ invoke__">pop</span>(),<span class="title function_ invoke__">Some</span>(<span class="number">336699</span>));</span><br><span class="line">        <span class="built_in">assert_eq!</span>(list.<span class="title function_ invoke__">pop</span>(),<span class="title function_ invoke__">Some</span>(<span class="number">3</span>));</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure><br>如下：<br><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*existing code*/</span></span><br><span class="line">    <span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">push</span>(&amp;<span class="keyword">mut</span> <span class="keyword">self</span>,val : T) &#123;</span><br><span class="line">        <span class="keyword">let</span> <span class="variable">new_node</span> = Node&#123;val : val,next : <span class="keyword">self</span>.head.<span class="title function_ invoke__">take</span>()&#125;;</span><br><span class="line">        <span class="keyword">self</span>.head = <span class="title function_ invoke__">Some</span>(<span class="type">Box</span>::<span class="title function_ invoke__">new</span>(new_node));</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">pop</span>(&amp;<span class="keyword">mut</span> <span class="keyword">self</span>) <span class="punctuation">-&gt;</span> <span class="type">Option</span>&lt;T&gt;&#123;</span><br><span class="line">        <span class="keyword">self</span>.head.<span class="title function_ invoke__">take</span>().<span class="title function_ invoke__">map</span>(|node| &#123;</span><br><span class="line">            <span class="keyword">self</span>.head = node.next;</span><br><span class="line">            node.val</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure><br>Option类型的take方法，可以把其中的值取出来。map方法，对取出来的值进行一个闭包形式的操作。这里take出来一个作为参数node，给self重新赋值</p>
+<p>以上逻辑看着很理所当然，实际上却没有那么简单。试想如果写成:<br><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">pop</span>(&amp;<span class="keyword">mut</span> <span class="keyword">self</span>) <span class="punctuation">-&gt;</span> <span class="type">Option</span>&lt;T&gt; &#123;</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">let</span> <span class="variable">Some</span>(node) = <span class="keyword">self</span>.head &#123;</span><br><span class="line">        <span class="keyword">self</span>.head = node.next;</span><br><span class="line">        <span class="title function_ invoke__">Some</span>(node.val)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="literal">None</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>编译器就会提醒self是不可移动的，因为<code>let Some(node) = self.head</code>涉及所有权的转移，而take方法在把值转移出去之后会补充一个None以避免安全问题。</p>
+<p>那么，下一个测试要实现peek函数功能，返回头节点的引用：<br><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#[test]</span></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">test_peek</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="keyword">mut </span><span class="variable">list</span> = List::<span class="title function_ invoke__">new</span>();</span><br><span class="line">    <span class="built_in">assert_eq!</span>(list.<span class="title function_ invoke__">peek</span>(), <span class="literal">None</span>);</span><br><span class="line"></span><br><span class="line">    list.<span class="title function_ invoke__">push</span>(<span class="number">42</span>);</span><br><span class="line">    <span class="built_in">assert_eq!</span>(list.<span class="title function_ invoke__">peek</span>(), <span class="title function_ invoke__">Some</span>(&amp;<span class="number">42</span>));</span><br><span class="line"></span><br><span class="line">    list.<span class="title function_ invoke__">push</span>(<span class="number">100</span>);</span><br><span class="line">    <span class="built_in">assert_eq!</span>(list.<span class="title function_ invoke__">peek</span>(), <span class="title function_ invoke__">Some</span>(&amp;<span class="number">100</span>)); </span><br><span class="line">    <span class="built_in">assert_eq!</span>(list.<span class="title function_ invoke__">pop</span>(), <span class="title function_ invoke__">Some</span>(<span class="number">100</span>));</span><br><span class="line">    <span class="built_in">assert_eq!</span>(list.<span class="title function_ invoke__">peek</span>(), <span class="title function_ invoke__">Some</span>(&amp;<span class="number">42</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">peek</span>(&amp;<span class="keyword">mut</span> <span class="keyword">self</span>) <span class="punctuation">-&gt;</span> <span class="type">Option</span>&lt;&amp;T&gt;&#123;</span><br><span class="line">    <span class="keyword">self</span>.head.<span class="title function_ invoke__">as_ref</span>().<span class="title function_ invoke__">map</span>(|node| &#123;</span><br><span class="line">        &amp;node.val</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br><code>as_ref()</code>方法是必须的，因为函数返回了一个内部的引用，这可太危险了，参数出了函数就没了，而引用（指针）还在。</p>
+<p>接下来是迭代器，rust中分为三种，移交所有权的，借用型的和可变借用型的。</p>
+<p>首先实现转移所有权的into版本，还是先写测试：<br><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#[test]</span></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">test_into_iter</span>()&#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="keyword">mut </span><span class="variable">list</span> = List::<span class="title function_ invoke__">new</span>();</span><br><span class="line">    list.<span class="title function_ invoke__">push</span>(<span class="number">3</span>);</span><br><span class="line">    list.<span class="title function_ invoke__">push</span>(<span class="number">2</span>);</span><br><span class="line">    list.<span class="title function_ invoke__">push</span>(<span class="number">1</span>);</span><br><span class="line">    <span class="keyword">let</span> <span class="keyword">mut </span><span class="variable">iter</span> = list.<span class="title function_ invoke__">into_iter</span>();</span><br><span class="line">    <span class="built_in">assert_eq!</span>(iter.<span class="title function_ invoke__">next</span>(), <span class="title function_ invoke__">Some</span>(<span class="number">1</span>));</span><br><span class="line">    <span class="built_in">assert_eq!</span>(iter.<span class="title function_ invoke__">next</span>(), <span class="title function_ invoke__">Some</span>(<span class="number">2</span>));</span><br><span class="line">    <span class="built_in">assert_eq!</span>(iter.<span class="title function_ invoke__">next</span>(), <span class="title function_ invoke__">Some</span>(<span class="number">3</span>));</span><br><span class="line">    <span class="built_in">assert_eq!</span>(iter.<span class="title function_ invoke__">next</span>(), <span class="literal">None</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>取出来的是数值，接下来要实现的有：一个迭代器结构体IntoIter，迭代器特征，以及List结构体的构造迭代器的方法<br><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/*……*/</span></span><br><span class="line"><span class="keyword">pub</span> <span class="keyword">struct</span> <span class="title class_">IntoIter</span>&lt;T&gt;(List&lt;T&gt;);</span><br><span class="line"><span class="comment">/*……*/</span></span><br><span class="line">    <span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">into_iter</span>(<span class="keyword">self</span>) <span class="punctuation">-&gt;</span> IntoIter&lt;T&gt;&#123;</span><br><span class="line">        <span class="title function_ invoke__">IntoIter</span>(<span class="keyword">self</span>)</span><br><span class="line">    &#125;</span><br><span class="line"><span class="comment">/*……*/</span></span><br><span class="line"><span class="keyword">impl</span>&lt;T&gt; <span class="built_in">Iterator</span> <span class="keyword">for</span> <span class="title class_">IntoIter</span>&lt;T&gt;&#123;</span><br><span class="line">    <span class="keyword">type</span> <span class="title class_">Item</span> = T;</span><br><span class="line">    <span class="keyword">fn</span> <span class="title function_">next</span>(&amp;<span class="keyword">mut</span> <span class="keyword">self</span>) <span class="punctuation">-&gt;</span> <span class="type">Option</span>&lt;<span class="keyword">Self</span>::Item&gt;&#123;</span><br><span class="line">        <span class="keyword">self</span>.<span class="number">0</span>.<span class="title function_ invoke__">pop</span>()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>IntoIter是一个元组结构体，类型是一个List，也就是一个指针</p>
+<p>Into的版本在迭代时也把链表清空了，而下一个Iter，返回一个不可变引用，就没有这个问题了，为了展现这一特点，测试写成这样：<br><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#[test]</span></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">test_iter</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="keyword">mut </span><span class="variable">list</span> = List::<span class="title function_ invoke__">new</span>();</span><br><span class="line">    list.<span class="title function_ invoke__">push</span>(<span class="number">1</span>);</span><br><span class="line">    list.<span class="title function_ invoke__">push</span>(<span class="number">2</span>);</span><br><span class="line">    list.<span class="title function_ invoke__">push</span>(<span class="number">3</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> <span class="keyword">mut </span><span class="variable">iter</span> = list.<span class="title function_ invoke__">iter</span>();</span><br><span class="line"></span><br><span class="line">    <span class="built_in">assert_eq!</span>(iter.<span class="title function_ invoke__">next</span>(), <span class="title function_ invoke__">Some</span>(&amp;<span class="number">3</span>));</span><br><span class="line">    <span class="built_in">assert_eq!</span>(iter.<span class="title function_ invoke__">next</span>(), <span class="title function_ invoke__">Some</span>(&amp;<span class="number">2</span>));</span><br><span class="line">    <span class="built_in">assert_eq!</span>(iter.<span class="title function_ invoke__">next</span>(), <span class="title function_ invoke__">Some</span>(&amp;<span class="number">1</span>));</span><br><span class="line">    <span class="built_in">assert_eq!</span>(iter.<span class="title function_ invoke__">next</span>(), <span class="literal">None</span>);</span><br><span class="line">    </span><br><span class="line">    iter = list.<span class="title function_ invoke__">iter</span>();</span><br><span class="line">    <span class="built_in">assert_eq!</span>(iter.<span class="title function_ invoke__">next</span>(), <span class="title function_ invoke__">Some</span>(&amp;<span class="number">3</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>要实现的东西不变，一个结构体定义，一个特征，一个方法<br><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">pub</span> <span class="keyword">struct</span> <span class="title class_">Iter</span>&lt;<span class="symbol">&#x27;a</span>, T&gt;&#123;</span><br><span class="line">    next: <span class="type">Option</span>&lt;&amp;<span class="symbol">&#x27;a</span> Node&lt;T&gt;&gt;,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/*List*/</span></span><br><span class="line">    <span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">iter</span>(&amp;<span class="keyword">self</span>) <span class="punctuation">-&gt;</span> Iter&lt;<span class="symbol">&#x27;_</span>, T&gt;&#123;</span><br><span class="line">        Iter&#123;</span><br><span class="line">            next: <span class="keyword">self</span>.head.<span class="title function_ invoke__">as_ref</span>().<span class="title function_ invoke__">map</span>(|node| &amp;**node)</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line"><span class="comment">/*other code*/</span>    </span><br><span class="line"></span><br><span class="line"><span class="keyword">impl</span>&lt;<span class="symbol">&#x27;a</span>,T&gt; <span class="built_in">Iterator</span> <span class="keyword">for</span> <span class="title class_">Iter</span>&lt;<span class="symbol">&#x27;a</span>, T&gt;&#123;</span><br><span class="line">    <span class="keyword">type</span> <span class="title class_">Item</span> =&amp;<span class="symbol">&#x27;a</span> T;</span><br><span class="line">    <span class="keyword">fn</span> <span class="title function_">next</span>(&amp;<span class="keyword">mut</span> <span class="keyword">self</span>) <span class="punctuation">-&gt;</span> <span class="type">Option</span>&lt;<span class="keyword">Self</span>::Item&gt;&#123;</span><br><span class="line">        <span class="keyword">self</span>.next.<span class="title function_ invoke__">map</span>(|node| &#123;</span><br><span class="line">            <span class="keyword">self</span>.next = node.next.<span class="title function_ invoke__">as_ref</span>().<span class="title function_ invoke__">map</span>(|node| &amp;**node);</span><br><span class="line">            &amp;node.val</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>因为涉及到了引用，所以编译器撂挑子了，把生命周期的难题还了回来，不过在此之前，<code>&amp;**node</code>实在是丑陋，其表示对node做两次解引用再返回其引用，可以用<code>as_deref</code>简化：<br><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">iter</span>(&amp;<span class="keyword">self</span>) <span class="punctuation">-&gt;</span> Iter&lt;<span class="symbol">&#x27;_</span>, T&gt;&#123;</span><br><span class="line">    Iter&#123;</span><br><span class="line">        next: <span class="keyword">self</span>.head.<span class="title function_ invoke__">as_deref</span>()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">next</span>(&amp;<span class="keyword">mut</span> <span class="keyword">self</span>) <span class="punctuation">-&gt;</span> <span class="type">Option</span>&lt;<span class="keyword">Self</span>::Item&gt;&#123;</span><br><span class="line">    <span class="keyword">self</span>.next.<span class="title function_ invoke__">map</span>(|node| &#123;</span><br><span class="line">        <span class="keyword">self</span>.next = node.next.<span class="title function_ invoke__">as_deref</span>();</span><br><span class="line">        &amp;node.val</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>简洁多了</p>
+<p>引用的生命周期要保证引用活得不能比其本体久，在iter函数中就是返回的迭代器活得不长于self，也就是链表头。<br>在迭代器特征的实现中，要保证self至少和Item活得一样久</p>
+<p>接下来是更复杂一点的可变借用IterMut，测试：<br><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#[test]</span></span><br><span class="line"><span class="keyword">fn</span> <span class="title function_">test_iter_mut</span>() &#123;</span><br><span class="line">    <span class="keyword">let</span> <span class="keyword">mut </span><span class="variable">list</span> = List::<span class="title function_ invoke__">new</span>();</span><br><span class="line">    list.<span class="title function_ invoke__">push</span>(<span class="number">1</span>);</span><br><span class="line">    list.<span class="title function_ invoke__">push</span>(<span class="number">2</span>);</span><br><span class="line">    list.<span class="title function_ invoke__">push</span>(<span class="number">3</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> <span class="variable">val</span> <span class="keyword">in</span> list.<span class="title function_ invoke__">iter_mut</span>() &#123;</span><br><span class="line">        *val *= <span class="number">10</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> <span class="keyword">mut </span><span class="variable">iter</span> = list.<span class="title function_ invoke__">iter</span>();</span><br><span class="line">    <span class="built_in">assert_eq!</span>(iter.<span class="title function_ invoke__">next</span>(), <span class="title function_ invoke__">Some</span>(&amp;<span class="number">30</span>));</span><br><span class="line">    <span class="built_in">assert_eq!</span>(iter.<span class="title function_ invoke__">next</span>(), <span class="title function_ invoke__">Some</span>(&amp;<span class="number">20</span>));</span><br><span class="line">    <span class="built_in">assert_eq!</span>(iter.<span class="title function_ invoke__">next</span>(), <span class="title function_ invoke__">Some</span>(&amp;<span class="number">10</span>));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br><figure class="highlight rust"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">pub</span> <span class="keyword">struct</span> <span class="title class_">IterMut</span>&lt;<span class="symbol">&#x27;a</span>, T&gt;&#123;</span><br><span class="line">    next: <span class="type">Option</span>&lt;&amp;<span class="symbol">&#x27;a</span> <span class="keyword">mut</span> Node&lt;T&gt;&gt;,</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//……</span></span><br><span class="line">    <span class="keyword">pub</span> <span class="keyword">fn</span> <span class="title function_">iter_mut</span>(&amp;<span class="keyword">mut</span> <span class="keyword">self</span>) <span class="punctuation">-&gt;</span> IterMut&lt;<span class="symbol">&#x27;_</span>, T&gt;&#123;</span><br><span class="line">        IterMut&#123;</span><br><span class="line">            next: <span class="keyword">self</span>.head.<span class="title function_ invoke__">as_deref_mut</span>()</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"><span class="comment">//……</span></span><br><span class="line"><span class="keyword">impl</span>&lt;<span class="symbol">&#x27;a</span>, T&gt; <span class="built_in">Iterator</span> <span class="keyword">for</span> <span class="title class_">IterMut</span>&lt;<span class="symbol">&#x27;a</span>, T&gt;&#123;</span><br><span class="line">    <span class="keyword">type</span> <span class="title class_">Item</span> = &amp;<span class="symbol">&#x27;a</span> <span class="keyword">mut</span> T;</span><br><span class="line">    <span class="keyword">fn</span> <span class="title function_">next</span>(&amp;<span class="keyword">mut</span> <span class="keyword">self</span>) <span class="punctuation">-&gt;</span> <span class="type">Option</span>&lt;<span class="keyword">Self</span>::Item&gt;&#123;</span><br><span class="line">        <span class="keyword">self</span>.next.<span class="title function_ invoke__">take</span>().<span class="title function_ invoke__">map</span>(|node| &#123;</span><br><span class="line">            <span class="keyword">self</span>.next = node.next.<span class="title function_ invoke__">as_deref_mut</span>();</span><br><span class="line">            &amp;<span class="keyword">mut</span> node.val</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>可变引用的难点在于同时只能有一个，是不可copy的，所以在next函数中要使用take()获取值</p>
+<p>至此，一个很基本的链表就算是完成了，难怪不建议新手尝试😵‍💫</p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/rust/">rust</a></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2025/08/14/%E7%81%B0%E5%A7%91%E5%A8%98/" title="睡前故事：灰姑娘"><img class="cover" src="/image/cover29_flower.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">睡前故事：灰姑娘</div></div><div class="info-2"><div class="info-item-1">在 GitHub 的茫茫仓库海洋里，有一个默默无闻的小姑娘。 她每天在继姐们的项目里修复小 bug、写小脚本或是回应issue，push 的 commit 总是埋在深深的 pull request 里，很少有人关注。她自己的仓库几乎空无一物，只有几个 watch，却存放着她暗暗打磨的梦想功能。 她的继姐们是开源圈的活跃账号，项目多到像星辰般闪耀，每一次 release 都引来成百上千的 stars。每次 Hackathon，继姐们总能被王子们邀请成为核心贡献者，而她只能在旁边默默看着。 由于账号十分简陋她被姐姐们与继母称为“灰姑娘” 一天，GitHub 王国宣布将举办一场盛大的 Hackathon 舞会，邀请所有开发者提交 Pull Request，为王子最爱的明星项目添砖加瓦。 灰姑娘想去，但她的电脑老旧，IDE 卡顿，连本地测试都运行得慢（注：即使这样也不会手写代码算结果的！）。她望着自己的 repo，轻叹：“我连参加舞会的资格都没有。” 就在这时，一个神秘的窗口出现在了显示器上，加载变换出一位仙女。 “你要去舞会吗？”仙女评论，带着调皮的...</div></div></div></a></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="giscus-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/auceptin-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Auceptin.Fang</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">26</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">24</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">welcome to my blog！</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2025/08/31/%E6%89%8B%E6%90%93%E4%B8%80%E4%B8%AA%E9%93%BE%E8%A1%A8/" title="手搓一个链表"><img src="/image/cover30_knight.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="手搓一个链表"/></a><div class="content"><a class="title" href="/2025/08/31/%E6%89%8B%E6%90%93%E4%B8%80%E4%B8%AA%E9%93%BE%E8%A1%A8/" title="手搓一个链表">手搓一个链表</a><time datetime="2025-08-31T05:40:11.000Z" title="发表于 2025-08-31 13:40:11">2025-08-31</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/08/14/%E7%81%B0%E5%A7%91%E5%A8%98/" title="睡前故事：灰姑娘"><img src="/image/cover29_flower.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="睡前故事：灰姑娘"/></a><div class="content"><a class="title" href="/2025/08/14/%E7%81%B0%E5%A7%91%E5%A8%98/" title="睡前故事：灰姑娘">睡前故事：灰姑娘</a><time datetime="2025-08-14T14:33:25.000Z" title="发表于 2025-08-14 22:33:25">2025-08-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/08/11/git-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" title="git 学习笔记"><img src="/image/cover28_she.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="git 学习笔记"/></a><div class="content"><a class="title" href="/2025/08/11/git-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" title="git 学习笔记">git 学习笔记</a><time datetime="2025-08-11T13:16:09.000Z" title="发表于 2025-08-11 21:16:09">2025-08-11</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/08/05/%E9%BE%9F%E5%85%94%E8%B5%9B%E8%B7%91/" title="睡前故事：龟兔赛跑"><img src="/image/cover25_sunshine.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="睡前故事：龟兔赛跑"/></a><div class="content"><a class="title" href="/2025/08/05/%E9%BE%9F%E5%85%94%E8%B5%9B%E8%B7%91/" title="睡前故事：龟兔赛跑">睡前故事：龟兔赛跑</a><time datetime="2025-08-05T14:21:57.000Z" title="发表于 2025-08-05 22:21:57">2025-08-05</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/07/29/noita-api/" title="noita_api"><img src="/image/cover27_chinapunk.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="noita_api"/></a><div class="content"><a class="title" href="/2025/07/29/noita-api/" title="noita_api">noita_api</a><time datetime="2025-07-29T09:00:00.000Z" title="发表于 2025-07-29 17:00:00">2025-07-29</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url(/img/foot.jpg);"><div id="footer-wrap"><div class="copyright">&copy;2025 By Auceptin.Fang</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const getGiscusTheme = theme => theme === 'dark' ? 'dark' : 'light'
+
+  const createScriptElement = config => {
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => {
+      ele.setAttribute(key, value)
+    })
+    return ele
+  }
+
+  const loadGiscus = (el = document, key) => {
+    const mappingConfig = isShuoshuo
+      ? { 'data-mapping': 'specific', 'data-term': key }
+      : { 'data-mapping': (option && option['data-mapping']) || 'pathname' }
+
+    const giscusConfig = {
+      src: 'https://giscus.app/client.js',
+      'data-repo': 'AuceptinFang/blog',
+      'data-repo-id': 'R_kgDOO_UAjA',
+      'data-category-id': 'DIC_kwDOO_UAjM4Cr3mL',
+      'data-theme': getGiscusTheme(document.documentElement.getAttribute('data-theme')),
+      'data-reactions-enabled': '1',
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      ...mappingConfig
+    }
+
+    const scriptElement = createScriptElement(giscusConfig)
+
+    el.querySelector('#giscus-wrap').appendChild(scriptElement)
+
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGiscus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+  }
+
+  const changeGiscusTheme = theme => {
+    const iframe = document.querySelector('#giscus-wrap iframe')
+    if (iframe) {
+      const message = {
+        giscus: {
+          setConfig: {
+            theme: getGiscusTheme(theme)
+          }
+        }
+      }
+      iframe.contentWindow.postMessage(message, 'https://giscus.app')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeGiscusTheme, 'giscus')
+
+  if (isShuoshuo) {
+    'Giscus' === 'Giscus'
+      ? window.shuoshuoComment = { loadComment: loadGiscus }
+      : window.loadOtherComment = loadGiscus
+    return
+  }
+
+  if ('Giscus' === 'Giscus' || !false) {
+    if (false) btf.loadComment(document.getElementById('giscus-wrap'), loadGiscus)
+    else loadGiscus()
+  } else {
+    window.loadOtherComment = loadGiscus
+  }
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
