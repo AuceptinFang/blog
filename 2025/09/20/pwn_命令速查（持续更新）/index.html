@@ -1,0 +1,1109 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>pwn“cache” | Auceptin's Blog</title><meta name="author" content="Auceptin.Fang"><meta name="copyright" content="Auceptin.Fang"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="整理记录用到的命令，以避免每次用到查一遍 环境docker ps查看运行的容器 docker exec -it ? &#x2F;bin&#x2F;bash进入?id的容器终端 chmod +x &lt;file&gt; 增加可执行权限 tty vim ~&#x2F;.gdbinit  set context-output &#x2F;dev&#x2F;pts&#x2F;?  设置gdb输出位置 source &#x2F;pip_venv&#x2F;bin&#x2F;activate进入">
+<meta property="og:type" content="article">
+<meta property="og:title" content="pwn“cache”">
+<meta property="og:url" content="https://aucept.in/2025/09/20/pwn_%E5%91%BD%E4%BB%A4%E9%80%9F%E6%9F%A5%EF%BC%88%E6%8C%81%E7%BB%AD%E6%9B%B4%E6%96%B0%EF%BC%89/index.html">
+<meta property="og:site_name" content="Auceptin&#39;s Blog">
+<meta property="og:description" content="整理记录用到的命令，以避免每次用到查一遍 环境docker ps查看运行的容器 docker exec -it ? &#x2F;bin&#x2F;bash进入?id的容器终端 chmod +x &lt;file&gt; 增加可执行权限 tty vim ~&#x2F;.gdbinit  set context-output &#x2F;dev&#x2F;pts&#x2F;?  设置gdb输出位置 source &#x2F;pip_venv&#x2F;bin&#x2F;activate进入">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://aucept.in/image/cover33_book.jpg">
+<meta property="article:published_time" content="2025-09-20T06:03:08.000Z">
+<meta property="article:modified_time" content="2025-10-11T06:48:06.480Z">
+<meta property="article:author" content="Auceptin.Fang">
+<meta property="article:tag" content="pwn">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://aucept.in/image/cover33_book.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "pwn“cache”",
+  "url": "https://aucept.in/2025/09/20/pwn_%E5%91%BD%E4%BB%A4%E9%80%9F%E6%9F%A5%EF%BC%88%E6%8C%81%E7%BB%AD%E6%9B%B4%E6%96%B0%EF%BC%89/",
+  "image": "https://aucept.in/image/cover33_book.jpg",
+  "datePublished": "2025-09-20T06:03:08.000Z",
+  "dateModified": "2025-10-11T06:48:06.480Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Auceptin.Fang",
+      "url": "https://aucept.in/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://aucept.in/2025/09/20/pwn_%E5%91%BD%E4%BB%A4%E9%80%9F%E6%9F%A5%EF%BC%88%E6%8C%81%E7%BB%AD%E6%9B%B4%E6%96%B0%EF%BC%89/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'pwn“cache”',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><style>
+  /* 数学公式美化样式 */
+  .MathJax_Display {
+    margin: 1.5em 0 !important;
+    text-align: center !important;
+  }
+  
+  .MathJax {
+    font-size: 1.1em !important;
+  }
+  
+  /* 行内公式样式 */
+  .MathJax_Preview {
+    color: inherit;
+  }
+  
+  /* 块级公式容器美化 */
+  .MathJax_Display {
+    background: rgba(0,0,0,0.02);
+    border-radius: 8px;
+    padding: 15px 20px;
+    margin: 20px 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-left: 4px solid #49b1f5;
+  }
+  
+  /* 暗色模式下的公式样式 */
+  [data-theme="dark"] .MathJax_Display {
+    background: rgba(255,255,255,0.05);
+    border-left-color: #1f2937;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  
+  /* 公式编号样式 */
+  .MathJax .mjx-math .mjx-mrow .mjx-mtable .mjx-label {
+    color: #666;
+    font-size: 0.9em;
+  }
+  
+  /* 提升公式清晰度 */
+  .MathJax svg {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+</style>
+<meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-color: #f5f5f5;"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/auceptin-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">30</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">27</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">8</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/friends/"><span> Friends</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/image/cover2_square.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Auceptin's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">pwn“cache”</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/friends/"><span> Friends</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">pwn“cache”</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-09-20T06:03:08.000Z" title="发表于 2025-09-20 14:03:08">2025-09-20</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-10-11T06:48:06.480Z" title="更新于 2025-10-11 14:48:06">2025-10-11</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/ctf/">ctf</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>整理记录用到的命令，以避免每次用到查一遍</p>
+<h2 id="环境"><a href="#环境" class="headerlink" title="环境"></a>环境</h2><p><code>docker ps</code>查看运行的容器</p>
+<p><code>docker exec -it ? /bin/bash</code>进入?id的容器终端</p>
+<p><code>chmod +x &lt;file&gt;</code> 增加可执行权限</p>
+<p><code>tty</code> <code>vim ~/.gdbinit</code></p>
+<blockquote>
+<p>set context-output /dev/pts/?</p>
+</blockquote>
+<p>设置gdb输出位置</p>
+<p><code>source /pip_venv/bin/activate</code>进入python虚拟环境</p>
+<p><code>patchelf --set-interpreter ./ld-linux-x86-64.so.2 pwn</code> 设置解释器</p>
+<p><code>patchelf --set-rpath . pwn</code> 设置链接库路径</p>
+<p><code>patchelf --replace-needed libc.so.6 ./libc.so.6 pwn</code>用当前文件夹下的libc.so.6替换pwn需要的链接库<br><code>patchelf --replace-needed ./libc.so.6 libc.so.6 pwn</code>改回系统链接库</p>
+<p><code>ldd pwn</code>查看pwn文件的链接情况</p>
+<p><code>tmux</code>进入tmux终端</p>
+<h2 id="gdb"><a href="#gdb" class="headerlink" title="gdb"></a>gdb</h2><p>开始调试程序：直接跟着待调试文件名，比如：<code>gdb pwn</code></p>
+<p><code>start</code>寻找程序入口并中断</p>
+<p><code>run</code>运行程序到断点或结束，可加参数</p>
+<p><code>next</code>或简写<code>n</code>运行下一行代码，<code>nexti</code>或<code>ni</code>，运行下一行指令，汇编层面的一行，<code>step</code>或<code>s</code>，下一行代码，遇到函数时会步入，<code>stepi</code>或<code>si</code>运行下一行汇编级的指令，遇到函数会步入。程序的函数就si，遇到库函数就ni</p>
+<p><code>info register</code>或<code>i r</code>查看当前寄存器信息</p>
+<p><code>i address xx</code>查看函数地址</p>
+<p><code>disass xxx</code>反汇编某处的指令</p>
+<p><code>break xxx</code>在某处下断点，<code>info break</code>或<code>i b</code>查看当前所有断点信息。可以在指定函数处<code>b printf</code>或者地址<code>b *0x40127D</code></p>
+<p><code>vmmap</code>查看内存分配情况</p>
+<p><code>checksec</code>查看程序保护机制，NX等</p>
+<p><code>quit</code>退出</p>
+<p><code>x/s 0x?</code>以字符串查看指定位置内容</p>
+<p><code>x/20gx $rsp</code>查看rsp以下20个8字节数据（16进制）</p>
+<p><code>finish</code>执行到退出当前函数</p>
+<h2 id="pwntools"><a href="#pwntools" class="headerlink" title="pwntools"></a>pwntools</h2><p>context(arch=’amd64’, os=’linux’, log_level=’debug’)</p>
+<p>context.terminal=[‘tmux’,’splitw’,’-h’]</p>
+<h2 id="ASCII码表"><a href="#ASCII码表" class="headerlink" title="ASCII码表"></a>ASCII码表</h2><h3 id="控制字符-0-31"><a href="#控制字符-0-31" class="headerlink" title="控制字符 (0-31)"></a>控制字符 (0-31)</h3><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>十进制</th>
+<th>十六进制</th>
+<th>字符</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>00</td>
+<td>NUL</td>
+<td>空字符</td>
+</tr>
+<tr>
+<td>1</td>
+<td>01</td>
+<td>SOH</td>
+<td>标题开始</td>
+</tr>
+<tr>
+<td>2</td>
+<td>02</td>
+<td>STX</td>
+<td>正文开始</td>
+</tr>
+<tr>
+<td>3</td>
+<td>03</td>
+<td>ETX</td>
+<td>正文结束</td>
+</tr>
+<tr>
+<td>4</td>
+<td>04</td>
+<td>EOT</td>
+<td>传输结束</td>
+</tr>
+<tr>
+<td>5</td>
+<td>05</td>
+<td>ENQ</td>
+<td>询问</td>
+</tr>
+<tr>
+<td>6</td>
+<td>06</td>
+<td>ACK</td>
+<td>收到通知</td>
+</tr>
+<tr>
+<td>7</td>
+<td>07</td>
+<td>BEL</td>
+<td>铃</td>
+</tr>
+<tr>
+<td>8</td>
+<td>08</td>
+<td>BS</td>
+<td>退格</td>
+</tr>
+<tr>
+<td>9</td>
+<td>09</td>
+<td>HT</td>
+<td>水平制表符</td>
+</tr>
+<tr>
+<td>10</td>
+<td>0A</td>
+<td>LF</td>
+<td>换行键</td>
+</tr>
+<tr>
+<td>11</td>
+<td>0B</td>
+<td>VT</td>
+<td>垂直制表符</td>
+</tr>
+<tr>
+<td>12</td>
+<td>0C</td>
+<td>FF</td>
+<td>换页键</td>
+</tr>
+<tr>
+<td>13</td>
+<td>0D</td>
+<td>CR</td>
+<td>回车键</td>
+</tr>
+<tr>
+<td>14</td>
+<td>0E</td>
+<td>SO</td>
+<td>移出</td>
+</tr>
+<tr>
+<td>15</td>
+<td>0F</td>
+<td>SI</td>
+<td>移入</td>
+</tr>
+<tr>
+<td>16</td>
+<td>10</td>
+<td>DLE</td>
+<td>数据链路转义</td>
+</tr>
+<tr>
+<td>17</td>
+<td>11</td>
+<td>DC1</td>
+<td>设备控制 1</td>
+</tr>
+<tr>
+<td>18</td>
+<td>12</td>
+<td>DC2</td>
+<td>设备控制 2</td>
+</tr>
+<tr>
+<td>19</td>
+<td>13</td>
+<td>DC3</td>
+<td>设备控制 3</td>
+</tr>
+<tr>
+<td>20</td>
+<td>14</td>
+<td>DC4</td>
+<td>设备控制 4</td>
+</tr>
+<tr>
+<td>21</td>
+<td>15</td>
+<td>NAK</td>
+<td>拒绝接收</td>
+</tr>
+<tr>
+<td>22</td>
+<td>16</td>
+<td>SYN</td>
+<td>同步空闲</td>
+</tr>
+<tr>
+<td>23</td>
+<td>17</td>
+<td>ETB</td>
+<td>传输块结束</td>
+</tr>
+<tr>
+<td>24</td>
+<td>18</td>
+<td>CAN</td>
+<td>取消</td>
+</tr>
+<tr>
+<td>25</td>
+<td>19</td>
+<td>EM</td>
+<td>介质中断</td>
+</tr>
+<tr>
+<td>26</td>
+<td>1A</td>
+<td>SUB</td>
+<td>替换</td>
+</tr>
+<tr>
+<td>27</td>
+<td>1B</td>
+<td>ESC</td>
+<td>换码符</td>
+</tr>
+<tr>
+<td>28</td>
+<td>1C</td>
+<td>FS</td>
+<td>文件分隔符</td>
+</tr>
+<tr>
+<td>29</td>
+<td>1D</td>
+<td>GS</td>
+<td>组分隔符</td>
+</tr>
+<tr>
+<td>30</td>
+<td>1E</td>
+<td>RS</td>
+<td>记录分离符</td>
+</tr>
+<tr>
+<td>31</td>
+<td>1F</td>
+<td>US</td>
+<td>单元分隔符</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="可打印字符-32-127"><a href="#可打印字符-32-127" class="headerlink" title="可打印字符 (32-127)"></a>可打印字符 (32-127)</h3><div class="table-container">
+<table>
+<thead>
+<tr>
+<th>十进制</th>
+<th>十六进制</th>
+<th>字符</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>32</td>
+<td>20</td>
+<td>(空格)</td>
+<td>空格</td>
+</tr>
+<tr>
+<td>33</td>
+<td>21</td>
+<td>!</td>
+<td>感叹号</td>
+</tr>
+<tr>
+<td>34</td>
+<td>22</td>
+<td>“</td>
+<td>双引号</td>
+</tr>
+<tr>
+<td>35</td>
+<td>23</td>
+<td>#</td>
+<td>井号</td>
+</tr>
+<tr>
+<td>36</td>
+<td>24</td>
+<td>$</td>
+<td>美元符</td>
+</tr>
+<tr>
+<td>37</td>
+<td>25</td>
+<td>%</td>
+<td>百分号</td>
+</tr>
+<tr>
+<td>38</td>
+<td>26</td>
+<td>&amp;</td>
+<td>与</td>
+</tr>
+<tr>
+<td>39</td>
+<td>27</td>
+<td>‘</td>
+<td>单引号</td>
+</tr>
+<tr>
+<td>40</td>
+<td>28</td>
+<td>(</td>
+<td>左括号</td>
+</tr>
+<tr>
+<td>41</td>
+<td>29</td>
+<td>)</td>
+<td>右括号</td>
+</tr>
+<tr>
+<td>42</td>
+<td>2A</td>
+<td>*</td>
+<td>星号</td>
+</tr>
+<tr>
+<td>43</td>
+<td>2B</td>
+<td>+</td>
+<td>加号</td>
+</tr>
+<tr>
+<td>44</td>
+<td>2C</td>
+<td>,</td>
+<td>逗号</td>
+</tr>
+<tr>
+<td>45</td>
+<td>2D</td>
+<td>-</td>
+<td>连字号或减号</td>
+</tr>
+<tr>
+<td>46</td>
+<td>2E</td>
+<td>.</td>
+<td>句点或小数点</td>
+</tr>
+<tr>
+<td>47</td>
+<td>2F</td>
+<td>/</td>
+<td>斜杠</td>
+</tr>
+<tr>
+<td>48</td>
+<td>30</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>49</td>
+<td>31</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr>
+<td>50</td>
+<td>32</td>
+<td>2</td>
+<td>2</td>
+</tr>
+<tr>
+<td>51</td>
+<td>33</td>
+<td>3</td>
+<td>3</td>
+</tr>
+<tr>
+<td>52</td>
+<td>34</td>
+<td>4</td>
+<td>4</td>
+</tr>
+<tr>
+<td>53</td>
+<td>35</td>
+<td>5</td>
+<td>5</td>
+</tr>
+<tr>
+<td>54</td>
+<td>36</td>
+<td>6</td>
+<td>6</td>
+</tr>
+<tr>
+<td>55</td>
+<td>37</td>
+<td>7</td>
+<td>7</td>
+</tr>
+<tr>
+<td>56</td>
+<td>38</td>
+<td>8</td>
+<td>8</td>
+</tr>
+<tr>
+<td>57</td>
+<td>39</td>
+<td>9</td>
+<td>9</td>
+</tr>
+<tr>
+<td>58</td>
+<td>3A</td>
+<td>:</td>
+<td>冒号</td>
+</tr>
+<tr>
+<td>59</td>
+<td>3B</td>
+<td>;</td>
+<td>分号</td>
+</tr>
+<tr>
+<td>60</td>
+<td>3C</td>
+<td>&lt;</td>
+<td>小于</td>
+</tr>
+<tr>
+<td>61</td>
+<td>3D</td>
+<td>=</td>
+<td>等号</td>
+</tr>
+<tr>
+<td>62</td>
+<td>3E</td>
+<td>&gt;</td>
+<td>大于</td>
+</tr>
+<tr>
+<td>63</td>
+<td>3F</td>
+<td>?</td>
+<td>问号</td>
+</tr>
+<tr>
+<td>64</td>
+<td>40</td>
+<td>@</td>
+<td>电子邮件符号</td>
+</tr>
+<tr>
+<td>65</td>
+<td>41</td>
+<td>A</td>
+<td>大写字母 A</td>
+</tr>
+<tr>
+<td>66</td>
+<td>42</td>
+<td>B</td>
+<td>大写字母 B</td>
+</tr>
+<tr>
+<td>67</td>
+<td>43</td>
+<td>C</td>
+<td>大写字母 C</td>
+</tr>
+<tr>
+<td>68</td>
+<td>44</td>
+<td>D</td>
+<td>大写字母 D</td>
+</tr>
+<tr>
+<td>69</td>
+<td>45</td>
+<td>E</td>
+<td>大写字母 E</td>
+</tr>
+<tr>
+<td>70</td>
+<td>46</td>
+<td>F</td>
+<td>大写字母 F</td>
+</tr>
+<tr>
+<td>71</td>
+<td>47</td>
+<td>G</td>
+<td>大写字母 G</td>
+</tr>
+<tr>
+<td>72</td>
+<td>48</td>
+<td>H</td>
+<td>大写字母 H</td>
+</tr>
+<tr>
+<td>73</td>
+<td>49</td>
+<td>I</td>
+<td>大写字母 I</td>
+</tr>
+<tr>
+<td>74</td>
+<td>4A</td>
+<td>J</td>
+<td>大写字母 J</td>
+</tr>
+<tr>
+<td>75</td>
+<td>4B</td>
+<td>K</td>
+<td>大写字母 K</td>
+</tr>
+<tr>
+<td>76</td>
+<td>4C</td>
+<td>L</td>
+<td>大写字母 L</td>
+</tr>
+<tr>
+<td>77</td>
+<td>4D</td>
+<td>M</td>
+<td>大写字母 M</td>
+</tr>
+<tr>
+<td>78</td>
+<td>4E</td>
+<td>N</td>
+<td>大写字母 N</td>
+</tr>
+<tr>
+<td>79</td>
+<td>4F</td>
+<td>O</td>
+<td>大写字母 O</td>
+</tr>
+<tr>
+<td>80</td>
+<td>50</td>
+<td>P</td>
+<td>大写字母 P</td>
+</tr>
+<tr>
+<td>81</td>
+<td>51</td>
+<td>Q</td>
+<td>大写字母 Q</td>
+</tr>
+<tr>
+<td>82</td>
+<td>52</td>
+<td>R</td>
+<td>大写字母 R</td>
+</tr>
+<tr>
+<td>83</td>
+<td>53</td>
+<td>S</td>
+<td>大写字母 S</td>
+</tr>
+<tr>
+<td>84</td>
+<td>54</td>
+<td>T</td>
+<td>大写字母 T</td>
+</tr>
+<tr>
+<td>85</td>
+<td>55</td>
+<td>U</td>
+<td>大写字母 U</td>
+</tr>
+<tr>
+<td>86</td>
+<td>56</td>
+<td>V</td>
+<td>大写字母 V</td>
+</tr>
+<tr>
+<td>87</td>
+<td>57</td>
+<td>W</td>
+<td>大写字母 W</td>
+</tr>
+<tr>
+<td>88</td>
+<td>58</td>
+<td>X</td>
+<td>大写字母 X</td>
+</tr>
+<tr>
+<td>89</td>
+<td>59</td>
+<td>Y</td>
+<td>大写字母 Y</td>
+</tr>
+<tr>
+<td>90</td>
+<td>5A</td>
+<td>Z</td>
+<td>大写字母 Z</td>
+</tr>
+<tr>
+<td>91</td>
+<td>5B</td>
+<td>[</td>
+<td>左中括号</td>
+</tr>
+<tr>
+<td>92</td>
+<td>5C</td>
+<td>\</td>
+<td>反斜杠</td>
+</tr>
+<tr>
+<td>93</td>
+<td>5D</td>
+<td>]</td>
+<td>右中括号</td>
+</tr>
+<tr>
+<td>94</td>
+<td>5E</td>
+<td>^</td>
+<td>音调符号</td>
+</tr>
+<tr>
+<td>95</td>
+<td>5F</td>
+<td>_</td>
+<td>下划线</td>
+</tr>
+<tr>
+<td>96</td>
+<td>60</td>
+<td>`</td>
+<td>重音符</td>
+</tr>
+<tr>
+<td>97</td>
+<td>61</td>
+<td>a</td>
+<td>小写字母 a</td>
+</tr>
+<tr>
+<td>98</td>
+<td>62</td>
+<td>b</td>
+<td>小写字母 b</td>
+</tr>
+<tr>
+<td>99</td>
+<td>63</td>
+<td>c</td>
+<td>小写字母 c</td>
+</tr>
+<tr>
+<td>100</td>
+<td>64</td>
+<td>d</td>
+<td>小写字母 d</td>
+</tr>
+<tr>
+<td>101</td>
+<td>65</td>
+<td>e</td>
+<td>小写字母 e</td>
+</tr>
+<tr>
+<td>102</td>
+<td>66</td>
+<td>f</td>
+<td>小写字母 f</td>
+</tr>
+<tr>
+<td>103</td>
+<td>67</td>
+<td>g</td>
+<td>小写字母 g</td>
+</tr>
+<tr>
+<td>104</td>
+<td>68</td>
+<td>h</td>
+<td>小写字母 h</td>
+</tr>
+<tr>
+<td>105</td>
+<td>69</td>
+<td>i</td>
+<td>小写字母 i</td>
+</tr>
+<tr>
+<td>106</td>
+<td>6A</td>
+<td>j</td>
+<td>小写字母 j</td>
+</tr>
+<tr>
+<td>107</td>
+<td>6B</td>
+<td>k</td>
+<td>小写字母 k</td>
+</tr>
+<tr>
+<td>108</td>
+<td>6C</td>
+<td>l</td>
+<td>小写字母 l</td>
+</tr>
+<tr>
+<td>109</td>
+<td>6D</td>
+<td>m</td>
+<td>小写字母 m</td>
+</tr>
+<tr>
+<td>110</td>
+<td>6E</td>
+<td>n</td>
+<td>小写字母 n</td>
+</tr>
+<tr>
+<td>111</td>
+<td>6F</td>
+<td>o</td>
+<td>小写字母 o</td>
+</tr>
+<tr>
+<td>112</td>
+<td>70</td>
+<td>p</td>
+<td>小写字母 p</td>
+</tr>
+<tr>
+<td>113</td>
+<td>71</td>
+<td>q</td>
+<td>小写字母 q</td>
+</tr>
+<tr>
+<td>114</td>
+<td>72</td>
+<td>r</td>
+<td>小写字母 r</td>
+</tr>
+<tr>
+<td>115</td>
+<td>73</td>
+<td>s</td>
+<td>小写字母 s</td>
+</tr>
+<tr>
+<td>116</td>
+<td>74</td>
+<td>t</td>
+<td>小写字母 t</td>
+</tr>
+<tr>
+<td>117</td>
+<td>75</td>
+<td>u</td>
+<td>小写字母 u</td>
+</tr>
+<tr>
+<td>118</td>
+<td>76</td>
+<td>v</td>
+<td>小写字母 v</td>
+</tr>
+<tr>
+<td>119</td>
+<td>77</td>
+<td>w</td>
+<td>小写字母 w</td>
+</tr>
+<tr>
+<td>120</td>
+<td>78</td>
+<td>x</td>
+<td>小写字母 x</td>
+</tr>
+<tr>
+<td>121</td>
+<td>79</td>
+<td>y</td>
+<td>小写字母 y</td>
+</tr>
+<tr>
+<td>122</td>
+<td>7A</td>
+<td>z</td>
+<td>小写字母 z</td>
+</tr>
+<tr>
+<td>123</td>
+<td>7B</td>
+<td>{</td>
+<td>左大括号</td>
+</tr>
+<tr>
+<td>124</td>
+<td>7C</td>
+<td>I</td>
+<td>垂直线</td>
+</tr>
+<tr>
+<td>125</td>
+<td>7D</td>
+<td>}</td>
+<td>右大括号</td>
+</tr>
+<tr>
+<td>126</td>
+<td>7E</td>
+<td>~</td>
+<td>波浪号</td>
+</tr>
+<tr>
+<td>127</td>
+<td>7F</td>
+<td>DEL</td>
+<td>删除</td>
+</tr>
+</tbody>
+</table>
+</div>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/pwn/">pwn</a></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/08/31/%E6%89%8B%E6%90%93%E4%B8%80%E4%B8%AA%E9%93%BE%E8%A1%A8/" title="手搓一个简单的链表"><img class="cover" src="/image/cover30_knight.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">手搓一个简单的链表</div></div><div class="info-2"><div class="info-item-1">已经学习rust一周了，是时候尝试一下链表了 按照TDD的规范，先写第一个测试：12345678910//lib.rs#[cfg(test)]mod tests &#123;    use super::*;    #[test]    fn test_list_new()&#123;        let list : List &lt;i32&gt; = List::new();        assert!(list.isempty())    &#125;&#125;第一个细节是 use super::*，rust项目在一个crate里的组织是以mod为单元的，也就是说虽然tests模块写在了lib.rs，它和直接写在lib.rs里的函数仍然是分离的。use super::*表示把父模块的全部方法引入进当前模块 接下来定义List结构体，完成new和isempty方法12345678910111213//lib.rspub struct List &lt;T&gt;&#123;    head :...</div></div></div></a><a class="pagination-related" href="/2025/09/26/docker-and-OCI/" title="docker registry"><img class="cover" src="/image/cover31_cat.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">docker registry</div></div><div class="info-2"><div class="info-item-1">OCI即Open Container Initiative，开放容器计划，是一套有关容器与镜像的标准 想要实现一个容器镜像仓库，就要符合OCI的标准与规定的接口 该服务主要维护blob与manifest两种对象，其中blob记录了镜像文件的实际存储路径，manifest（货单）则是用来记录存在这样一个blob 此外还有一个Manifest List，是一个 Tag 所对应所有 Manifest 的元数据列表。digest是manifest和blob的标识符，然而在不同平台digest并不相同，且digest并不方便阅读，于是增加一个tag做标识 建表语句如下：12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152535455565758596061626364656667686970717273747576CREATE TABLE IF NOT EXISTS blobs (    digest TEXT PRIMARY KEY NOT...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2025/10/12/tsctf-2025/" title="tsctf 2025"><img class="cover" src="/image/cover34_castle.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-10-12</div><div class="info-item-2">tsctf 2025</div></div><div class="info-2"><div class="info-item-1">ret签到题，明摆着的栈溢出和后门函数，略 1234567891011121314from pwn import *context(arch=&#x27;amd64&#x27;, os=&#x27;linux&#x27;, log_level=&#x27;debug&#x27;)context.terminal = [&#x27;tmux&#x27;, &#x27;splitw&#x27;, &#x27;-h&#x27;]ret_addr = 0x400501backdoor = 0x0400676io = connect(&quot;host.docker.internal&quot;, 64958)io.recvuntil(b&quot;sign-in!&quot;)payload = b&quot;A&quot;*(16 + 8)payload += p64(ret_addr)payload += p64(backdoor)io.sendline(payload)io.interactive() pop提示了ret2libc1234567__int64...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="giscus-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/auceptin-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Auceptin.Fang</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">30</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">27</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">8</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/auceptinFang"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">welcome to my blog! <br> Contact：me@aucept.in</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%8E%AF%E5%A2%83"><span class="toc-number">1.</span> <span class="toc-text">环境</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#gdb"><span class="toc-number">2.</span> <span class="toc-text">gdb</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#pwntools"><span class="toc-number">3.</span> <span class="toc-text">pwntools</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ASCII%E7%A0%81%E8%A1%A8"><span class="toc-number">4.</span> <span class="toc-text">ASCII码表</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8E%A7%E5%88%B6%E5%AD%97%E7%AC%A6-0-31"><span class="toc-number">4.1.</span> <span class="toc-text">控制字符 (0-31)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%AF%E6%89%93%E5%8D%B0%E5%AD%97%E7%AC%A6-32-127"><span class="toc-number">4.2.</span> <span class="toc-text">可打印字符 (32-127)</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2025/10/12/tsctf-2025/" title="tsctf 2025"><img src="/image/cover34_castle.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="tsctf 2025"/></a><div class="content"><a class="title" href="/2025/10/12/tsctf-2025/" title="tsctf 2025">tsctf 2025</a><time datetime="2025-10-12T15:28:17.000Z" title="发表于 2025-10-12 23:28:17">2025-10-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/09/28/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E9%93%BE%E8%A1%A8%E5%AE%9E%E9%AA%8C/" title="数据结构_链表实验"><img src="/image/cover32_home.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="数据结构_链表实验"/></a><div class="content"><a class="title" href="/2025/09/28/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E9%93%BE%E8%A1%A8%E5%AE%9E%E9%AA%8C/" title="数据结构_链表实验">数据结构_链表实验</a><time datetime="2025-09-28T09:50:00.000Z" title="发表于 2025-09-28 17:50:00">2025-09-28</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/09/26/docker-and-OCI/" title="docker registry"><img src="/image/cover31_cat.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="docker registry"/></a><div class="content"><a class="title" href="/2025/09/26/docker-and-OCI/" title="docker registry">docker registry</a><time datetime="2025-09-26T11:49:36.000Z" title="发表于 2025-09-26 19:49:36">2025-09-26</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/09/20/pwn_%E5%91%BD%E4%BB%A4%E9%80%9F%E6%9F%A5%EF%BC%88%E6%8C%81%E7%BB%AD%E6%9B%B4%E6%96%B0%EF%BC%89/" title="pwn“cache”"><img src="/image/cover33_book.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="pwn“cache”"/></a><div class="content"><a class="title" href="/2025/09/20/pwn_%E5%91%BD%E4%BB%A4%E9%80%9F%E6%9F%A5%EF%BC%88%E6%8C%81%E7%BB%AD%E6%9B%B4%E6%96%B0%EF%BC%89/" title="pwn“cache”">pwn“cache”</a><time datetime="2025-09-20T06:03:08.000Z" title="发表于 2025-09-20 14:03:08">2025-09-20</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/08/31/%E6%89%8B%E6%90%93%E4%B8%80%E4%B8%AA%E9%93%BE%E8%A1%A8/" title="手搓一个简单的链表"><img src="/image/cover30_knight.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="手搓一个简单的链表"/></a><div class="content"><a class="title" href="/2025/08/31/%E6%89%8B%E6%90%93%E4%B8%80%E4%B8%AA%E9%93%BE%E8%A1%A8/" title="手搓一个简单的链表">手搓一个简单的链表</a><time datetime="2025-08-31T05:40:11.000Z" title="发表于 2025-08-31 13:40:11">2025-08-31</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url(/img/foot.jpg);"><div id="footer-wrap"><div class="copyright">&copy;2025 By Auceptin.Fang</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const getGiscusTheme = theme => theme === 'dark' ? 'dark' : 'light'
+
+  const createScriptElement = config => {
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => {
+      ele.setAttribute(key, value)
+    })
+    return ele
+  }
+
+  const loadGiscus = (el = document, key) => {
+    const mappingConfig = isShuoshuo
+      ? { 'data-mapping': 'specific', 'data-term': key }
+      : { 'data-mapping': (option && option['data-mapping']) || 'pathname' }
+
+    const giscusConfig = {
+      src: 'https://giscus.app/client.js',
+      'data-repo': 'AuceptinFang/blog',
+      'data-repo-id': 'R_kgDOO_UAjA',
+      'data-category-id': 'DIC_kwDOO_UAjM4Cr3mL',
+      'data-theme': getGiscusTheme(document.documentElement.getAttribute('data-theme')),
+      'data-reactions-enabled': '1',
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      ...mappingConfig
+    }
+
+    const scriptElement = createScriptElement(giscusConfig)
+
+    el.querySelector('#giscus-wrap').appendChild(scriptElement)
+
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGiscus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+  }
+
+  const changeGiscusTheme = theme => {
+    const iframe = document.querySelector('#giscus-wrap iframe')
+    if (iframe) {
+      const message = {
+        giscus: {
+          setConfig: {
+            theme: getGiscusTheme(theme)
+          }
+        }
+      }
+      iframe.contentWindow.postMessage(message, 'https://giscus.app')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeGiscusTheme, 'giscus')
+
+  if (isShuoshuo) {
+    'Giscus' === 'Giscus'
+      ? window.shuoshuoComment = { loadComment: loadGiscus }
+      : window.loadOtherComment = loadGiscus
+    return
+  }
+
+  if ('Giscus' === 'Giscus' || !false) {
+    if (false) btf.loadComment(document.getElementById('giscus-wrap'), loadGiscus)
+    else loadGiscus()
+  } else {
+    window.loadOtherComment = loadGiscus
+  }
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
