@@ -1,0 +1,512 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>wezterm配置 | Auceptin's Blog</title><meta name="author" content="Auceptin"><meta name="copyright" content="Auceptin"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="每天看着暗红色的终端喜新厌旧了，感觉流离用的fish命令提示功能，还有在别人博客上经常看到的暗蓝色的都好酷，正如本文的分类，家要有家的样子，遂重新配置我的终端！ 为什么选wezterm呢？因为它用rust实现，用lua写配置文件——因为喜欢 官方安装文档 配置需要在~下创建一个配置文件.wezterm.lua，windows在%USERPROFILE%下 嗯，用lua做配置文件，也就意味着配置参数">
+<meta property="og:type" content="article">
+<meta property="og:title" content="wezterm配置">
+<meta property="og:url" content="https://aucept.in/2025/11/12/wezterm%E9%85%8D%E7%BD%AE/index.html">
+<meta property="og:site_name" content="Auceptin&#39;s Blog">
+<meta property="og:description" content="每天看着暗红色的终端喜新厌旧了，感觉流离用的fish命令提示功能，还有在别人博客上经常看到的暗蓝色的都好酷，正如本文的分类，家要有家的样子，遂重新配置我的终端！ 为什么选wezterm呢？因为它用rust实现，用lua写配置文件——因为喜欢 官方安装文档 配置需要在~下创建一个配置文件.wezterm.lua，windows在%USERPROFILE%下 嗯，用lua做配置文件，也就意味着配置参数">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://aucept.in/image/cover39_wand.jpg">
+<meta property="article:published_time" content="2025-11-12T10:52:50.000Z">
+<meta property="article:modified_time" content="2025-11-13T09:42:58.126Z">
+<meta property="article:author" content="Auceptin">
+<meta property="article:tag" content="terminal">
+<meta property="article:tag" content="wezterm">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://aucept.in/image/cover39_wand.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "wezterm配置",
+  "url": "https://aucept.in/2025/11/12/wezterm%E9%85%8D%E7%BD%AE/",
+  "image": "https://aucept.in/image/cover39_wand.jpg",
+  "datePublished": "2025-11-12T10:52:50.000Z",
+  "dateModified": "2025-11-13T09:42:58.126Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Auceptin",
+      "url": "https://aucept.in/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://aucept.in/2025/11/12/wezterm%E9%85%8D%E7%BD%AE/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"prismjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'wezterm配置',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><style>
+  /* 数学公式美化样式 */
+  .MathJax_Display {
+    margin: 1.5em 0 !important;
+    text-align: center !important;
+  }
+  
+  .MathJax {
+    font-size: 1.1em !important;
+  }
+  
+  /* 行内公式样式 */
+  .MathJax_Preview {
+    color: inherit;
+  }
+  
+  /* 块级公式容器美化 */
+  .MathJax_Display {
+    background: rgba(0,0,0,0.02);
+    border-radius: 8px;
+    padding: 15px 20px;
+    margin: 20px 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-left: 4px solid #49b1f5;
+  }
+  
+  /* 暗色模式下的公式样式 */
+  [data-theme="dark"] .MathJax_Display {
+    background: rgba(255,255,255,0.05);
+    border-left-color: #1f2937;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  
+  /* 公式编号样式 */
+  .MathJax .mjx-math .mjx-mrow .mjx-mtable .mjx-label {
+    color: #666;
+    font-size: 0.9em;
+  }
+  
+  /* 提升公式清晰度 */
+  .MathJax svg {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+</style>
+<meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-color: #f5f5f5;"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/auceptin-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">34</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">30</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">9</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/friends/"><span> Friends</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/image/cover2_square.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Auceptin's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">wezterm配置</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/friends/"><span> Friends</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">wezterm配置</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-11-12T10:52:50.000Z" title="发表于 2025-11-12 18:52:50">2025-11-12</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-11-13T09:42:58.126Z" title="更新于 2025-11-13 17:42:58">2025-11-13</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%AE%B6%E8%A6%81%E6%9C%89%E5%AE%B6%E7%9A%84%E6%A0%B7%E5%AD%90/">家要有家的样子</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>每天看着暗红色的终端喜新厌旧了，感觉流离用的fish命令提示功能，还有在别人博客上经常看到的暗蓝色的都好酷，正如本文的分类，家要有家的样子，遂重新配置我的终端！</p>
+<p>为什么选wezterm呢？因为它用rust实现，用lua写配置文件——因为喜欢</p>
+<p><a target="_blank" rel="noopener" href="https://wezterm.org/install/linux.html">官方安装文档</a></p>
+<h2 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h2><p>需要在~下创建一个配置文件.wezterm.lua，windows在%USERPROFILE%下</p>
+<p>嗯，用lua做配置文件，也就意味着配置参数里可以塞很多复杂的逻辑，极其灵活，赞</p>
+<p>贴一下我的：<br><pre class="line-numbers language-lua" data-language="lua"><code class="language-lua"><span class="token keyword">local</span> wezterm <span class="token operator">=</span> require <span class="token string">'wezterm'</span>
+<span class="token keyword">local</span> config <span class="token operator">=</span> <span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+
+<span class="token comment">-- 基础设置</span>
+config<span class="token punctuation">.</span>enable_tab_bar <span class="token operator">=</span> <span class="token keyword">true</span>
+config<span class="token punctuation">.</span>hide_tab_bar_if_only_one_tab <span class="token operator">=</span> <span class="token keyword">true</span>
+config<span class="token punctuation">.</span>use_fancy_tab_bar <span class="token operator">=</span> <span class="token keyword">true</span>  <span class="token comment">-- false 为简洁样式</span>
+config<span class="token punctuation">.</span>tab_bar_at_bottom <span class="token operator">=</span> <span class="token keyword">false</span>  <span class="token comment">-- true 将标签栏放底部</span>
+config<span class="token punctuation">.</span>tab_max_width <span class="token operator">=</span> <span class="token number">25</span>
+
+
+<span class="token comment">-- 启动设置 (Windows)</span>
+config<span class="token punctuation">.</span>default_prog <span class="token operator">=</span> <span class="token punctuation">&#123;</span> <span class="token string">'wsl.exe'</span><span class="token punctuation">,</span> <span class="token string">'-d'</span><span class="token punctuation">,</span> <span class="token string">'Ubuntu'</span><span class="token punctuation">,</span> <span class="token string">'--cd'</span><span class="token punctuation">,</span> <span class="token string">'/home/auceptin_fang'</span><span class="token punctuation">,</span><span class="token string">'--'</span><span class="token punctuation">,</span> <span class="token string">'fish'</span> <span class="token punctuation">&#125;</span>
+
+<span class="token comment">-- 字体设置</span>
+config<span class="token punctuation">.</span>font <span class="token operator">=</span> wezterm<span class="token punctuation">.</span><span class="token function">font_with_fallback</span><span class="token punctuation">(</span><span class="token punctuation">&#123;</span>
+  <span class="token string">'Cascadia Code'</span><span class="token punctuation">,</span>  <span class="token comment">-- Windows 自带</span>
+  <span class="token string">'Consolas'</span><span class="token punctuation">,</span>       <span class="token comment">-- Windows 自带</span>
+  <span class="token string">'Courier New'</span><span class="token punctuation">,</span>    <span class="token comment">-- Windows 自带</span>
+  <span class="token string">'Microsoft YaHei UI'</span><span class="token punctuation">,</span>
+  <span class="token string">'SimSun'</span><span class="token punctuation">,</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+
+config<span class="token punctuation">.</span>font_size <span class="token operator">=</span> <span class="token number">14.0</span>
+config<span class="token punctuation">.</span>line_height <span class="token operator">=</span> <span class="token number">1.2</span>  <span class="token comment">-- 行高倍数</span>
+config<span class="token punctuation">.</span>cell_width <span class="token operator">=</span> <span class="token number">1.0</span>   <span class="token comment">-- 字符宽度倍数</span>
+
+<span class="token comment">-- 字体特性（连字等）</span>
+config<span class="token punctuation">.</span>harfbuzz_features <span class="token operator">=</span> <span class="token punctuation">&#123;</span> <span class="token string">'calt=1'</span><span class="token punctuation">,</span> <span class="token string">'clig=1'</span><span class="token punctuation">,</span> <span class="token string">'liga=1'</span> <span class="token punctuation">&#125;</span>
+
+<span class="token comment">-- 性能配置</span>
+config<span class="token punctuation">.</span>front_end <span class="token operator">=</span> <span class="token string">"WebGpu"</span> 
+config<span class="token punctuation">.</span>max_fps <span class="token operator">=</span> <span class="token number">60</span>
+config<span class="token punctuation">.</span>animation_fps <span class="token operator">=</span> <span class="token number">60</span>
+config<span class="token punctuation">.</span>enable_kitty_graphics <span class="token operator">=</span> <span class="token keyword">false</span>
+config<span class="token punctuation">.</span>enable_bracketed_paste <span class="token operator">=</span> <span class="token keyword">false</span>
+
+<span class="token comment">-- ============================================================================</span>
+<span class="token comment">-- 配色方案</span>
+<span class="token comment">-- ============================================================================</span>
+
+config<span class="token punctuation">.</span>color_scheme <span class="token operator">=</span> <span class="token string">"Tokyo Night"</span>
+
+<span class="token comment">-- config.color_scheme = 'Batman'</span>
+<span class="token comment">-- config.color_scheme = "Catppuccin Mocha"</span>
+<span class="token comment">-- config.color_scheme = "Dracula"</span>
+<span class="token comment">-- config.color_scheme = "Nord"</span>
+<span class="token comment">-- config.color_scheme = "Gruvbox Dark"</span>
+<span class="token comment">-- config.color_scheme = "One Dark"</span>
+<span class="token comment">-- config.color_scheme = "Solarized Dark"</span>
+
+
+<span class="token comment">--[[ 自定义颜色
+config.colors = &#123;
+  foreground = '#c0caf5',
+  background = '#1a1b26',
+  cursor_bg = '#c0caf5',
+  cursor_border = '#c0caf5',
+  cursor_fg = '#1a1b26',
+  selection_bg = '#33467C',
+  selection_fg = '#c0caf5',
+&#125;
+]]</span>
+
+
+<span class="token comment">-- 背景透明度</span>
+config<span class="token punctuation">.</span>window_background_opacity <span class="token operator">=</span> <span class="token number">0.94</span>  
+
+<span class="token comment">-- 如果要使用背景图片，取消注释下面几行：</span>
+<span class="token comment">-- config.window_background_image = 'C:/'</span>
+<span class="token comment">-- config.window_background_image_hsb = &#123;</span>
+<span class="token comment">--   brightness = 0.3,  -- 建议 0.3-0.5</span>
+<span class="token comment">--   hue = 1.0,</span>
+<span class="token comment">--   saturation = 1.0,</span>
+<span class="token comment">-- &#125;</span>
+
+<span class="token comment">-- 如果要透明效果，设置 0.85-0.95：</span>
+<span class="token comment">-- config.window_background_opacity = 0.92</span>
+
+<span class="token comment">-- 光标设置</span>
+config<span class="token punctuation">.</span>default_cursor_style <span class="token operator">=</span> <span class="token string">'BlinkingBlock'</span> <span class="token comment">-- 闪烁</span>
+config<span class="token punctuation">.</span>cursor_blink_rate <span class="token operator">=</span> <span class="token number">500</span>
+config<span class="token punctuation">.</span>cursor_blink_ease_in <span class="token operator">=</span> <span class="token string">'Ease'</span>  <span class="token comment">-- 淡入效果：'Constant', 'Linear', 'Ease', 'EaseIn', 'EaseOut', 'EaseInOut'</span>
+config<span class="token punctuation">.</span>cursor_blink_ease_out <span class="token operator">=</span> <span class="token string">'Constant'</span>  <span class="token comment">-- 淡出效果</span>
+
+<span class="token comment">-- 窗口设置</span>
+config<span class="token punctuation">.</span>window_decorations <span class="token operator">=</span> <span class="token string">"RESIZE"</span>
+config<span class="token punctuation">.</span>window_padding <span class="token operator">=</span> <span class="token punctuation">&#123;</span>
+  left <span class="token operator">=</span> <span class="token number">10</span><span class="token punctuation">,</span>
+  right <span class="token operator">=</span> <span class="token number">10</span><span class="token punctuation">,</span>
+  top <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">,</span>
+  bottom <span class="token operator">=</span> <span class="token number">10</span><span class="token punctuation">,</span>
+<span class="token punctuation">&#125;</span>
+
+config<span class="token punctuation">.</span>initial_cols <span class="token operator">=</span> <span class="token number">120</span>
+config<span class="token punctuation">.</span>initial_rows <span class="token operator">=</span> <span class="token number">30</span>
+config<span class="token punctuation">.</span>window_close_confirmation <span class="token operator">=</span> <span class="token string">'NeverPrompt'</span>
+
+
+<span class="token comment">-- 滚动设置</span>
+config<span class="token punctuation">.</span>scrollback_lines <span class="token operator">=</span> <span class="token number">10000</span>
+config<span class="token punctuation">.</span>enable_scroll_bar <span class="token operator">=</span> <span class="token keyword">true</span>
+
+<span class="token comment">-- 快捷键</span>
+config<span class="token punctuation">.</span>keys <span class="token operator">=</span> <span class="token punctuation">&#123;</span>
+  <span class="token comment">-- 字体大小调整</span>
+  <span class="token punctuation">&#123;</span> key <span class="token operator">=</span> <span class="token string">'+'</span><span class="token punctuation">,</span> mods <span class="token operator">=</span> <span class="token string">'CTRL'</span><span class="token punctuation">,</span> action <span class="token operator">=</span> wezterm<span class="token punctuation">.</span>action<span class="token punctuation">.</span>IncreaseFontSize <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  <span class="token punctuation">&#123;</span> key <span class="token operator">=</span> <span class="token string">'-'</span><span class="token punctuation">,</span> mods <span class="token operator">=</span> <span class="token string">'CTRL'</span><span class="token punctuation">,</span> action <span class="token operator">=</span> wezterm<span class="token punctuation">.</span>action<span class="token punctuation">.</span>DecreaseFontSize <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  <span class="token punctuation">&#123;</span> key <span class="token operator">=</span> <span class="token string">'0'</span><span class="token punctuation">,</span> mods <span class="token operator">=</span> <span class="token string">'CTRL'</span><span class="token punctuation">,</span> action <span class="token operator">=</span> wezterm<span class="token punctuation">.</span>action<span class="token punctuation">.</span>ResetFontSize <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  
+  <span class="token comment">-- 重载配置</span>
+  <span class="token punctuation">&#123;</span> key <span class="token operator">=</span> <span class="token string">'L'</span><span class="token punctuation">,</span> mods <span class="token operator">=</span> <span class="token string">'CTRL|SHIFT'</span><span class="token punctuation">,</span> action <span class="token operator">=</span> wezterm<span class="token punctuation">.</span>action<span class="token punctuation">.</span>ReloadConfiguration <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  
+  <span class="token comment">-- 标签页管理</span>
+  <span class="token punctuation">&#123;</span> key <span class="token operator">=</span> <span class="token string">'t'</span><span class="token punctuation">,</span> mods <span class="token operator">=</span> <span class="token string">'CTRL|SHIFT'</span><span class="token punctuation">,</span> action <span class="token operator">=</span> wezterm<span class="token punctuation">.</span>action<span class="token punctuation">.</span>SpawnTab <span class="token string">'CurrentPaneDomain'</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  <span class="token punctuation">&#123;</span> key <span class="token operator">=</span> <span class="token string">'w'</span><span class="token punctuation">,</span> mods <span class="token operator">=</span> <span class="token string">'CTRL|SHIFT'</span><span class="token punctuation">,</span> action <span class="token operator">=</span> wezterm<span class="token punctuation">.</span>action<span class="token punctuation">.</span><span class="token function">CloseCurrentTab</span><span class="token punctuation">&#123;</span> confirm <span class="token operator">=</span> <span class="token keyword">true</span> <span class="token punctuation">&#125;</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  <span class="token punctuation">&#123;</span> key <span class="token operator">=</span> <span class="token string">'Tab'</span><span class="token punctuation">,</span> mods <span class="token operator">=</span> <span class="token string">'CTRL'</span><span class="token punctuation">,</span> action <span class="token operator">=</span> wezterm<span class="token punctuation">.</span>action<span class="token punctuation">.</span><span class="token function">ActivateTabRelative</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  <span class="token punctuation">&#123;</span> key <span class="token operator">=</span> <span class="token string">'Tab'</span><span class="token punctuation">,</span> mods <span class="token operator">=</span> <span class="token string">'CTRL|SHIFT'</span><span class="token punctuation">,</span> action <span class="token operator">=</span> wezterm<span class="token punctuation">.</span>action<span class="token punctuation">.</span><span class="token function">ActivateTabRelative</span><span class="token punctuation">(</span><span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+
+  <span class="token comment">-- 分屏管理</span>
+  <span class="token punctuation">&#123;</span> key <span class="token operator">=</span> <span class="token string">'d'</span><span class="token punctuation">,</span> mods <span class="token operator">=</span> <span class="token string">'CTRL|SHIFT'</span><span class="token punctuation">,</span> action <span class="token operator">=</span> wezterm<span class="token punctuation">.</span>action<span class="token punctuation">.</span><span class="token function">SplitHorizontal</span><span class="token punctuation">&#123;</span> domain <span class="token operator">=</span> <span class="token string">'CurrentPaneDomain'</span> <span class="token punctuation">&#125;</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  <span class="token punctuation">&#123;</span> key <span class="token operator">=</span> <span class="token string">'D'</span><span class="token punctuation">,</span> mods <span class="token operator">=</span> <span class="token string">'CTRL|SHIFT'</span><span class="token punctuation">,</span> action <span class="token operator">=</span> wezterm<span class="token punctuation">.</span>action<span class="token punctuation">.</span><span class="token function">SplitVertical</span><span class="token punctuation">&#123;</span> domain <span class="token operator">=</span> <span class="token string">'CurrentPaneDomain'</span> <span class="token punctuation">&#125;</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  <span class="token punctuation">&#123;</span> key <span class="token operator">=</span> <span class="token string">'h'</span><span class="token punctuation">,</span> mods <span class="token operator">=</span> <span class="token string">'CTRL|SHIFT'</span><span class="token punctuation">,</span> action <span class="token operator">=</span> wezterm<span class="token punctuation">.</span>action<span class="token punctuation">.</span>ActivatePaneDirection <span class="token string">'Left'</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  <span class="token punctuation">&#123;</span> key <span class="token operator">=</span> <span class="token string">'l'</span><span class="token punctuation">,</span> mods <span class="token operator">=</span> <span class="token string">'CTRL|SHIFT'</span><span class="token punctuation">,</span> action <span class="token operator">=</span> wezterm<span class="token punctuation">.</span>action<span class="token punctuation">.</span>ActivatePaneDirection <span class="token string">'Right'</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  <span class="token punctuation">&#123;</span> key <span class="token operator">=</span> <span class="token string">'k'</span><span class="token punctuation">,</span> mods <span class="token operator">=</span> <span class="token string">'CTRL|SHIFT'</span><span class="token punctuation">,</span> action <span class="token operator">=</span> wezterm<span class="token punctuation">.</span>action<span class="token punctuation">.</span>ActivatePaneDirection <span class="token string">'Up'</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  <span class="token punctuation">&#123;</span> key <span class="token operator">=</span> <span class="token string">'j'</span><span class="token punctuation">,</span> mods <span class="token operator">=</span> <span class="token string">'CTRL|SHIFT'</span><span class="token punctuation">,</span> action <span class="token operator">=</span> wezterm<span class="token punctuation">.</span>action<span class="token punctuation">.</span>ActivatePaneDirection <span class="token string">'Down'</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  <span class="token punctuation">&#123;</span> key <span class="token operator">=</span> <span class="token string">'x'</span><span class="token punctuation">,</span> mods <span class="token operator">=</span> <span class="token string">'CTRL|SHIFT'</span><span class="token punctuation">,</span> action <span class="token operator">=</span> wezterm<span class="token punctuation">.</span>action<span class="token punctuation">.</span><span class="token function">CloseCurrentPane</span><span class="token punctuation">&#123;</span> confirm <span class="token operator">=</span> <span class="token keyword">false</span> <span class="token punctuation">&#125;</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  
+  <span class="token comment">-- 复制粘贴，备用</span>
+  <span class="token punctuation">&#123;</span> key <span class="token operator">=</span> <span class="token string">'c'</span><span class="token punctuation">,</span> mods <span class="token operator">=</span> <span class="token string">'ALT'</span><span class="token punctuation">,</span> action <span class="token operator">=</span> wezterm<span class="token punctuation">.</span>action<span class="token punctuation">.</span>CopyTo <span class="token string">'Clipboard'</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  <span class="token punctuation">&#123;</span> key <span class="token operator">=</span> <span class="token string">'v'</span><span class="token punctuation">,</span> mods <span class="token operator">=</span> <span class="token string">'CTRL|SHIFT'</span><span class="token punctuation">,</span> action <span class="token operator">=</span> wezterm<span class="token punctuation">.</span>action<span class="token punctuation">.</span>PasteFrom <span class="token string">'Clipboard'</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  
+  <span class="token comment">-- 搜索</span>
+  <span class="token punctuation">&#123;</span> key <span class="token operator">=</span> <span class="token string">'f'</span><span class="token punctuation">,</span> mods <span class="token operator">=</span> <span class="token string">'CTRL|SHIFT'</span><span class="token punctuation">,</span> action <span class="token operator">=</span> wezterm<span class="token punctuation">.</span>action<span class="token punctuation">.</span>Search <span class="token string">'CurrentSelectionOrEmptyString'</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  
+  <span class="token comment">-- 清屏</span>
+  <span class="token punctuation">&#123;</span> key <span class="token operator">=</span> <span class="token string">'k'</span><span class="token punctuation">,</span> mods <span class="token operator">=</span> <span class="token string">'CTRL|ALT'</span><span class="token punctuation">,</span> action <span class="token operator">=</span> wezterm<span class="token punctuation">.</span>action<span class="token punctuation">.</span>ClearScrollback <span class="token string">'ScrollbackAndViewport'</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  
+  <span class="token comment">-- 新建标签</span>
+  <span class="token punctuation">&#123;</span> key <span class="token operator">=</span> <span class="token string">'N'</span><span class="token punctuation">,</span> mods <span class="token operator">=</span> <span class="token string">'CTRL|SHIFT'</span><span class="token punctuation">,</span> action <span class="token operator">=</span> wezterm<span class="token punctuation">.</span>action<span class="token punctuation">.</span><span class="token function">ShowLauncherArgs</span> <span class="token punctuation">&#123;</span> flags <span class="token operator">=</span> <span class="token string">'FUZZY|LAUNCH_MENU_ITEMS'</span> <span class="token punctuation">&#125;</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  
+  <span class="token comment">-- 快速跳转到标签页</span>
+  <span class="token punctuation">&#123;</span> key <span class="token operator">=</span> <span class="token string">'1'</span><span class="token punctuation">,</span> mods <span class="token operator">=</span> <span class="token string">'ALT'</span><span class="token punctuation">,</span> action <span class="token operator">=</span> wezterm<span class="token punctuation">.</span>action<span class="token punctuation">.</span><span class="token function">ActivateTab</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  <span class="token punctuation">&#123;</span> key <span class="token operator">=</span> <span class="token string">'2'</span><span class="token punctuation">,</span> mods <span class="token operator">=</span> <span class="token string">'ALT'</span><span class="token punctuation">,</span> action <span class="token operator">=</span> wezterm<span class="token punctuation">.</span>action<span class="token punctuation">.</span><span class="token function">ActivateTab</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  <span class="token punctuation">&#123;</span> key <span class="token operator">=</span> <span class="token string">'3'</span><span class="token punctuation">,</span> mods <span class="token operator">=</span> <span class="token string">'ALT'</span><span class="token punctuation">,</span> action <span class="token operator">=</span> wezterm<span class="token punctuation">.</span>action<span class="token punctuation">.</span><span class="token function">ActivateTab</span><span class="token punctuation">(</span><span class="token number">2</span><span class="token punctuation">)</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  <span class="token punctuation">&#123;</span> key <span class="token operator">=</span> <span class="token string">'4'</span><span class="token punctuation">,</span> mods <span class="token operator">=</span> <span class="token string">'ALT'</span><span class="token punctuation">,</span> action <span class="token operator">=</span> wezterm<span class="token punctuation">.</span>action<span class="token punctuation">.</span><span class="token function">ActivateTab</span><span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  <span class="token punctuation">&#123;</span> key <span class="token operator">=</span> <span class="token string">'5'</span><span class="token punctuation">,</span> mods <span class="token operator">=</span> <span class="token string">'ALT'</span><span class="token punctuation">,</span> action <span class="token operator">=</span> wezterm<span class="token punctuation">.</span>action<span class="token punctuation">.</span><span class="token function">ActivateTab</span><span class="token punctuation">(</span><span class="token number">4</span><span class="token punctuation">)</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token comment">-- 鼠标绑定</span>
+config<span class="token punctuation">.</span>mouse_bindings <span class="token operator">=</span> <span class="token punctuation">&#123;</span>
+  <span class="token comment">-- 右键粘贴</span>
+  <span class="token punctuation">&#123;</span>
+    event <span class="token operator">=</span> <span class="token punctuation">&#123;</span> Down <span class="token operator">=</span> <span class="token punctuation">&#123;</span> streak <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">,</span> button <span class="token operator">=</span> <span class="token string">'Right'</span> <span class="token punctuation">&#125;</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+    mods <span class="token operator">=</span> <span class="token string">'NONE'</span><span class="token punctuation">,</span>
+    action <span class="token operator">=</span> wezterm<span class="token punctuation">.</span>action<span class="token punctuation">.</span>PasteFrom <span class="token string">'Clipboard'</span><span class="token punctuation">,</span>
+  <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  <span class="token comment">-- Ctrl+左键打开链接</span>
+  <span class="token punctuation">&#123;</span>
+    event <span class="token operator">=</span> <span class="token punctuation">&#123;</span> Up <span class="token operator">=</span> <span class="token punctuation">&#123;</span> streak <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">,</span> button <span class="token operator">=</span> <span class="token string">'Left'</span> <span class="token punctuation">&#125;</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+    mods <span class="token operator">=</span> <span class="token string">'CTRL'</span><span class="token punctuation">,</span>
+    action <span class="token operator">=</span> wezterm<span class="token punctuation">.</span>action<span class="token punctuation">.</span>OpenLinkAtMouseCursor<span class="token punctuation">,</span>
+  <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  <span class="token punctuation">&#123;</span>
+    event <span class="token operator">=</span> <span class="token punctuation">&#123;</span> Up <span class="token operator">=</span> <span class="token punctuation">&#123;</span> streak <span class="token operator">=</span> <span class="token number">1</span><span class="token punctuation">,</span> button <span class="token operator">=</span> <span class="token string">'Left'</span> <span class="token punctuation">&#125;</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+    mods <span class="token operator">=</span> <span class="token string">'CTRL'</span><span class="token punctuation">,</span>
+    action <span class="token operator">=</span> wezterm<span class="token punctuation">.</span>action<span class="token punctuation">.</span>OpenLinkAtMouseCursor<span class="token punctuation">,</span>
+  <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  <span class="token comment">-- 双击选中整行并复制</span>
+  <span class="token punctuation">&#123;</span>
+    event <span class="token operator">=</span> <span class="token punctuation">&#123;</span> Up <span class="token operator">=</span> <span class="token punctuation">&#123;</span> streak <span class="token operator">=</span> <span class="token number">2</span><span class="token punctuation">,</span> button <span class="token operator">=</span> <span class="token string">'Left'</span> <span class="token punctuation">&#125;</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+    mods <span class="token operator">=</span> <span class="token string">'NONE'</span><span class="token punctuation">,</span>
+    action <span class="token operator">=</span> wezterm<span class="token punctuation">.</span>action<span class="token punctuation">.</span>CompleteSelection <span class="token string">'ClipboardAndPrimarySelection'</span><span class="token punctuation">,</span>
+  <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token comment">-- 超链接规则</span>
+config<span class="token punctuation">.</span>hyperlink_rules <span class="token operator">=</span> wezterm<span class="token punctuation">.</span><span class="token function">default_hyperlink_rules</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+
+<span class="token comment">-- 添加自定义规则</span>
+table<span class="token punctuation">.</span><span class="token function">insert</span><span class="token punctuation">(</span>config<span class="token punctuation">.</span>hyperlink_rules<span class="token punctuation">,</span> <span class="token punctuation">&#123;</span>
+  regex <span class="token operator">=</span> <span class="token string">[[\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]&#123;2,&#125;\b]]</span><span class="token punctuation">,</span>
+  format <span class="token operator">=</span> <span class="token string">'mailto:$0'</span><span class="token punctuation">,</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+
+
+<span class="token comment">-- 标签栏样式</span>
+wezterm<span class="token punctuation">.</span><span class="token function">on</span><span class="token punctuation">(</span><span class="token string">'format-tab-title'</span><span class="token punctuation">,</span> <span class="token keyword">function</span><span class="token punctuation">(</span>tab<span class="token punctuation">,</span> tabs<span class="token punctuation">,</span> panes<span class="token punctuation">,</span> config<span class="token punctuation">,</span> hover<span class="token punctuation">,</span> max_width<span class="token punctuation">)</span>
+  <span class="token keyword">local</span> title <span class="token operator">=</span> tab<span class="token punctuation">.</span>active_pane<span class="token punctuation">.</span>title
+  <span class="token keyword">if</span> tab<span class="token punctuation">.</span>is_active <span class="token keyword">then</span>
+    <span class="token keyword">return</span> <span class="token punctuation">&#123;</span>
+      <span class="token punctuation">&#123;</span> Text <span class="token operator">=</span> <span class="token string">' 󰆍 '</span> <span class="token operator">..</span> title <span class="token operator">..</span> <span class="token string">' '</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+    <span class="token punctuation">&#125;</span>
+  <span class="token keyword">end</span>
+  <span class="token keyword">return</span> <span class="token string">' '</span> <span class="token operator">..</span> title <span class="token operator">..</span> <span class="token string">' '</span>
+<span class="token keyword">end</span><span class="token punctuation">)</span>
+
+<span class="token comment">-- Windows 特定设置</span>
+<span class="token comment">-- 启动菜单 - 可以快速切换不同的 Shell</span>
+config<span class="token punctuation">.</span>launch_menu <span class="token operator">=</span> <span class="token punctuation">&#123;</span>
+  <span class="token punctuation">&#123;</span>
+    label <span class="token operator">=</span> <span class="token string">'WSL Ubuntu (Fish)'</span><span class="token punctuation">,</span>
+    args <span class="token operator">=</span> <span class="token punctuation">&#123;</span> <span class="token string">'wsl.exe'</span><span class="token punctuation">,</span> <span class="token string">'-d'</span><span class="token punctuation">,</span> <span class="token string">'Ubuntu'</span><span class="token punctuation">,</span> <span class="token string">'--cd'</span><span class="token punctuation">,</span> <span class="token string">'/home/auceptin_fang'</span><span class="token punctuation">,</span> <span class="token string">'--'</span><span class="token punctuation">,</span> <span class="token string">'fish'</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  <span class="token punctuation">&#123;</span>
+    label <span class="token operator">=</span> <span class="token string">'WSL Ubuntu'</span><span class="token punctuation">,</span>
+    args <span class="token operator">=</span> <span class="token punctuation">&#123;</span> <span class="token string">'wsl.exe'</span><span class="token punctuation">,</span> <span class="token string">'-d'</span><span class="token punctuation">,</span> <span class="token string">'Ubuntu'</span><span class="token punctuation">,</span> <span class="token string">'--cd'</span><span class="token punctuation">,</span> <span class="token string">'/home/auceptin_fang'</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  <span class="token punctuation">&#123;</span>
+    label <span class="token operator">=</span> <span class="token string">'Windows PowerShell'</span><span class="token punctuation">,</span>
+    args <span class="token operator">=</span> <span class="token punctuation">&#123;</span> <span class="token string">'powershell.exe'</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  <span class="token punctuation">&#123;</span>
+    label <span class="token operator">=</span> <span class="token string">'Command Prompt'</span><span class="token punctuation">,</span>
+    args <span class="token operator">=</span> <span class="token punctuation">&#123;</span> <span class="token string">'cmd.exe'</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+<span class="token punctuation">&#125;</span>
+
+
+<span class="token keyword">return</span> config<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></p>
+<p>对的，顺便还安装了fish，右箭头自动命令补全真舒服吧！</p>
+<p>试一下——看起来舒服多了╰(<em>°▽°</em>)╯：</p>
+<p><img src="/image/wezterm/terminal.png" alt="show"></p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/terminal/">terminal</a><a class="post-meta__tags" href="/tags/wezterm/">wezterm</a></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2025/11/03/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E4%BA%8C%E5%8F%89%E6%A0%91%E5%AE%9E%E9%AA%8C/" title="数据结构-二叉树实验"><img class="cover" src="/image/cover38_halloween.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">数据结构-二叉树实验</div></div><div class="info-2"><div class="info-item-1">二叉树的建立与遍历[问题描述] 建立一棵二叉树，并对其进行遍历(先序、中序、后序)，打印输出遍历结果。 [基本要求] 从键盘接受输入(先序)，以二叉链表作为存储结构，建立二叉树(以先序来建立)，并采用递归算法对其进行遍历(先序、中序、后序)，将遍历结果打印输出 第一轮，先定义数据结构与创建： struct BinaryTree &#123;     data : Option&lt;char>,     left : Option&lt;Box&lt;BinaryTree>>,     right : Option&lt;Box&lt;BinaryTree>> &#125;  impl BinaryTree &#123;     fn init() -> BinaryTree &#123;         BinaryTree&#123;             data : None,             left : None,             right : None         &#125;     &#125;      fn...</div></div></div></a></nav><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="giscus-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/auceptin-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Auceptin</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">34</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">30</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">9</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/auceptinFang"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">welcome to my blog! <br> Contact：me@aucept.in</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE"><span class="toc-number">1.</span> <span class="toc-text">配置</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2025/11/12/wezterm%E9%85%8D%E7%BD%AE/" title="wezterm配置"><img src="/image/cover39_wand.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="wezterm配置"/></a><div class="content"><a class="title" href="/2025/11/12/wezterm%E9%85%8D%E7%BD%AE/" title="wezterm配置">wezterm配置</a><time datetime="2025-11-12T10:52:50.000Z" title="发表于 2025-11-12 18:52:50">2025-11-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/11/03/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E4%BA%8C%E5%8F%89%E6%A0%91%E5%AE%9E%E9%AA%8C/" title="数据结构-二叉树实验"><img src="/image/cover38_halloween.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="数据结构-二叉树实验"/></a><div class="content"><a class="title" href="/2025/11/03/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E4%BA%8C%E5%8F%89%E6%A0%91%E5%AE%9E%E9%AA%8C/" title="数据结构-二叉树实验">数据结构-二叉树实验</a><time datetime="2025-11-03T03:02:43.000Z" title="发表于 2025-11-03 11:02:43">2025-11-03</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/10/26/moectf-2025/" title="Moectf 2025"><img src="/image/cover36_door.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Moectf 2025"/></a><div class="content"><a class="title" href="/2025/10/26/moectf-2025/" title="Moectf 2025">Moectf 2025</a><time datetime="2025-10-26T06:38:17.000Z" title="发表于 2025-10-26 14:38:17">2025-10-26</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/10/13/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E6%A0%88%E5%AE%9E%E9%AA%8C/" title="数据结构-栈实验"><img src="/image/cover35_flower.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="数据结构-栈实验"/></a><div class="content"><a class="title" href="/2025/10/13/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E6%A0%88%E5%AE%9E%E9%AA%8C/" title="数据结构-栈实验">数据结构-栈实验</a><time datetime="2025-10-13T02:42:03.000Z" title="发表于 2025-10-13 10:42:03">2025-10-13</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/10/12/tsctf-2025/" title="tsctf 2025"><img src="/image/cover34_castle.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="tsctf 2025"/></a><div class="content"><a class="title" href="/2025/10/12/tsctf-2025/" title="tsctf 2025">tsctf 2025</a><time datetime="2025-10-12T15:28:17.000Z" title="发表于 2025-10-12 23:28:17">2025-10-12</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url(/img/foot.jpg);"><div id="footer-wrap"><div class="copyright">&copy;2025 By Auceptin</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
+  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
+  const option = null
+
+  const getGiscusTheme = theme => theme === 'dark' ? 'dark' : 'light'
+
+  const createScriptElement = config => {
+    const ele = document.createElement('script')
+    Object.entries(config).forEach(([key, value]) => {
+      ele.setAttribute(key, value)
+    })
+    return ele
+  }
+
+  const loadGiscus = (el = document, key) => {
+    const mappingConfig = isShuoshuo
+      ? { 'data-mapping': 'specific', 'data-term': key }
+      : { 'data-mapping': (option && option['data-mapping']) || 'pathname' }
+
+    const giscusConfig = {
+      src: 'https://giscus.app/client.js',
+      'data-repo': 'AuceptinFang/blog',
+      'data-repo-id': 'R_kgDOO_UAjA',
+      'data-category-id': 'DIC_kwDOO_UAjM4Cr3mL',
+      'data-theme': getGiscusTheme(document.documentElement.getAttribute('data-theme')),
+      'data-reactions-enabled': '1',
+      crossorigin: 'anonymous',
+      async: true,
+      ...option,
+      ...mappingConfig
+    }
+
+    const scriptElement = createScriptElement(giscusConfig)
+
+    el.querySelector('#giscus-wrap').appendChild(scriptElement)
+
+    if (isShuoshuo) {
+      window.shuoshuoComment.destroyGiscus = () => {
+        if (el.children.length) {
+          el.innerHTML = ''
+          el.classList.add('no-comment')
+        }
+      }
+    }
+  }
+
+  const changeGiscusTheme = theme => {
+    const iframe = document.querySelector('#giscus-wrap iframe')
+    if (iframe) {
+      const message = {
+        giscus: {
+          setConfig: {
+            theme: getGiscusTheme(theme)
+          }
+        }
+      }
+      iframe.contentWindow.postMessage(message, 'https://giscus.app')
+    }
+  }
+
+  btf.addGlobalFn('themeChange', changeGiscusTheme, 'giscus')
+
+  if (isShuoshuo) {
+    'Giscus' === 'Giscus'
+      ? window.shuoshuoComment = { loadComment: loadGiscus }
+      : window.loadOtherComment = loadGiscus
+    return
+  }
+
+  if ('Giscus' === 'Giscus' || !false) {
+    if (false) btf.loadComment(document.getElementById('giscus-wrap'), loadGiscus)
+    else loadGiscus()
+  } else {
+    window.loadOtherComment = loadGiscus
+  }
+})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
