@@ -160,7 +160,13 @@
   isHighlightShrink: false,
   isToc: true,
   pageType: 'post'
-}</script><style>
+}</script>[object Object][object Object]<style>
+  /* 根据 Butterfly 主题切换代码高亮样式 */
+  [data-theme="light"] #prism-dark-theme,
+  [data-theme="dark"] #prism-light-theme {
+    display: none !important;
+  }
+  
   /* 数学公式美化样式 */
   .MathJax_Display {
     margin: 1.5em 0 !important;
@@ -405,4 +411,27 @@
   } else {
     window.loadOtherComment = loadGiscus
   }
-})()</script></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
+})()</script></div><script>
+  // 动态切换代码高亮主题
+  function switchPrismTheme() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const lightTheme = document.getElementById('prism-light-theme');
+    const darkTheme = document.getElementById('prism-dark-theme');
+    
+    if (lightTheme && darkTheme) {
+      lightTheme.disabled = isDark;
+      darkTheme.disabled = !isDark;
+    }
+  }
+  
+  // 页面加载时执行
+  document.addEventListener('DOMContentLoaded', switchPrismTheme);
+  
+  // 监听主题切换
+  const observer = new MutationObserver(switchPrismTheme);
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-theme']
+  });
+</script>
+<script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
