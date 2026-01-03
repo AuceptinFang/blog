@@ -6409,9 +6409,9 @@ spawn_percent <span class="token operator">=</span> <span class="token punctuati
     <category term="noita" scheme="https://aucept.in/categories/noita/"/>
     
     
-    <category term="noita" scheme="https://aucept.in/tags/noita/"/>
-    
     <category term="lua" scheme="https://aucept.in/tags/lua/"/>
+    
+    <category term="noita" scheme="https://aucept.in/tags/noita/"/>
     
   </entry>
   
@@ -8341,9 +8341,9 @@ data&#x2F;materials.xml              -&gt; [原始文件] + [mod_a材料] + [mod
     <category term="noita" scheme="https://aucept.in/categories/noita/"/>
     
     
-    <category term="noita" scheme="https://aucept.in/tags/noita/"/>
-    
     <category term="lua" scheme="https://aucept.in/tags/lua/"/>
+    
+    <category term="noita" scheme="https://aucept.in/tags/noita/"/>
     
     <category term="mod_dev" scheme="https://aucept.in/tags/mod-dev/"/>
     
