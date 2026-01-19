@@ -6,7 +6,7 @@
   <link href="https://aucept.in/atom.xml" rel="self"/>
   
   <link href="https://aucept.in/"/>
-  <updated>2026-01-02T13:30:29.965Z</updated>
+  <updated>2026-01-19T12:36:47.030Z</updated>
   <id>https://aucept.in/</id>
   
   <author>
@@ -16,6 +16,109 @@
   
   <generator uri="https://hexo.io/">Hexo</generator>
   <follow_challenge><feedId>230229871042106368</feedId><userId>230228883350077440</userId></follow_challenge>
+  
+  <entry>
+    <title>tauri-2 自动更新</title>
+    <link href="https://aucept.in/2026/01/18/tauri-2-%E8%87%AA%E5%8A%A8%E6%9B%B4%E6%96%B0/"/>
+    <id>https://aucept.in/2026/01/18/tauri-2-%E8%87%AA%E5%8A%A8%E6%9B%B4%E6%96%B0/</id>
+    <published>2026-01-18T15:09:19.000Z</published>
+    <updated>2026-01-19T12:36:47.030Z</updated>
+    
+    <content type="html"><![CDATA[<p>用tauri做项目已经不陌生了，就记录发布之后如何完成自动更新这一步吧</p>
+<h2 id="项目代码"><a href="#项目代码" class="headerlink" title="项目代码"></a>项目代码</h2><h3 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h3><p>cargo.toml里加上<br><pre class="line-numbers language-toml" data-language="toml"><code class="language-toml"><span class="token key property">tauri-plugin-updater</span> <span class="token punctuation">=</span> <span class="token string">"2.9.0"</span>
+<span class="token key property">tauri-plugin-process</span> <span class="token punctuation">=</span> <span class="token string">"2.3.1"</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></p>
+<p>相应的tauri::Builder里补充两行<br><pre class="line-numbers language-rust" data-language="rust"><code class="language-rust"><span class="token punctuation">.</span><span class="token function">plugin</span><span class="token punctuation">(</span><span class="token namespace">tauri_plugin_updater<span class="token punctuation">::</span></span><span class="token class-name">Builder</span><span class="token punctuation">::</span><span class="token function">new</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">build</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token punctuation">.</span><span class="token function">plugin</span><span class="token punctuation">(</span><span class="token namespace">tauri_plugin_process<span class="token punctuation">::</span></span><span class="token function">init</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre></p>
+<p>tauri.conf.json里，plugins里加上<br><pre class="line-numbers language-json" data-language="json"><code class="language-json"><span class="token property">"bundle"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span>
+    <span class="token property">"active"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+    <span class="token property">"targets"</span><span class="token operator">:</span> <span class="token string">"all"</span><span class="token punctuation">,</span>
+    <span class="token property">"createUpdaterArtifacts"</span><span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">,</span>
+  <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+<span class="token property">"plugins"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span>
+    <span class="token property">"updater"</span><span class="token operator">:</span> <span class="token punctuation">&#123;</span>
+        <span class="token property">"pubkey"</span><span class="token operator">:</span> <span class="token string">""</span><span class="token punctuation">,</span>
+        <span class="token property">"endpoints"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+            <span class="token string">"https://github.com/your_name/your_repositorie_name/releases/latest/download/latest.json"</span>
+        <span class="token punctuation">]</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></p>
+<p>在src-tauri/capabilities/default.json补充<br><pre class="line-numbers language-json" data-language="json"><code class="language-json"><span class="token punctuation">&#123;</span>
+  <span class="token property">"permissions"</span><span class="token operator">:</span> <span class="token punctuation">[</span>
+    <span class="token string">"core:default"</span><span class="token punctuation">,</span>
+    <span class="token string">"updater:allow-check"</span><span class="token punctuation">,</span>
+    <span class="token string">"updater:allow-download-and-install"</span><span class="token punctuation">,</span>
+    <span class="token string">"core:app:allow-app-show"</span><span class="token punctuation">,</span>
+    <span class="token string">"core:app:allow-app-hide"</span><span class="token punctuation">,</span>
+  <span class="token punctuation">]</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></p>
+<h3 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h3><pre class="line-numbers language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">use</span> <span class="token namespace">log<span class="token punctuation">::</span></span>info<span class="token punctuation">;</span>
+<span class="token keyword">use</span> <span class="token namespace">tauri<span class="token punctuation">::</span></span><span class="token class-name">AppHandle</span><span class="token punctuation">;</span>
+<span class="token keyword">use</span> <span class="token namespace">tauri_plugin_updater<span class="token punctuation">::</span></span><span class="token class-name">UpdaterExt</span><span class="token punctuation">;</span>
+<span class="token keyword">use</span> <span class="token namespace">tauri_plugin_process<span class="token punctuation">::</span></span><span class="token operator">*</span><span class="token punctuation">;</span>
+
+<span class="token attribute attr-name">#[tauri::command]</span>
+<span class="token keyword">pub</span> <span class="token keyword">async</span> <span class="token keyword">fn</span> <span class="token function-definition function">check_update</span><span class="token punctuation">(</span>app<span class="token punctuation">:</span> <span class="token namespace">tauri<span class="token punctuation">::</span></span><span class="token class-name">AppHandle</span><span class="token punctuation">)</span> <span class="token punctuation">-></span> <span class="token class-name">Result</span><span class="token operator">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">String</span><span class="token operator">></span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">let</span> updater <span class="token operator">=</span> app<span class="token punctuation">.</span><span class="token function">updater</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">map_err</span><span class="token punctuation">(</span><span class="token closure-params"><span class="token closure-punctuation punctuation">|</span>e<span class="token closure-punctuation punctuation">|</span></span> e<span class="token punctuation">.</span><span class="token function">to_string</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token operator">?</span><span class="token punctuation">;</span>
+
+    <span class="token comment">// 检查是否有新版本</span>
+    <span class="token comment">// 根据 tauri.conf.json 里的 endpoints 去请求更新源</span>
+    <span class="token keyword">let</span> update_result <span class="token operator">=</span> updater<span class="token punctuation">.</span><span class="token function">check</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token keyword">await</span><span class="token punctuation">.</span><span class="token function">map_err</span><span class="token punctuation">(</span><span class="token closure-params"><span class="token closure-punctuation punctuation">|</span>e<span class="token closure-punctuation punctuation">|</span></span> e<span class="token punctuation">.</span><span class="token function">to_string</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token operator">?</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">if</span> <span class="token keyword">let</span> <span class="token class-name">Some</span><span class="token punctuation">(</span>update<span class="token punctuation">)</span> <span class="token operator">=</span> update_result <span class="token punctuation">&#123;</span>
+        update
+            <span class="token punctuation">.</span><span class="token function">download_and_install</span><span class="token punctuation">(</span>
+                <span class="token closure-params"><span class="token closure-punctuation punctuation">|</span>chunk_length<span class="token punctuation">,</span> content_length<span class="token closure-punctuation punctuation">|</span></span> <span class="token punctuation">&#123;</span>
+                    <span class="token keyword">if</span> <span class="token keyword">let</span> <span class="token class-name">Some</span><span class="token punctuation">(</span>total<span class="token punctuation">)</span> <span class="token operator">=</span> content_length <span class="token punctuation">&#123;</span>
+                        <span class="token macro property">info!</span><span class="token punctuation">(</span><span class="token string">"下载进度: &#123;&#125;/&#123;&#125;"</span><span class="token punctuation">,</span> chunk_length<span class="token punctuation">,</span> total<span class="token punctuation">)</span><span class="token punctuation">;</span>
+                    <span class="token punctuation">&#125;</span>
+                <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+                <span class="token closure-params"><span class="token closure-punctuation punctuation">|</span><span class="token closure-punctuation punctuation">|</span></span> <span class="token punctuation">&#123;</span>
+                    <span class="token macro property">info!</span><span class="token punctuation">(</span><span class="token string">"下载完成，正在安装..."</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+                <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+            <span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token keyword">await</span>
+            <span class="token punctuation">.</span><span class="token function">map_err</span><span class="token punctuation">(</span><span class="token closure-params"><span class="token closure-punctuation punctuation">|</span>e<span class="token closure-punctuation punctuation">|</span></span> e<span class="token punctuation">.</span><span class="token function">to_string</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token operator">?</span><span class="token punctuation">;</span>
+
+        <span class="token macro property">info!</span><span class="token punctuation">(</span><span class="token string">"更新成功，应用即将重启"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        app<span class="token punctuation">.</span><span class="token function">restart</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token class-name">Ok</span><span class="token punctuation">(</span><span class="token string">"Update installed successfully, restarting..."</span><span class="token punctuation">.</span><span class="token function">to_string</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span> <span class="token keyword">else</span> <span class="token punctuation">&#123;</span>
+        <span class="token class-name">Ok</span><span class="token punctuation">(</span><span class="token string">"Already up to date"</span><span class="token punctuation">.</span><span class="token function">to_string</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+<span class="token attribute attr-name">#[tauri::command]</span>
+<span class="token keyword">pub</span> <span class="token keyword">async</span> <span class="token keyword">fn</span> <span class="token function-definition function">get_version</span><span class="token punctuation">(</span>app<span class="token punctuation">:</span> <span class="token class-name">AppHandle</span><span class="token punctuation">)</span> <span class="token punctuation">-></span> <span class="token class-name">Result</span><span class="token operator">&lt;</span><span class="token class-name">String</span><span class="token punctuation">,</span> <span class="token class-name">String</span><span class="token operator">></span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">let</span> version <span class="token operator">=</span> app<span class="token punctuation">.</span><span class="token function">package_info</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>version<span class="token punctuation">.</span><span class="token function">to_string</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token class-name">Ok</span><span class="token punctuation">(</span><span class="token macro property">format!</span><span class="token punctuation">(</span><span class="token string">"v&#123;&#125;"</span><span class="token punctuation">,</span> version<span class="token punctuation">)</span><span class="token punctuation">)</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="外部"><a href="#外部" class="headerlink" title="外部"></a>外部</h2><h3 id="key"><a href="#key" class="headerlink" title="key"></a>key</h3><p>首先生成一对秘钥<code>npx tauri signer generate -w ~/.tauri/myapp.key</code></p>
+<p>公钥填在tauri.conf.json里</p>
+<p>私钥 github仓库，Settings -&gt; Secrets and variables -&gt; Actions -&gt; New repository secret</p>
+<h3 id="endpoint"><a href="#endpoint" class="headerlink" title="endpoint"></a>endpoint</h3><p>一个远程JSON文件的 URL，github action会生成，里面有版本号，安装包uri等等</p>
+<p>总之轮子都是现成的，还是很方便的，配置起来也比我想的简单</p>
+]]></content>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;p&gt;用tauri做项目已经不陌生了，就记录发布之后如何完成自动更新这一步吧&lt;/p&gt;
+&lt;h2 id=&quot;项目代码&quot;&gt;&lt;a href=&quot;#项目代码&quot; class=&quot;headerlink&quot; title=&quot;项目代码&quot;&gt;&lt;/a&gt;项目代码&lt;/h2&gt;&lt;h3 id=&quot;配置&quot;&gt;&lt;a</summary>
+        
+      
+    
+    
+    
+    <category term="从0开始的rust之旅" scheme="https://aucept.in/categories/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84rust%E4%B9%8B%E6%97%85/"/>
+    
+    
+    <category term="rust" scheme="https://aucept.in/tags/rust/"/>
+    
+    <category term="tauri" scheme="https://aucept.in/tags/tauri/"/>
+    
+  </entry>
   
   <entry>
     <title>数据结构-排序实验</title>
