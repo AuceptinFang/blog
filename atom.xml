@@ -6,7 +6,7 @@
   <link href="https://aucept.in/atom.xml" rel="self"/>
   
   <link href="https://aucept.in/"/>
-  <updated>2026-02-11T08:19:08.195Z</updated>
+  <updated>2026-02-11T08:27:02.506Z</updated>
   <id>https://aucept.in/</id>
   
   <author>
@@ -18,11 +18,11 @@
   <follow_challenge><feedId>230229871042106368</feedId><userId>230228883350077440</userId></follow_challenge>
   
   <entry>
-    <title>UniCTF 2026</title>
+    <title>UniCTF 2026 WP</title>
     <link href="https://aucept.in/2026/02/03/UniCTF/"/>
     <id>https://aucept.in/2026/02/03/UniCTF/</id>
     <published>2026-02-03T02:00:17.000Z</published>
-    <updated>2026-02-11T08:19:08.195Z</updated>
+    <updated>2026-02-11T08:27:02.506Z</updated>
     
     <content type="html"><![CDATA[<p>为期一周，中间夹杂着其他的事，做得蛮累的</p>
 <h2 id="什么？我不是汇编高手吗？"><a href="#什么？我不是汇编高手吗？" class="headerlink" title="什么？我不是汇编高手吗？"></a>什么？我不是汇编高手吗？</h2><p>将输入指令以四字节为单位，用0xE9分割后执行</p>
@@ -2775,7 +2775,7 @@ fn test_pre_order()&#123;
     <link href="https://aucept.in/2025/10/26/moectf-2025/"/>
     <id>https://aucept.in/2025/10/26/moectf-2025/</id>
     <published>2025-10-26T06:38:17.000Z</published>
-    <updated>2025-11-16T13:57:47.374Z</updated>
+    <updated>2026-02-15T04:23:43.955Z</updated>
     
     <content type="html"><![CDATA[<p>一份<del>迟到的</del>不必要的WP，同时也是回顾si进pwn的世界的第一个月</p>
 <h3 id="0-二进制漏洞审计入门指北"><a href="#0-二进制漏洞审计入门指北" class="headerlink" title="0 二进制漏洞审计入门指北"></a>0 二进制漏洞审计入门指北</h3><p>真正的梦开始的地方，从熟悉流程开始，题目里把解题脚本直接给了出来：<br><pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">from</span> pwn <span class="token keyword">import</span> <span class="token operator">*</span>                                    <span class="token comment"># 导入 pwntools。</span>
@@ -5492,14 +5492,15 @@ m 的初值为 20:密码:3，1，7，2，4，8，4(正确的结果应为6，1，
     <link href="https://aucept.in/2025/08/11/git-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/"/>
     <id>https://aucept.in/2025/08/11/git-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</id>
     <published>2025-08-11T13:16:09.000Z</published>
-    <updated>2025-10-09T06:05:04.713Z</updated>
+    <updated>2026-02-11T09:39:06.973Z</updated>
     
     <content type="html"><![CDATA[<p>内容来源：</p>
 <ul>
 <li>书名：Git从入门到精通</li>
 <li>作者：高见龙</li>
-<li>出版社：北京大学出版社<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><h3 id="设置用户信息"><a href="#设置用户信息" class="headerlink" title="设置用户信息"></a>设置用户信息</h3><code>git config --global user.name &quot;Auceptin&quot;</code></li>
+<li>出版社：北京大学出版社</li>
 </ul>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><h3 id="设置用户信息"><a href="#设置用户信息" class="headerlink" title="设置用户信息"></a>设置用户信息</h3><p><code>git config --global user.name &quot;Auceptin&quot;</code></p>
 <p><code>git config --global user.email &quot;me@aucept.in&quot;</code> </p>
 <p><code>git config --list</code>可以查看当前设置</p>
 <p>如果想为某个项目设定单独的作者，把global参数换成local</p>
@@ -5645,7 +5646,9 @@ config&#x2F;database.yml
 &lt;ul&gt;
 &lt;li&gt;书名：Git从入门到精通&lt;/li&gt;
 &lt;li&gt;作者：高见龙&lt;/li&gt;
-&lt;li&gt;出版社：北京大学出版社&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot;</summary>
+&lt;li&gt;出版社：北京大学出版社&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;前言&quot;&gt;&lt;a href=&quot;#前言&quot; class=&quot;headerlink&quot;</summary>
         
       
     
@@ -5655,25 +5658,6 @@ config&#x2F;database.yml
     
     
     <category term="git" scheme="https://aucept.in/tags/git/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>git 学习笔记</title>
-    <link href="https://aucept.in/2025/08/11/heap%E5%AD%A6%E4%B9%A0/"/>
-    <id>https://aucept.in/2025/08/11/heap%E5%AD%A6%E4%B9%A0/</id>
-    <published>2025-08-11T13:16:09.000Z</published>
-    <updated>2026-01-22T15:04:27.136Z</updated>
-    
-    
-    
-    
-    <category term="ctf" scheme="https://aucept.in/categories/ctf/"/>
-    
-    
-    <category term="pwn" scheme="https://aucept.in/tags/pwn/"/>
-    
-    <category term="heap" scheme="https://aucept.in/tags/heap/"/>
     
   </entry>
   
@@ -7606,13 +7590,13 @@ docker.io/library/nginx:latest</code>成功</p>
     <link href="https://aucept.in/2025/07/06/%E8%BD%AC%E8%BD%BD-%E4%B8%80%E4%BA%9B%E8%AF%BB%E8%BF%87%E7%9A%84%E6%96%87%E7%AB%A0%E5%88%86%E4%BA%AB/"/>
     <id>https://aucept.in/2025/07/06/%E8%BD%AC%E8%BD%BD-%E4%B8%80%E4%BA%9B%E8%AF%BB%E8%BF%87%E7%9A%84%E6%96%87%E7%AB%A0%E5%88%86%E4%BA%AB/</id>
     <published>2025-07-06T05:46:49.000Z</published>
-    <updated>2025-12-29T10:47:53.084Z</updated>
+    <updated>2026-02-11T09:40:03.705Z</updated>
     
     <content type="html"><![CDATA[<h2 id="你缺计课"><a href="#你缺计课" class="headerlink" title="你缺计课"></a><a href="https://www.criwits.top/missing/">你缺计课</a></h2><p>一些计算机基础知识</p>
 <h2 id="CS自学指南"><a href="#CS自学指南" class="headerlink" title="CS自学指南"></a><a href="https://csdiy.wiki/">CS自学指南</a></h2><p>如其名</p>
 <h2 id="“那篇雄文”"><a href="#“那篇雄文”" class="headerlink" title="“那篇雄文”"></a><a href="https://github.com/HW-whistleblower/True-Story-of-Pangu">“那篇雄文”</a></h2><p><strong>我胆子大我敢转</strong></p>
 <h2 id="rust学习参考书"><a href="#rust学习参考书" class="headerlink" title="rust学习参考书"></a><a href="https://course.rs/about-book.html">rust学习参考书</a></h2><p>免费开源online</p>
-<h2 id="同作者的AI入门圣经"><a href="#同作者的AI入门圣经" class="headerlink" title="同作者的AI入门圣经"></a><a href="beatai.cn">同作者的AI入门圣经</a></h2><h2 id="tauri官方文档"><a href="#tauri官方文档" class="headerlink" title="tauri官方文档"></a><a href="https://tauri.app/zh-cn/start/">tauri官方文档</a></h2><p>基于rust的桌面应用框架</p>
+<h2 id="同作者的AI入门圣经"><a href="#同作者的AI入门圣经" class="headerlink" title="同作者的AI入门圣经"></a><a href="https://beatai.cn">同作者的AI入门圣经</a></h2><h2 id="tauri官方文档"><a href="#tauri官方文档" class="headerlink" title="tauri官方文档"></a><a href="https://tauri.app/zh-cn/start/">tauri官方文档</a></h2><p>基于rust的桌面应用框架</p>
 <h2 id="Rust异步编程与Tokio架构高级概述"><a href="#Rust异步编程与Tokio架构高级概述" class="headerlink" title="Rust异步编程与Tokio架构高级概述"></a><a href="https://moslehian.com/posts/2023/1-intro-async-rust-tokio/">Rust异步编程与Tokio架构高级概述</a></h2><p>群里看见jyi分享的</p>
 <h2 id="cmake说明书"><a href="#cmake说明书" class="headerlink" title="cmake说明书"></a><a href="https://modern-cmake-cn.github.io/Modern-CMake-zh_CN/">cmake说明书</a></h2><p>来自老师分享</p>
 <h2 id="可以搞赞助"><a href="#可以搞赞助" class="headerlink" title="可以搞赞助"></a><a href="https://github.com/NodeSeekDev/NodeSupport">可以搞赞助</a></h2><p>并非文章，一个服务器赞助机构</p>
