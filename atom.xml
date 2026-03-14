@@ -6,7 +6,7 @@
   <link href="https://aucept.in/atom.xml" rel="self"/>
   
   <link href="https://aucept.in/"/>
-  <updated>2026-02-11T08:27:02.506Z</updated>
+  <updated>2026-03-14T11:43:16.792Z</updated>
   <id>https://aucept.in/</id>
   
   <author>
@@ -16,6 +16,80 @@
   
   <generator uri="https://hexo.io/">Hexo</generator>
   <follow_challenge><feedId>230229871042106368</feedId><userId>230228883350077440</userId></follow_challenge>
+  
+  <entry>
+    <title>Compendium Adding eBPF for Kernel-Level Visibility</title>
+    <link href="https://aucept.in/2026/03/14/Compendium_Adding-eBPF-for-Kernel-Level-Visibility/"/>
+    <id>https://aucept.in/2026/03/14/Compendium_Adding-eBPF-for-Kernel-Level-Visibility/</id>
+    <published>2026-03-14T07:13:30.000Z</published>
+    <updated>2026-03-14T11:43:16.792Z</updated>
+    
+    <content type="html"><![CDATA[<p>新分类，其实是读各路文章的笔记</p>
+<p>原文网址<a href="https://pker.xyz/posts/compendium-ebpf#intro">Compendium: Adding eBPF for Kernel-Level Visibility</a>，发表在This Week in Rust上，作者介绍了自己的学习项目Compendium</p>
+<h2 id="Introduction"><a href="#Introduction" class="headerlink" title="Introduction"></a>Introduction</h2><p>ptrace 可以拦截syscall，跟踪文件描述符，监控内存以及产出交互式的报告，但是无法获知syscall之后系统内核里发生了什么。比如对于write系统调用，ptrace可以获知写了多少字节，但是无法得知块设备为了完成这次I/O操作实际花了多长时间</p>
+<p>eBPF通过附加程序在内核跟踪点，使得测量调度延迟和块设备延迟成为可能</p>
+<h2 id="Why-eBPF-What-Ptrace-Can’t-See"><a href="#Why-eBPF-What-Ptrace-Can’t-See" class="headerlink" title="Why eBPF? What Ptrace Can’t See"></a>Why eBPF? What Ptrace Can’t See</h2><p>Ptrace在syscall的入口和出口进行拦截，获知参数和返回值以及之间的时间，因此得以构建出I/O、内存、网络活动的图景，但是还有些内核层面的东西是不可见的：</p>
+<p>调度延迟：当你的进程被唤醒时，比如一次I/O结束、锁被释放或者传来信号，它不会立刻开始运行，而是进入一个运行队列等待调度器给它分到一个CPU core上，在一个繁忙的系统上，这个延迟可能会很显著</p>
+<p>块I/O延迟：SSD等以块为单位读写的设备，对于buffered I/O，内核可能在数据写入设备之前就返回，对于direct I/O，syscall会阻塞，但是ptrace识别不到是阻塞在磁盘还是阻塞在别的地方</p>
+<p>eBPF可以让我们在内核跟踪点上附加程序，这些是内核暴露出的稳定的“instrumentation points”，正是用于此类可观测性</p>
+<p>我们的程序几乎没有开销地运行在内核上下文，可以访问内核数据结构，并且通过一个ring缓冲区向用户态空间发送事件，同时eBPF 验证器又确保了我们的程序对内核是安全的，不会使内核崩溃、死循环或者访问到不该访问的内存</p>
+<h2 id="Scheduler-Latency-Tracking"><a href="#Scheduler-Latency-Tracking" class="headerlink" title="Scheduler Latency Tracking"></a>Scheduler Latency Tracking</h2><p>测量调度延迟的方法很直观，在进程被唤醒的时候记录一个时间戳，然后在被调度到一个CPU上时计算过了多久</p>
+<p>作者把程序附加到了两个跟踪点上：sched/sched_wakeup 和 sched/sched_switch，前者在内核把一个任务标记为可运行时触发，后者在调度器上下文切换到另一个任务时触发  </p>
+<p>唤醒处理器检查是否PID是我们正在跟踪的，如果是就把时间戳存在一个以PID为键的BPF哈希表里</p>
+<p>切换处理器则在表里查询即将执行的PID，计算时间间隔，如果超过10微秒就在ring缓冲区里保存并提交一个事件，如果低于10微秒则是正常调度不值得报告</p>
+<h2 id="Block-I-O-Latency-Tracking"><a href="#Block-I-O-Latency-Tracking" class="headerlink" title="Block I/O Latency Tracking"></a>Block I/O Latency Tracking</h2><p>块I/O跟踪依循类似的策略，附加到block/block_rq_issue（内核提交一个请求到块设备驱动）和 block/block_rq_complete（设备发出完成信号）</p>
+<p>一个关键的设计是只跟踪直接/同步I/O，事件处理器会检查当前的TID并去跟踪的进程表里比对，用bpf_get_current_pid_tgid()这个函数拿到当前线程id。对于buffered I/O,由内核写回线程kworker提交块请求，所以不会满足PID过滤，这是符合预期的：缓冲写回是异步的并与应用解耦，把延迟归因于正在跟踪得到程序是不对的</p>
+<p>在非详细模式下，连续的块I/O事件会被合并到一起</p>
+<h2 id="The-C-Rust-FFI-Strategy"><a href="#The-C-Rust-FFI-Strategy" class="headerlink" title="The C-Rust FFI Strategy"></a>The C-Rust FFI Strategy</h2><p>eBPF程序必须用C写并编译到BPF字节码，问题是如何架起这两者的桥梁而不用引入复杂的运行时依赖</p>
+<p>有像aya这样的crate让你用rust写BPF程序，但是此项目用一种更直接的方法，用C写BPF程序，编译到.o文件提交到仓库里并用include_bytes!宏嵌入到rust二进制里。</p>
+<p>在运行时，libbpf-rs这个库会加载这个object文件，重定位并发送到BPF验证，这个流程和C一样，验证通过后就把程序附件上去了</p>
+<p>对于C BPF程序和rust程序的共享的数据结构，用<code>#[repr(C)]</code>宏和清晰的填充区域去匹配，即用pad来保证4字节对齐</p>
+<p>把所有包在一个结构体里，包含BPF object, links, ring buffer, 和PID filter map，然后用Bio::leak把它的生命周期变成static</p>
+<h2 id="Fitting-Into-the-Event-Loop"><a href="#Fitting-Into-the-Event-Loop" class="headerlink" title="Fitting Into the Event Loop"></a>Fitting Into the Event Loop</h2><p>原先的compendium事件循环用poll()去推动所有任务，现在eBPF的加入意味着poll要多适配一种fd</p>
+<p>更多实现细节跳过</p>
+<h2 id="Ptrace-eBPF-Complementary-tools"><a href="#Ptrace-eBPF-Complementary-tools" class="headerlink" title="Ptrace + eBPF: Complementary tools!"></a>Ptrace + eBPF: Complementary tools!</h2><p>eBPF理论上也可以跟踪系统调用，用<code>raw_syscalls/sys_enter</code>和<code>raw_syscalls/sys_exit</code> 跟踪点，但是ptrace提供了eBPF无法轻易复制的东西：从被跟踪的进程中读任意内存的能力</p>
+<p>ptrace拦截一个<code>open()</code>系统调用时，我们使用process_vm_readv从被跟踪者内存中读取路径字符串，同理对于<code>connect()</code>可以看见IP地址和端口号，<code>write()</code>可以看见缓冲区内容。BPF可以通过工具阅读内核内存，但是阅读用户空间内存从BPF上下文更加的首先且脆弱，尤其对于变长字符串</p>
+<p>Ptrace也提供了准确的控制流：我们停在每次系统调用的入口和出口，使得我们可以保持有状态的跟踪。BPF程序每次调用是无状态的，你可以用map存状态，但是编程模型是从根本上不同的</p>
+<p>所以分工很明确，ptrace负责系统调用的参数、返回值、文件描述符、内存跟踪，即程序要求内核做什么；eBPF负责调度延迟，块I/O延迟，即内核在幕后做了什么</p>
+<h2 id="其它"><a href="#其它" class="headerlink" title="其它"></a>其它</h2><p>此项目位于<a href="https://github.com/louisboilard/compendium">这里</a>，我以为能被我了解到的项目都是非常出名的，1k star起步的那种，看来并非</p>
+<p>看了一眼这个项目的依赖：<br><pre class="line-numbers language-toml" data-language="toml"><code class="language-toml"><span class="token punctuation">[</span><span class="token table class-name">package</span><span class="token punctuation">]</span>
+<span class="token key property">name</span> <span class="token punctuation">=</span> <span class="token string">"compendium"</span>
+<span class="token key property">version</span> <span class="token punctuation">=</span> <span class="token string">"0.2.0"</span>
+<span class="token key property">edition</span> <span class="token punctuation">=</span> <span class="token string">"2024"</span>
+<span class="token key property">description</span> <span class="token punctuation">=</span> <span class="token string">"A user-friendly strace for x86 Linux with HTML reports"</span>
+<span class="token key property">license</span> <span class="token punctuation">=</span> <span class="token string">"MIT"</span>
+<span class="token key property">repository</span> <span class="token punctuation">=</span> <span class="token string">"https://github.com/louisboilard/compendium"</span>
+
+<span class="token punctuation">[</span><span class="token table class-name">dependencies</span><span class="token punctuation">]</span>
+<span class="token key property">nix</span> <span class="token punctuation">=</span> <span class="token punctuation">&#123;</span> <span class="token key property">version</span> <span class="token punctuation">=</span> <span class="token string">"0.31"</span><span class="token punctuation">,</span> <span class="token key property">features</span> <span class="token punctuation">=</span> <span class="token punctuation">[</span><span class="token string">"ptrace"</span><span class="token punctuation">,</span> <span class="token string">"signal"</span><span class="token punctuation">,</span> <span class="token string">"process"</span><span class="token punctuation">]</span> <span class="token punctuation">&#125;</span>
+<span class="token key property">libc</span> <span class="token punctuation">=</span> <span class="token string">"0.2"</span>
+<span class="token key property">anyhow</span> <span class="token punctuation">=</span> <span class="token string">"1.0"</span>
+<span class="token key property">clap</span> <span class="token punctuation">=</span> <span class="token punctuation">&#123;</span> <span class="token key property">version</span> <span class="token punctuation">=</span> <span class="token string">"4"</span><span class="token punctuation">,</span> <span class="token key property">features</span> <span class="token punctuation">=</span> <span class="token punctuation">[</span><span class="token string">"derive"</span><span class="token punctuation">]</span> <span class="token punctuation">&#125;</span>
+<span class="token key property">perf-event2</span> <span class="token punctuation">=</span> <span class="token string">"0.7.4"</span>
+<span class="token key property">libbpf-rs</span> <span class="token punctuation">=</span> <span class="token string">"0.26"</span>
+<span class="token key property">serde</span> <span class="token punctuation">=</span> <span class="token punctuation">&#123;</span> <span class="token key property">version</span> <span class="token punctuation">=</span> <span class="token string">"1.0"</span><span class="token punctuation">,</span> <span class="token key property">features</span> <span class="token punctuation">=</span> <span class="token punctuation">[</span><span class="token string">"derive"</span><span class="token punctuation">]</span> <span class="token punctuation">&#125;</span>
+<span class="token key property">serde_json</span> <span class="token punctuation">=</span> <span class="token string">"1.0"</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></p>
+<p>很符合我对“小而美”的认识，培养审美ing</p>
+]]></content>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;p&gt;新分类，其实是读各路文章的笔记&lt;/p&gt;
+&lt;p&gt;原文网址&lt;a href=&quot;https://pker.xyz/posts/compendium-ebpf#intro&quot;&gt;Compendium: Adding eBPF for Kernel-Level</summary>
+        
+      
+    
+    
+    
+    <category term="温馨的阅读时光" scheme="https://aucept.in/categories/%E6%B8%A9%E9%A6%A8%E7%9A%84%E9%98%85%E8%AF%BB%E6%97%B6%E5%85%89/"/>
+    
+    
+    <category term="eBPF" scheme="https://aucept.in/tags/eBPF/"/>
+    
+  </entry>
   
   <entry>
     <title>UniCTF 2026 WP</title>
