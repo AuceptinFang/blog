@@ -6,7 +6,7 @@
   <link href="https://aucept.in/atom.xml" rel="self"/>
   
   <link href="https://aucept.in/"/>
-  <updated>2026-03-14T11:43:16.792Z</updated>
+  <updated>2026-03-15T12:08:33.934Z</updated>
   <id>https://aucept.in/</id>
   
   <author>
@@ -18,11 +18,83 @@
   <follow_challenge><feedId>230229871042106368</feedId><userId>230228883350077440</userId></follow_challenge>
   
   <entry>
+    <title>The Cost of Indirection in Rust</title>
+    <link href="https://aucept.in/2026/03/15/The-Cost-of-Indirection-in-Rust/"/>
+    <id>https://aucept.in/2026/03/15/The-Cost-of-Indirection-in-Rust/</id>
+    <published>2026-03-15T06:02:52.000Z</published>
+    <updated>2026-03-15T12:08:33.934Z</updated>
+    
+    <content type="html"><![CDATA[<p>原文在这里<a href="https://blog.sebastiansastre.co/posts/cost-of-indirection-in-rust/">The Cost of Indirection in Rust</a> 依旧来自This Week in Rust</p>
+<blockquote>
+<p>为什么因为“间接（函数调用）有开销”而选择内联通常是错误的，真正的开销到底在哪？</p>
+</blockquote>
+<h2 id="开销不在哪"><a href="#开销不在哪" class="headerlink" title="开销不在哪"></a>开销不在哪</h2><p>对于一个这样的函数：<br><pre class="line-numbers language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">async</span> <span class="token keyword">fn</span> <span class="token function-definition function">handle_event</span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">self</span><span class="token punctuation">,</span> event<span class="token punctuation">:</span> <span class="token class-name">Event</span><span class="token punctuation">)</span> <span class="token punctuation">-></span> <span class="token class-name">Result</span><span class="token operator">&lt;</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">></span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">match</span> event<span class="token punctuation">.</span>kind <span class="token punctuation">&#123;</span>
+        <span class="token class-name">EventKind</span><span class="token punctuation">::</span><span class="token class-name">Suspend</span> <span class="token operator">=></span> <span class="token punctuation">&#123;</span>
+            <span class="token comment">// … > 20 lines of app behavior … </span>
+            <span class="token punctuation">&#125;</span>
+        <span class="token comment">// … other arms …</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><br>相比于写成这样：<br><pre class="line-numbers language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">async</span> <span class="token keyword">fn</span> <span class="token function-definition function">handle_event</span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">self</span><span class="token punctuation">,</span> event<span class="token punctuation">:</span> <span class="token class-name">Event</span><span class="token punctuation">)</span> <span class="token punctuation">-></span> <span class="token class-name">Result</span><span class="token operator">&lt;</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">></span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">match</span> event<span class="token punctuation">.</span>kind <span class="token punctuation">&#123;</span>
+        <span class="token class-name">EventKind</span><span class="token punctuation">::</span><span class="token class-name">Suspend</span> <span class="token operator">=></span> <span class="token keyword">self</span><span class="token punctuation">.</span><span class="token function">handle_suspend</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token keyword">await</span><span class="token punctuation">,</span>
+        <span class="token comment">// … other arms …</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token keyword">async</span> <span class="token keyword">fn</span> <span class="token function-definition function">handle_suspend</span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">self</span><span class="token punctuation">,</span> event<span class="token punctuation">:</span> <span class="token class-name">Event</span><span class="token punctuation">)</span> <span class="token punctuation">-></span> <span class="token class-name">Result</span><span class="token operator">&lt;</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">></span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">// … > 20 lines of app behavior …</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></p>
+<p>肉眼可见的多了一次异步函数调用，具体而言:</p>
+<ul>
+<li>传递参数</li>
+<li>Future状态机初始化</li>
+<li>pin住self引用</li>
+<li>压栈和出栈   </li>
+<li>调度队列、唤醒器和事件循环的额外开销</li>
+</ul>
+<p>然而实践中不是这样的</p>
+<p>在这个场景里，match本身就是一次分支，对应着一连串的比较或者一个跳转表，而增加一次函数调用不过是增加一次间接跳转和栈帧建立，相比于suspend分支做的实际工作，这完全就是噪音</p>
+<p>当你<code>await</code>一个异步函数时，不要把它想象成传统的“进入新函数-压栈-出栈”。在 Rust 的底层，异步函数会被编译成枚举（Enum）状态机。</p>
+<p>当父函数调用子函数时，编译器直接将子 Future 的状态塞进父 Future 的状态机中。因为这种嵌套结构在编译期大小完全确定，系统只需在栈上分配一块固定内存，根本不需要付出动态分配的代价。额外的 .await 节点最终会被编译器“内联”和“拍扁”，所谓的函数跳转开销，实际上早已被编译器优化成了零成本。</p>
+<p>如果在Suspend分支里执行了一次I/O、等锁或者其它什么分配操作，这就是用纳秒级别的噪声去碰瓷毫秒级的信号，根本不是一个层面的事</p>
+<p>另外，在release模式下的编译，编译器通常会内联小函数，是否要内联的分歧可能一开始就不存在</p>
+<p>更好的办法是用工具测量，是去跑benchmark，是<code>valgrind --tool=callgrid</code>,<code>perf record</code>,<code>perf report</code>或火焰图，<code>dtrace</code>等等</p>
+<h2 id="什么时候内联确实需要"><a href="#什么时候内联确实需要" class="headerlink" title="什么时候内联确实需要"></a>什么时候内联确实需要</h2><p>对于每秒百万次的紧循环，聪明的缓存策略和分支预测变得重要，纳秒的开销就会变成毫秒级的、可感的延迟</p>
+<p>对于<code>dyn</code>特征，编译器不知道最后会传进来个什么东西，需要去查虚函数表，就会造成硬性开销</p>
+<p>性能关键路径上的显式间接调用，比如函数指针或者试图调用另一个语言的模块，和dyn特征一样，编译器不知道最后会调用一个什么东西，所以开销也不可避免</p>
+<h2 id="“非运行时”开销"><a href="#“非运行时”开销" class="headerlink" title="“非运行时”开销"></a>“非运行时”开销</h2><p>人的认知成本很多时候比运行时的开销更重要</p>
+<p>更长的代码会使每个阅读它的人支付一笔认知税，会更容易出bug，且随着代码量的增加会变得更加难以阅读</p>
+<p>rust的设计哲学对此的态度是明确的：做清晰的抽象，相信优化，只在确认真的是个问题且没有替代办法时再用<code>#[inline]</code>或<code>#[inline(always)]</code></p>
+<p>所以真正的开销是移除这一层函数调用后失去的清晰性、可测试性和开发效率</p>
+<p>另外，把函数内联进去了要怎么做单元测试</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>为了可维护性和可理解性，在没有坚实的证据证明前，多一次函数调用而非内联再好不过</p>
+]]></content>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;p&gt;原文在这里&lt;a href=&quot;https://blog.sebastiansastre.co/posts/cost-of-indirection-in-rust/&quot;&gt;The Cost of Indirection in Rust&lt;/a&gt; 依旧来自This Week in</summary>
+        
+      
+    
+    
+    
+    <category term="温馨的阅读时光" scheme="https://aucept.in/categories/%E6%B8%A9%E9%A6%A8%E7%9A%84%E9%98%85%E8%AF%BB%E6%97%B6%E5%85%89/"/>
+    
+    
+    <category term="rust" scheme="https://aucept.in/tags/rust/"/>
+    
+  </entry>
+  
+  <entry>
     <title>Compendium Adding eBPF for Kernel-Level Visibility</title>
     <link href="https://aucept.in/2026/03/14/Compendium_Adding-eBPF-for-Kernel-Level-Visibility/"/>
     <id>https://aucept.in/2026/03/14/Compendium_Adding-eBPF-for-Kernel-Level-Visibility/</id>
     <published>2026-03-14T07:13:30.000Z</published>
-    <updated>2026-03-14T11:43:16.792Z</updated>
+    <updated>2026-03-15T11:58:40.929Z</updated>
     
     <content type="html"><![CDATA[<p>新分类，其实是读各路文章的笔记</p>
 <p>原文网址<a href="https://pker.xyz/posts/compendium-ebpf#intro">Compendium: Adding eBPF for Kernel-Level Visibility</a>，发表在This Week in Rust上，作者介绍了自己的学习项目Compendium</p>
@@ -88,6 +160,8 @@
     
     
     <category term="eBPF" scheme="https://aucept.in/tags/eBPF/"/>
+    
+    <category term="rust" scheme="https://aucept.in/tags/rust/"/>
     
   </entry>
   
