@@ -6,7 +6,7 @@
   <link href="https://aucept.in/atom.xml" rel="self"/>
   
   <link href="https://aucept.in/"/>
-  <updated>2026-03-15T12:08:33.934Z</updated>
+  <updated>2026-03-21T08:48:47.337Z</updated>
   <id>https://aucept.in/</id>
   
   <author>
@@ -16,6 +16,270 @@
   
   <generator uri="https://hexo.io/">Hexo</generator>
   <follow_challenge><feedId>230229871042106368</feedId><userId>230228883350077440</userId></follow_challenge>
+  
+  <entry>
+    <title>Using Rust and Postgres for everything: patterns learned over the years</title>
+    <link href="https://aucept.in/2026/03/21/Using-Rust-and-Postgres-for-everything-patterns-learned-over-the-years/"/>
+    <id>https://aucept.in/2026/03/21/Using-Rust-and-Postgres-for-everything-patterns-learned-over-the-years/</id>
+    <published>2026-03-21T07:40:35.000Z</published>
+    <updated>2026-03-21T08:48:47.337Z</updated>
+    
+    <content type="html"><![CDATA[<p>原文网址<a href="https://kerkour.com/rust-postgres-everything">Using Rust and Postgres for everything: patterns learned over the years</a></p>
+<h2 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h2><p>作者喜欢简单，可靠，功能又丰富的工具，而在软件领域，就是rust和postgreSQL</p>
+<p>随着大模型和编程agent的发展，这两者也变得容易上手，他们兼顾可靠性，功能性，快速，容易适应甚至易维护用他们做的项目，还开源，在作者眼里成了软件工程领域的“end-game”</p>
+<p>接下来是尽可能充分的利用rust和postgres的一些开发模式</p>
+<h2 id="sqlx"><a href="#sqlx" class="headerlink" title="sqlx"></a>sqlx</h2><p>ORMs很糟，用sqlx</p>
+<p>sqlx是一个数据库操作依赖，一大核心feature是编译期SQL检查</p>
+<h2 id="批处理"><a href="#批处理" class="headerlink" title="批处理"></a>批处理</h2><p>在sqlx的0.9版本之后，可以把迭代器绑定作变量使得批量insert或update更容易</p>
+<p>原文的example：<br><pre class="line-numbers language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">impl</span> <span class="token class-name">Repository</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">pub</span> <span class="token keyword">async</span> <span class="token keyword">fn</span> <span class="token function-definition function">create_users</span><span class="token operator">&lt;</span><span class="token lifetime-annotation symbol">'c</span><span class="token punctuation">,</span> <span class="token class-name">Q</span><span class="token punctuation">:</span> <span class="token namespace">pg<span class="token punctuation">::</span></span><span class="token class-name">Queryer</span><span class="token operator">&lt;</span><span class="token lifetime-annotation symbol">'c</span><span class="token operator">>></span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">self</span><span class="token punctuation">,</span> db<span class="token punctuation">:</span> <span class="token class-name">Q</span><span class="token punctuation">,</span> users<span class="token punctuation">:</span> <span class="token operator">&amp;</span><span class="token punctuation">[</span><span class="token class-name">User</span><span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token punctuation">-></span> <span class="token class-name">Result</span><span class="token operator">&lt;</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token class-name">Error</span><span class="token operator">></span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">if</span> users<span class="token punctuation">.</span><span class="token function">is_empty</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">return</span> <span class="token class-name">Ok</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+
+        <span class="token keyword">const</span> <span class="token constant">QUERY</span><span class="token punctuation">:</span> <span class="token operator">&amp;</span><span class="token keyword">str</span> <span class="token operator">=</span> <span class="token string">"INSERT INTO users (id, name)
+                SELECT * FROM UNNEST($1::UUID[], $2::TEXT[])"</span><span class="token punctuation">;</span>
+
+        <span class="token namespace">sqlx<span class="token punctuation">::</span></span><span class="token function">query</span><span class="token punctuation">(</span><span class="token constant">QUERY</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span>users<span class="token punctuation">.</span><span class="token function">iter</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token closure-params"><span class="token closure-punctuation punctuation">|</span>user<span class="token closure-punctuation punctuation">|</span></span> user<span class="token punctuation">.</span>id<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">bind_iter</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span>users<span class="token punctuation">.</span><span class="token function">iter</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token closure-params"><span class="token closure-punctuation punctuation">|</span>user<span class="token closure-punctuation punctuation">|</span></span> user<span class="token punctuation">.</span>name<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">bind_iter</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">execute</span><span class="token punctuation">(</span>db<span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token keyword">await</span>
+            <span class="token punctuation">.</span><span class="token function">map_err</span><span class="token punctuation">(</span><span class="token closure-params"><span class="token closure-punctuation punctuation">|</span>err<span class="token closure-punctuation punctuation">|</span></span> <span class="token class-name">Error</span><span class="token punctuation">::</span><span class="token class-name">Unspecified</span><span class="token punctuation">(</span><span class="token macro property">format!</span><span class="token punctuation">(</span><span class="token string">"create_users: &#123;err&#125;"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token operator">?</span><span class="token punctuation">;</span>
+
+        <span class="token keyword">return</span> <span class="token class-name">Ok</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">pub</span> <span class="token keyword">async</span> <span class="token keyword">fn</span> <span class="token function-definition function">update_users</span><span class="token operator">&lt;</span><span class="token lifetime-annotation symbol">'c</span><span class="token punctuation">,</span> <span class="token class-name">Q</span><span class="token punctuation">:</span> <span class="token namespace">pg<span class="token punctuation">::</span></span><span class="token class-name">Queryer</span><span class="token operator">&lt;</span><span class="token lifetime-annotation symbol">'c</span><span class="token operator">>></span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">self</span><span class="token punctuation">,</span> db<span class="token punctuation">:</span> <span class="token class-name">Q</span><span class="token punctuation">,</span> users<span class="token punctuation">:</span> <span class="token operator">&amp;</span><span class="token punctuation">[</span><span class="token class-name">User</span><span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token punctuation">-></span> <span class="token class-name">Result</span><span class="token operator">&lt;</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token class-name">Error</span><span class="token operator">></span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">if</span> users<span class="token punctuation">.</span><span class="token function">is_empty</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+            <span class="token keyword">return</span> <span class="token class-name">Ok</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+
+        <span class="token keyword">const</span> <span class="token constant">QUERY</span><span class="token punctuation">:</span> <span class="token operator">&amp;</span><span class="token keyword">str</span> <span class="token operator">=</span> <span class="token string">"UPDATE users
+            SET name = user.name
+            FROM UNNEST($1::UUID[], $2::TEXT[]) AS user(id, name)
+            WHERE users.id = user.id"</span><span class="token punctuation">;</span>
+
+        <span class="token namespace">sqlx<span class="token punctuation">::</span></span><span class="token function">query</span><span class="token punctuation">(</span><span class="token constant">QUERY</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span>users<span class="token punctuation">.</span><span class="token function">iter</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token closure-params"><span class="token closure-punctuation punctuation">|</span>user<span class="token closure-punctuation punctuation">|</span></span> user<span class="token punctuation">.</span>id<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">bind_iter</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span>users<span class="token punctuation">.</span><span class="token function">iter</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token closure-params"><span class="token closure-punctuation punctuation">|</span>user<span class="token closure-punctuation punctuation">|</span></span> user<span class="token punctuation">.</span>name<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">bind_iter</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">execute</span><span class="token punctuation">(</span>db<span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token keyword">await</span>
+            <span class="token punctuation">.</span><span class="token function">map_err</span><span class="token punctuation">(</span><span class="token closure-params"><span class="token closure-punctuation punctuation">|</span>err<span class="token closure-punctuation punctuation">|</span></span> <span class="token class-name">Error</span><span class="token punctuation">::</span><span class="token class-name">Unspecified</span><span class="token punctuation">(</span><span class="token macro property">format!</span><span class="token punctuation">(</span><span class="token string">"update_users: &#123;err&#125;"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token operator">?</span><span class="token punctuation">;</span>
+
+        <span class="token keyword">return</span> <span class="token class-name">Ok</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></p>
+<p>作者贴出代码就不解释了，看来是把工作留给了我</p>
+<p>db的类型<code>&lt;&#39;c, Q: pg::Queryer&lt;&#39;c&gt;&gt;</code>是一个实现了查询特征的泛型，不是这里的重点，users是一个User列表切片</p>
+<p>insert的时候，<code>UNNEST(array1,array2)</code>是pg特有的写法，会把多个结果展开为一个结果集（粗略看做一张临时表），然后<code>SELECT *</code>，再批量插入</p>
+<p>bind的时候，提取user的一个字段，生成一个迭代器，再收集成列表，bind_iter似乎是一个自定义方法</p>
+<h2 id="基于PostgreSQL的advisory-locks的leader选择"><a href="#基于PostgreSQL的advisory-locks的leader选择" class="headerlink" title="基于PostgreSQL的advisory locks的leader选择"></a>基于PostgreSQL的advisory locks的leader选择</h2><p>术语很多，其实是个很直观的问题——有些任务只能用一个实例做，如何不出乱子</p>
+<p>后端服务通常都被设计成无状态的、可拓展的，如果需要更高的处理能力只需要多开一个实例，但是很多任务只能由一个唯一的实例做，比如调度工作，这就需要一个抢“leader”的机制</p>
+<p>作者的代码示例：<br><pre class="line-numbers language-rust" data-language="rust"><code class="language-rust"><span class="token comment">/// try_to_become_leader returns a database connection if it successfully becomes leader. The connection</span>
+<span class="token comment">/// MUST BE closed (dropped) to allow other instances to become leader.</span>
+<span class="token comment">/// It blocks until it becomes leader leader or an error happens.</span>
+<span class="token keyword">pub</span> <span class="token keyword">async</span> <span class="token keyword">fn</span> <span class="token function-definition function">try_to_become_leader</span><span class="token punctuation">(</span>
+    pool<span class="token punctuation">:</span> <span class="token operator">&amp;</span><span class="token class-name">Pool</span><span class="token punctuation">,</span>
+    advisory_lock_id<span class="token punctuation">:</span> <span class="token keyword">i64</span><span class="token punctuation">,</span>
+    interval<span class="token punctuation">:</span> <span class="token class-name">Duration</span><span class="token punctuation">,</span>
+<span class="token punctuation">)</span> <span class="token punctuation">-></span> <span class="token class-name">Result</span><span class="token operator">&lt;</span><span class="token class-name">PoolConnection</span><span class="token operator">&lt;</span><span class="token class-name">Postgres</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token namespace">errs<span class="token punctuation">::</span></span><span class="token class-name">Error</span><span class="token operator">></span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">loop</span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">let</span> <span class="token keyword">mut</span> conn <span class="token operator">=</span> pool<span class="token punctuation">.</span><span class="token function">acquire</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token keyword">await</span><span class="token punctuation">.</span><span class="token function">map_err</span><span class="token punctuation">(</span><span class="token closure-params"><span class="token closure-punctuation punctuation">|</span>err<span class="token closure-punctuation punctuation">|</span></span> <span class="token punctuation">&#123;</span>
+            <span class="token namespace">errs<span class="token punctuation">::</span></span><span class="token class-name">Error</span><span class="token punctuation">::</span><span class="token class-name">Internal</span><span class="token punctuation">(</span><span class="token macro property">format!</span><span class="token punctuation">(</span><span class="token string">"error acquiring a Postgres connection from the pool: &#123;err&#125;"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token operator">?</span><span class="token punctuation">;</span>
+
+        <span class="token keyword">let</span> is_leader<span class="token punctuation">:</span> <span class="token keyword">bool</span> <span class="token operator">=</span> <span class="token namespace">sqlx<span class="token punctuation">::</span></span><span class="token function">query_scalar</span><span class="token punctuation">(</span><span class="token string">"SELECT pg_try_advisory_lock($1)"</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span>advisory_lock_id<span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">fetch_one</span><span class="token punctuation">(</span>conn<span class="token punctuation">.</span><span class="token function">as_mut</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token keyword">await</span>
+            <span class="token punctuation">.</span><span class="token function">map_err</span><span class="token punctuation">(</span><span class="token closure-params"><span class="token closure-punctuation punctuation">|</span>err<span class="token closure-punctuation punctuation">|</span></span> <span class="token namespace">errs<span class="token punctuation">::</span></span><span class="token class-name">Error</span><span class="token punctuation">::</span><span class="token class-name">Internal</span><span class="token punctuation">(</span><span class="token macro property">format!</span><span class="token punctuation">(</span><span class="token string">"error trying to acquire advisory lock: &#123;err&#125;"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token operator">?</span><span class="token punctuation">;</span>
+        <span class="token keyword">if</span> is_leader <span class="token punctuation">&#123;</span>
+            <span class="token keyword">return</span> <span class="token class-name">Ok</span><span class="token punctuation">(</span>conn<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+
+        <span class="token function">sleep</span><span class="token punctuation">(</span>interval<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token keyword">await</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token comment">// 用起来：</span>
+
+<span class="token keyword">pub</span> <span class="token keyword">const</span> <span class="token constant">SCHEDULER_LEADER_LOCK_ID</span><span class="token punctuation">:</span> <span class="token keyword">i64</span> <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+
+<span class="token keyword">let</span> _leader_conn <span class="token operator">=</span> <span class="token namespace">tokio<span class="token punctuation">::</span></span><span class="token macro property">select!</span> <span class="token punctuation">&#123;</span>
+    _ <span class="token operator">=</span> shutdown<span class="token punctuation">.</span><span class="token function">changed</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">&#123;</span>
+        <span class="token macro property">info!</span><span class="token punctuation">(</span><span class="token string">"scheduler: Stopping"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">return</span> <span class="token class-name">Ok</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">&#125;</span>
+    leader_conn <span class="token operator">=</span> <span class="token namespace">pg<span class="token punctuation">::</span></span><span class="token function">try_to_become_leader</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>db<span class="token punctuation">,</span> <span class="token namespace">pg<span class="token punctuation">::</span></span><span class="token constant">SCHEDULER_LEADER_LOCK_ID</span><span class="token punctuation">,</span> <span class="token class-name">Duration</span><span class="token punctuation">::</span><span class="token function">from_secs</span><span class="token punctuation">(</span><span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">&#123;</span>
+        leader_conn<span class="token operator">?</span>
+    <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">;</span>
+
+<span class="token macro property">info!</span><span class="token punctuation">(</span><span class="token string">"scheduler: is leader"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// run scheduler</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></p>
+<p>作者依旧贴完代码就不解释细节了……</p>
+<p>核心是这句:<code>sqlx::query_scalar(&quot;SELECT pg_try_advisory_lock($1)&quot;)</code>。这里的SELECT是进行一个内部函数调用，名为pg_try_advisory_lock，编号自己指定，其结果是true/false，<code>query_scalar</code>函数返回得到的那一个“值”，或者说将这一个bool值从数据库里提取出来</p>
+<p>结果就是只有一个实例可能抢到这个advisory lock，然后由它成为leader，继续接下来的流程</p>
+<h2 id="用unlogged-tables替换redis"><a href="#用unlogged-tables替换redis" class="headerlink" title="用unlogged tables替换redis"></a>用unlogged tables替换redis</h2><p>redis用起来有其问题：多了一个有状态的服务需要管理，同时真正需要多少RAM难以估计</p>
+<p>所以作者用unlogged tables做快速插入低价值/临时数据</p>
+<p><code>WAL</code>即<code>write ahead log</code>，预写日志，PostgreSQL为了保证数据的安全性，会在实际执行存储前先记录这个动作的日志，以便崩溃后恢复，unlogged table就是不写入WAL的表，因而各种操作更快，更详细的信息引用了<a href="https://www.crunchydata.com/blog/postgresl-unlogged-tables">另一篇文章</a></p>
+<h2 id="用PostgreSQL作任务队列"><a href="#用PostgreSQL作任务队列" class="headerlink" title="用PostgreSQL作任务队列"></a>用PostgreSQL作任务队列</h2><p>用<code>UUID v7</code>作为索引避免冲突，用<code>FOR UPDATE SKIP LOCKED</code>去pull一个任务</p>
+<p>作者给的示例如下，push的时候正常insert,pull的时候筛选出符合条件的任务，然后<code>FOR UPDATE</code>给它们上锁，<code>SKIP LOCKED</code>表示已经锁上了就跳过了<br><pre class="line-numbers language-SQL" data-language="SQL"><code class="language-SQL">CREATE TABLE queue (
+  id UUID PRIMARY KEY,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
+
+  scheduled_for TIMESTAMP WITH TIME ZONE NOT NULL,
+  failed_attempts INT NOT NULL,
+  status INT NOT NULL,
+  message JSONB NOT NULL
+);
+CREATE INDEX index_queue_on_scheduled_for ON queue (scheduled_for);
+CREATE INDEX index_queue_on_status ON queue (status);<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><br><pre class="line-numbers language-rust" data-language="rust"><code class="language-rust"><span class="token attribute attr-name">#[derive(sqlx::FromRow, Debug, Clone)]</span>
+<span class="token keyword">struct</span> <span class="token type-definition class-name">Job</span> <span class="token punctuation">&#123;</span>
+    id<span class="token punctuation">:</span> <span class="token class-name">Uuid</span><span class="token punctuation">,</span>
+    created_at<span class="token punctuation">:</span> <span class="token class-name">DateTime</span><span class="token operator">&lt;</span><span class="token class-name">Utc</span><span class="token operator">></span><span class="token punctuation">,</span>
+    updated_at<span class="token punctuation">:</span> <span class="token class-name">DateTime</span><span class="token operator">&lt;</span><span class="token class-name">Utc</span><span class="token operator">></span><span class="token punctuation">,</span>
+
+    scheduled_for<span class="token punctuation">:</span> <span class="token class-name">DateTime</span><span class="token operator">&lt;</span><span class="token class-name">Utc</span><span class="token operator">></span><span class="token punctuation">,</span>
+    failed_attempts<span class="token punctuation">:</span> <span class="token keyword">i32</span><span class="token punctuation">,</span>
+    status<span class="token punctuation">:</span> <span class="token class-name">JobStatus</span><span class="token punctuation">,</span>
+    message<span class="token punctuation">:</span> <span class="token class-name">Json</span><span class="token operator">&lt;</span><span class="token class-name">JobPayload</span><span class="token operator">></span><span class="token punctuation">,</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token comment">// We use a INT as Postgres representation for performance reasons</span>
+<span class="token attribute attr-name">#[derive(Debug, Clone, sqlx::Type, PartialEq)]</span>
+<span class="token attribute attr-name">#[repr(i32)]</span>
+<span class="token keyword">enum</span> <span class="token type-definition class-name">JobStatus</span> <span class="token punctuation">&#123;</span>
+    <span class="token class-name">Queued</span><span class="token punctuation">,</span>
+    <span class="token class-name">Running</span><span class="token punctuation">,</span>
+    <span class="token class-name">Failed</span><span class="token punctuation">,</span>
+<span class="token punctuation">&#125;</span>
+
+<span class="token attribute attr-name">#[derive(Debug, Clone, Serialize, Deserialize)]</span>
+<span class="token keyword">pub</span> <span class="token keyword">enum</span> <span class="token type-definition class-name">JobPayload</span> <span class="token punctuation">&#123;</span>
+    <span class="token class-name">SendSignInEmail</span> <span class="token punctuation">&#123;</span>
+        email<span class="token punctuation">:</span> <span class="token class-name">String</span><span class="token punctuation">,</span>
+        name<span class="token punctuation">:</span> <span class="token class-name">String</span><span class="token punctuation">,</span>
+        code<span class="token punctuation">:</span> <span class="token class-name">String</span><span class="token punctuation">,</span>
+    <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+    <span class="token class-name">DeleteOldUserData</span><span class="token punctuation">,</span>
+    <span class="token class-name">SendNewsletterMessage</span> <span class="token punctuation">&#123;</span>
+        message_id<span class="token punctuation">:</span> <span class="token class-name">Uuid</span><span class="token punctuation">,</span>
+    <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+    <span class="token comment">// ...</span>
+<span class="token punctuation">&#125;</span>
+
+
+<span class="token keyword">impl</span> <span class="token class-name">Queue</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">async</span> <span class="token keyword">fn</span> <span class="token function-definition function">push</span><span class="token punctuation">(</span>
+        <span class="token operator">&amp;</span><span class="token keyword">self</span><span class="token punctuation">,</span>
+        job<span class="token punctuation">:</span> <span class="token class-name">JobPayload</span><span class="token punctuation">,</span>
+        date<span class="token punctuation">:</span> <span class="token class-name">Option</span><span class="token operator">&lt;</span><span class="token class-name">DateTime</span><span class="token operator">&lt;</span><span class="token class-name">Utc</span><span class="token operator">>></span><span class="token punctuation">,</span>
+    <span class="token punctuation">)</span> <span class="token punctuation">-></span> <span class="token class-name">Result</span><span class="token operator">&lt;</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token keyword">crate</span><span class="token punctuation">::</span><span class="token class-name">Error</span><span class="token operator">></span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">const</span> <span class="token constant">QUERY</span><span class="token punctuation">:</span> <span class="token operator">&amp;</span><span class="token keyword">str</span> <span class="token operator">=</span> <span class="token string">"INSERT INTO queue
+            (id, created_at, updated_at, scheduled_for, failed_attempts, status, payload)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)"</span><span class="token punctuation">;</span>
+
+        <span class="token keyword">let</span> scheduled_for <span class="token operator">=</span> date<span class="token punctuation">.</span><span class="token function">unwrap_or</span><span class="token punctuation">(</span><span class="token class-name">Utc</span><span class="token punctuation">::</span><span class="token function">now</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">let</span> failed_attempts<span class="token punctuation">:</span> <span class="token keyword">i32</span> <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span>
+        <span class="token keyword">let</span> payload <span class="token operator">=</span> <span class="token class-name">Json</span><span class="token punctuation">(</span>job<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">let</span> status <span class="token operator">=</span> <span class="token class-name">PostgresJobStatus</span><span class="token punctuation">::</span><span class="token class-name">Queued</span><span class="token punctuation">;</span>
+        <span class="token keyword">let</span> now <span class="token operator">=</span> <span class="token class-name">Utc</span><span class="token punctuation">::</span><span class="token function">now</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">let</span> job_id <span class="token operator">=</span> <span class="token class-name">Uuid</span><span class="token punctuation">::</span><span class="token function">new_v7</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token namespace">sqlx<span class="token punctuation">::</span></span><span class="token function">query</span><span class="token punctuation">(</span><span class="token constant">QUERY</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span>job_id<span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span>now<span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span>now<span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span>scheduled_for<span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span>failed_attempts<span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span>status<span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span>payload<span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">execute</span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">self</span><span class="token punctuation">.</span>db<span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token keyword">await</span><span class="token operator">?</span><span class="token punctuation">;</span>
+        <span class="token class-name">Ok</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">async</span> <span class="token keyword">fn</span> <span class="token function-definition function">pull</span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">self</span><span class="token punctuation">,</span> number_of_jobs<span class="token punctuation">:</span> <span class="token keyword">u32</span><span class="token punctuation">)</span> <span class="token punctuation">-></span> <span class="token class-name">Result</span><span class="token operator">&lt;</span><span class="token class-name">Vec</span><span class="token operator">&lt;</span><span class="token class-name">Job</span><span class="token operator">></span><span class="token punctuation">,</span> <span class="token keyword">crate</span><span class="token punctuation">::</span><span class="token class-name">Error</span><span class="token operator">></span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">const</span> <span class="token constant">QUERY</span><span class="token punctuation">:</span> <span class="token operator">&amp;</span><span class="token keyword">str</span> <span class="token operator">=</span> <span class="token string">"UPDATE queue
+            SET status = $1, updated_at = $2
+            WHERE id IN (
+                SELECT id
+                FROM queue
+                WHERE status = $3 AND scheduled_for &lt;= $4 AND failed_attempts &lt; $5
+                ORDER BY scheduled_for
+                FOR UPDATE SKIP LOCKED
+                LIMIT $6
+            )
+            RETURNING *"</span><span class="token punctuation">;</span>
+
+        <span class="token keyword">let</span> now <span class="token operator">=</span> <span class="token class-name">Utc</span><span class="token punctuation">::</span><span class="token function">now</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+        <span class="token keyword">let</span> jobs<span class="token punctuation">:</span> <span class="token class-name">Vec</span><span class="token operator">&lt;</span><span class="token class-name">PostgresJob</span><span class="token operator">></span> <span class="token operator">=</span> <span class="token namespace">sqlx<span class="token punctuation">::</span></span><span class="token function">query_as</span><span class="token punctuation">::</span><span class="token operator">&lt;</span>_<span class="token punctuation">,</span> <span class="token class-name">PostgresJob</span><span class="token operator">></span><span class="token punctuation">(</span><span class="token constant">QUERY</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span><span class="token class-name">PostgresJobStatus</span><span class="token punctuation">::</span><span class="token class-name">Running</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span>now<span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span><span class="token class-name">PostgresJobStatus</span><span class="token punctuation">::</span><span class="token class-name">Queued</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span>now<span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span><span class="token constant">MAX_FAILED_ATTEMPTS</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span>number_of_jobs<span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">fetch_all</span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">self</span><span class="token punctuation">.</span>db<span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token keyword">await</span><span class="token operator">?</span><span class="token punctuation">;</span>
+        <span class="token class-name">Ok</span><span class="token punctuation">(</span>jobs<span class="token punctuation">.</span><span class="token function">into_iter</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token class-name">Into</span><span class="token punctuation">::</span>into<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">collect</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">async</span> <span class="token keyword">fn</span> <span class="token function-definition function">delete_job</span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">self</span><span class="token punctuation">,</span> job_id<span class="token punctuation">:</span> <span class="token class-name">Uuid</span><span class="token punctuation">)</span> <span class="token punctuation">-></span> <span class="token class-name">Result</span><span class="token operator">&lt;</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token keyword">crate</span><span class="token punctuation">::</span><span class="token class-name">Error</span><span class="token operator">></span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">const</span> <span class="token constant">QUERY</span><span class="token punctuation">:</span> <span class="token operator">&amp;</span><span class="token keyword">str</span> <span class="token operator">=</span> <span class="token string">"DELETE FROM queue WHERE id = $1"</span><span class="token punctuation">;</span>
+
+        <span class="token namespace">sqlx<span class="token punctuation">::</span></span><span class="token function">query</span><span class="token punctuation">(</span><span class="token constant">QUERY</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span>job_id<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">execute</span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">self</span><span class="token punctuation">.</span>db<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token keyword">await</span><span class="token operator">?</span><span class="token punctuation">;</span>
+        <span class="token class-name">Ok</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">async</span> <span class="token keyword">fn</span> <span class="token function-definition function">fail_job</span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">self</span><span class="token punctuation">,</span> job_id<span class="token punctuation">:</span> <span class="token class-name">Uuid</span><span class="token punctuation">)</span> <span class="token punctuation">-></span> <span class="token class-name">Result</span><span class="token operator">&lt;</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token keyword">crate</span><span class="token punctuation">::</span><span class="token class-name">Error</span><span class="token operator">></span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">const</span> <span class="token constant">QUERY</span><span class="token punctuation">:</span> <span class="token operator">&amp;</span><span class="token keyword">str</span> <span class="token operator">=</span> <span class="token string">"UPDATE queue
+            SET status = $1, updated_at = $2, failed_attempts = failed_attempts + 1
+            WHERE id = $3"</span><span class="token punctuation">;</span>
+
+        <span class="token namespace">sqlx<span class="token punctuation">::</span></span><span class="token function">query</span><span class="token punctuation">(</span><span class="token constant">QUERY</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span><span class="token class-name">PostgresJobStatus</span><span class="token punctuation">::</span><span class="token class-name">Queued</span><span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span>now<span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span>job_id<span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token function">execute</span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">self</span><span class="token punctuation">.</span>db<span class="token punctuation">)</span>
+            <span class="token punctuation">.</span><span class="token keyword">await</span><span class="token operator">?</span><span class="token punctuation">;</span>
+        <span class="token class-name">Ok</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+
+    <span class="token keyword">async</span> <span class="token keyword">fn</span> <span class="token function-definition function">clear</span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">self</span><span class="token punctuation">)</span> <span class="token punctuation">-></span> <span class="token class-name">Result</span><span class="token operator">&lt;</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token keyword">crate</span><span class="token punctuation">::</span><span class="token class-name">Error</span><span class="token operator">></span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">const</span> <span class="token constant">QUERY</span><span class="token punctuation">:</span> <span class="token operator">&amp;</span><span class="token keyword">str</span> <span class="token operator">=</span> <span class="token string">"DELETE FROM queue"</span><span class="token punctuation">;</span>
+
+        <span class="token namespace">sqlx<span class="token punctuation">::</span></span><span class="token function">query</span><span class="token punctuation">(</span>query<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">execute</span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">self</span><span class="token punctuation">.</span>db<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token keyword">await</span><span class="token operator">?</span><span class="token punctuation">;</span>
+        <span class="token class-name">Ok</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></p>
+<h2 id="其它"><a href="#其它" class="headerlink" title="其它"></a>其它</h2><p>一个需要认识到的点是，以上介绍的数据库操作的主要优点是方便，降低系统复杂度，有着特定的应用场景，一次数据库操作的开销势必会超过一次内存操作开销几个数量级</p>
+]]></content>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;p&gt;原文网址&lt;a href=&quot;https://kerkour.com/rust-postgres-everything&quot;&gt;Using Rust and Postgres for everything: patterns learned over the</summary>
+        
+      
+    
+    
+    
+    <category term="温馨的阅读时光" scheme="https://aucept.in/categories/%E6%B8%A9%E9%A6%A8%E7%9A%84%E9%98%85%E8%AF%BB%E6%97%B6%E5%85%89/"/>
+    
+    
+    <category term="rust" scheme="https://aucept.in/tags/rust/"/>
+    
+    <category term="postgres" scheme="https://aucept.in/tags/postgres/"/>
+    
+  </entry>
   
   <entry>
     <title>The Cost of Indirection in Rust</title>
