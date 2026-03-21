@@ -6,7 +6,7 @@
   <link href="https://aucept.in/atom.xml" rel="self"/>
   
   <link href="https://aucept.in/"/>
-  <updated>2026-03-21T08:48:47.337Z</updated>
+  <updated>2026-03-21T09:16:59.936Z</updated>
   <id>https://aucept.in/</id>
   
   <author>
@@ -22,7 +22,7 @@
     <link href="https://aucept.in/2026/03/21/Using-Rust-and-Postgres-for-everything-patterns-learned-over-the-years/"/>
     <id>https://aucept.in/2026/03/21/Using-Rust-and-Postgres-for-everything-patterns-learned-over-the-years/</id>
     <published>2026-03-21T07:40:35.000Z</published>
-    <updated>2026-03-21T08:48:47.337Z</updated>
+    <updated>2026-03-21T09:16:59.936Z</updated>
     
     <content type="html"><![CDATA[<p>原文网址<a href="https://kerkour.com/rust-postgres-everything">Using Rust and Postgres for everything: patterns learned over the years</a></p>
 <h2 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h2><p>作者喜欢简单，可靠，功能又丰富的工具，而在软件领域，就是rust和postgreSQL</p>
@@ -277,7 +277,7 @@ CREATE INDEX index_queue_on_status ON queue (status);<span aria-hidden="true" cl
     
     <category term="rust" scheme="https://aucept.in/tags/rust/"/>
     
-    <category term="postgres" scheme="https://aucept.in/tags/postgres/"/>
+    <category term="postgreSQL" scheme="https://aucept.in/tags/postgreSQL/"/>
     
   </entry>
   
