@@ -6,7 +6,7 @@
   <link href="https://aucept.in/atom.xml" rel="self"/>
   
   <link href="https://aucept.in/"/>
-  <updated>2026-03-21T09:16:59.936Z</updated>
+  <updated>2026-03-26T02:54:42.998Z</updated>
   <id>https://aucept.in/</id>
   
   <author>
@@ -16,6 +16,92 @@
   
   <generator uri="https://hexo.io/">Hexo</generator>
   <follow_challenge><feedId>230229871042106368</feedId><userId>230228883350077440</userId></follow_challenge>
+  
+  <entry>
+    <title>用lvim迈向终端全栈</title>
+    <link href="https://aucept.in/2026/03/25/%E7%94%A8lvim%E5%AE%8C%E6%88%90%E4%BD%9C%E4%B8%9A/"/>
+    <id>https://aucept.in/2026/03/25/%E7%94%A8lvim%E5%AE%8C%E6%88%90%E4%BD%9C%E4%B8%9A/</id>
+    <published>2026-03-25T13:23:24.000Z</published>
+    <updated>2026-03-26T02:54:42.998Z</updated>
+    
+    <content type="html"><![CDATA[<p>本系列的上一篇用wezterm、fish和tmux大大改善了终端的使用体验，随着最近对vim的操作变得熟练，以前依旧要依赖GUI的IDE似乎也可以搬进终端里了</p>
+<p>故事的起因是有些作业相比于手写，还是打字更舒服，但是学校的作业平台又不能直接提交markdown，于是……</p>
+<h2 id="md-gt-pdf"><a href="#md-gt-pdf" class="headerlink" title="md -&gt; pdf"></a>md -&gt; pdf</h2><p>在~/.config/lvim里增加插件：<br><pre class="line-numbers language-lua" data-language="lua"><code class="language-lua">lvim<span class="token punctuation">.</span>plugins <span class="token operator">=</span> <span class="token punctuation">&#123;</span>
+  <span class="token punctuation">&#123;</span>
+    <span class="token string">"iamcco/markdown-preview.nvim"</span><span class="token punctuation">,</span>
+    cmd <span class="token operator">=</span> <span class="token punctuation">&#123;</span> <span class="token string">"MarkdownPreviewToggle"</span><span class="token punctuation">,</span> <span class="token string">"MarkdownPreview"</span><span class="token punctuation">,</span> <span class="token string">"MarkdownPreviewStop"</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+    build <span class="token operator">=</span> <span class="token string">"cd app &amp;&amp; npm install"</span><span class="token punctuation">,</span>
+    init <span class="token operator">=</span> <span class="token keyword">function</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+      vim<span class="token punctuation">.</span>g<span class="token punctuation">.</span>mkdp_filetypes <span class="token operator">=</span> <span class="token punctuation">&#123;</span> <span class="token string">"markdown"</span> <span class="token punctuation">&#125;</span>
+    <span class="token keyword">end</span><span class="token punctuation">,</span>
+    ft <span class="token operator">=</span> <span class="token punctuation">&#123;</span> <span class="token string">"markdown"</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+  <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></p>
+<p>再增加一个快捷键：<br><pre class="line-numbers language-lua" data-language="lua"><code class="language-lua">lvim<span class="token punctuation">.</span>builtin<span class="token punctuation">.</span>which_key<span class="token punctuation">.</span>mappings<span class="token punctuation">[</span><span class="token string">"m"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token punctuation">&#123;</span>
+  name <span class="token operator">=</span> <span class="token string">"Markdown"</span><span class="token punctuation">,</span>
+  m <span class="token operator">=</span> <span class="token punctuation">&#123;</span> <span class="token string">"&lt;cmd>MarkdownPreviewToggle&lt;cr>"</span><span class="token punctuation">,</span> <span class="token string">"Toggle Preview"</span> <span class="token punctuation">&#125;</span><span class="token punctuation">,</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre><br>于是可以<space> m + m在浏览器里打开预览，同时可以用浏览器自带的打印功能保存为pdf</p>
+<h2 id="更多lvim操作"><a href="#更多lvim操作" class="headerlink" title="更多lvim操作"></a>更多lvim操作</h2><p><code>space + e</code> 打开目录 <code>a</code>新建文件，可以方便地编辑多个文件</p>
+<p><code>ctrl + \</code>打开浮窗终端，默认应该是insert模式，如果不是按<code>i</code>进入。这样写完代码运行，一般情况下就不用单开一页了</p>
+<p><code>gd</code> go to definition，跳转到函数定义，可以跨文件操作，<code>K</code> 查看声明</p>
+<p><code>ctrl w + v</code>竖直分屏，<code>ctrl + 左右方向</code>移动窗口</p>
+<h3 id="还有一揽子vim快捷键"><a href="#还有一揽子vim快捷键" class="headerlink" title="还有一揽子vim快捷键"></a>还有一揽子vim快捷键</h3><p><code>ctrl d</code>下翻半屏</p>
+<p><code>e</code>下一个单词末尾，<code>b</code>上一个单词开头，<code>w</code>下一个单词开头</p>
+<p><code>V</code>进入View模式，然后选中多行<code>&lt;</code>或<code>&gt;</code>调整缩进</p>
+<p><code>.</code>在当前位置应用上一次操作</p>
+<p><code>*</code>跳转到选中词出现的其他位置</p>
+<p><code>cw</code>改词（删除当前指向的词并进入insert模式）<code>ciw</code> change inner word 不需要让光标置于当前词的开头<br><code>r</code>替换</p>
+<p><code>/name</code> 文件内名称搜索</p>
+<h2 id="一二事"><a href="#一二事" class="headerlink" title="一二事"></a>一二事</h2><h3 id="分屏"><a href="#分屏" class="headerlink" title="分屏"></a>分屏</h3><p>经过一些简单的配置wezterm是可以很方便地分屏的</p>
+<p>在熟悉了tmux的快捷键之后，tmux分屏用起来更加舒服</p>
+<p>再加上lvim也能分屏</p>
+<p>Win11本来也支持分屏</p>
+<p>嗯……</p>
+<h3 id="wezterm动态改透明度"><a href="#wezterm动态改透明度" class="headerlink" title="wezterm动态改透明度"></a>wezterm动态改透明度</h3><p>有的时候截屏终端，透明的背景会泄露不必要的信息，不透明的又不好看，这就体现出lua做配置文件的灵活之处了：</p>
+<pre class="line-numbers language-lua" data-language="lua"><code class="language-lua"><span class="token comment">-- .wezterm.lua</span>
+table<span class="token punctuation">.</span><span class="token function">insert</span><span class="token punctuation">(</span>config<span class="token punctuation">.</span>keys<span class="token punctuation">,</span> <span class="token punctuation">&#123;</span>
+  key <span class="token operator">=</span> <span class="token string">'-'</span><span class="token punctuation">,</span>
+  mods <span class="token operator">=</span> <span class="token string">'ALT'</span><span class="token punctuation">,</span>
+  action <span class="token operator">=</span> wezterm<span class="token punctuation">.</span><span class="token function">action_callback</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span>window<span class="token punctuation">)</span>
+    <span class="token keyword">local</span> overrides <span class="token operator">=</span> window<span class="token punctuation">:</span><span class="token function">get_config_overrides</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">or</span> <span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+    <span class="token keyword">local</span> current <span class="token operator">=</span> overrides<span class="token punctuation">.</span>window_background_opacity <span class="token keyword">or</span> config<span class="token punctuation">.</span>window_background_opacity <span class="token keyword">or</span> <span class="token number">1.0</span>
+    overrides<span class="token punctuation">.</span>window_background_opacity <span class="token operator">=</span> math<span class="token punctuation">.</span><span class="token function">max</span><span class="token punctuation">(</span><span class="token number">0.3</span><span class="token punctuation">,</span> current <span class="token operator">-</span> <span class="token number">0.03</span><span class="token punctuation">)</span>
+    window<span class="token punctuation">:</span><span class="token function">set_config_overrides</span><span class="token punctuation">(</span>overrides<span class="token punctuation">)</span>
+  <span class="token keyword">end</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">)</span>
+
+table<span class="token punctuation">.</span><span class="token function">insert</span><span class="token punctuation">(</span>config<span class="token punctuation">.</span>keys<span class="token punctuation">,</span> <span class="token punctuation">&#123;</span>
+  key <span class="token operator">=</span> <span class="token string">'='</span><span class="token punctuation">,</span>
+  mods <span class="token operator">=</span> <span class="token string">'ALT'</span><span class="token punctuation">,</span>
+  action <span class="token operator">=</span> wezterm<span class="token punctuation">.</span><span class="token function">action_callback</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span>window<span class="token punctuation">,</span> pane<span class="token punctuation">)</span>
+          <span class="token keyword">local</span> overrides <span class="token operator">=</span> window<span class="token punctuation">:</span><span class="token function">get_config_overrides</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token keyword">or</span> <span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span>
+          <span class="token keyword">local</span> current <span class="token operator">=</span> overrides<span class="token punctuation">.</span>window_background_opacity <span class="token keyword">or</span> config<span class="token punctuation">.</span>window_background_opacity <span class="token keyword">or</span> <span class="token number">1.0</span>
+          overrides<span class="token punctuation">.</span>window_background_opacity <span class="token operator">=</span> current <span class="token operator">+</span> <span class="token number">0.03</span>
+    window<span class="token punctuation">:</span><span class="token function">set_config_overrides</span><span class="token punctuation">(</span>overrides<span class="token punctuation">)</span>
+  <span class="token keyword">end</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
+<span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+]]></content>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;p&gt;本系列的上一篇用wezterm、fish和tmux大大改善了终端的使用体验，随着最近对vim的操作变得熟练，以前依旧要依赖GUI的IDE似乎也可以搬进终端里了&lt;/p&gt;
+&lt;p&gt;故事的起因是有些作业相比于手写，还是打字更舒服，但是学校的作业平台又不能直接提交markdown，于</summary>
+        
+      
+    
+    
+    
+    <category term="家要有家的样子" scheme="https://aucept.in/categories/%E5%AE%B6%E8%A6%81%E6%9C%89%E5%AE%B6%E7%9A%84%E6%A0%B7%E5%AD%90/"/>
+    
+    
+    <category term="wezterm" scheme="https://aucept.in/tags/wezterm/"/>
+    
+    <category term="vim" scheme="https://aucept.in/tags/vim/"/>
+    
+  </entry>
   
   <entry>
     <title>Using Rust and Postgres for everything: patterns learned over the years</title>
@@ -8822,7 +8908,7 @@ vector<span class="token operator">*</span> <span class="token function">vector_
     <link href="https://aucept.in/2025/06/28/noita-mode-0/"/>
     <id>https://aucept.in/2025/06/28/noita-mode-0/</id>
     <published>2025-06-28T06:57:03.000Z</published>
-    <updated>2025-11-26T01:58:14.106Z</updated>
+    <updated>2026-03-26T01:55:42.938Z</updated>
     
     <content type="html"><![CDATA[<p>本文用于记录本人的第一个noita的mod开发过程</p>
 <h2 id="新建文件夹"><a href="#新建文件夹" class="headerlink" title="新建文件夹"></a>新建文件夹</h2><p>第一步，在mods文件夹下新建文件夹</p>
@@ -9168,7 +9254,7 @@ data&#x2F;materials.xml              -&gt; [原始文件] + [mod_a材料] + [mod
 <span class="token string">"data/entities/animals/worm_skull.xml"</span>      <span class="token comment">-- 幽灵蠕虫</span>
 <span class="token punctuation">&#125;</span>
 
-<span class="token function">PolymorphTableSet</span><span class="token punctuation">(</span>worm_entities<span class="token punctuation">,</span> <span class="token keyword">false</span><span class="token punctuation">)</span>     <span class="token comment">-- 核心函数</span>
+<span class="token function">PolymorphTableSet</span><span class="token punctuation">(</span>worm_entities<span class="token punctuation">,</span> <span class="token keyword">false</span><span class="token punctuation">)</span>     <span class="token comment">-- 核心API</span>
 <span class="token function">PolymorphTableSet</span><span class="token punctuation">(</span><span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span class="token punctuation">,</span> <span class="token keyword">true</span><span class="token punctuation">)</span>
 <span class="token keyword">end</span>
 
@@ -9177,9 +9263,9 @@ data&#x2F;materials.xml              -&gt; [原始文件] + [mod_a材料] + [mod
 <span class="token function">set_worm_only_polymorph</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
 <span class="token keyword">end</span>
 
-<span class="token comment">-- 世界初始化时也设置一次</span>
+
 <span class="token keyword">function</span> <span class="token function">OnWorldInitialized</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
-<span class="token function">set_worm_only_polymorph</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+
 <span class="token keyword">end</span>
 
 <span class="token comment">-- nothing</span>
