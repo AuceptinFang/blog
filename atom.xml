@@ -6,7 +6,7 @@
   <link href="https://aucept.in/atom.xml" rel="self"/>
   
   <link href="https://aucept.in/"/>
-  <updated>2026-03-26T02:54:42.998Z</updated>
+  <updated>2026-03-28T14:30:14.804Z</updated>
   <id>https://aucept.in/</id>
   
   <author>
@@ -18,11 +18,218 @@
   <follow_challenge><feedId>230229871042106368</feedId><userId>230228883350077440</userId></follow_challenge>
   
   <entry>
+    <title>Rust threads on the GPU</title>
+    <link href="https://aucept.in/2026/03/28/Rust-threads-on-the-GPU/"/>
+    <id>https://aucept.in/2026/03/28/Rust-threads-on-the-GPU/</id>
+    <published>2026-03-28T07:31:09.000Z</published>
+    <updated>2026-03-28T14:30:14.804Z</updated>
+    
+    <content type="html"><![CDATA[<p><a href="https://www.vectorware.com/blog/threads-on-gpu/">原文网址</a></p>
+<h1 id="Rust-threads-on-the-GPU"><a href="#Rust-threads-on-the-GPU" class="headerlink" title="Rust threads on the GPU"></a>Rust threads on the GPU</h1><p>作者完成了一项重大的成就：把为CPU设计的线程映射到了GPU上</p>
+<h2 id="执行模型"><a href="#执行模型" class="headerlink" title="执行模型"></a>执行模型</h2><p>CPU 和 GPU 执行程序时从根本上不同，CPU程序从一个单独的线程出发，然后按需要派生出若干额外线程，每个线程彼此独立地运行，由程序员管理并发</p>
+<p>GPU 程序由一个或多个<code>kernel</code>组成，每个<code>kernel</code>启动时会并行地伴随着若干<code>instances</code>，并发不是需要程序员显式声明的，而是GPU程序的固有属性</p>
+<pre class="line-numbers language-mermaid" data-language="mermaid"><code class="language-mermaid"><span class="token keyword">graph</span> TD
+    <span class="token comment">%% 定义顶部入口</span>
+    Start<span class="token text string">("launch_by_cpu()")</span>
+    
+    <span class="token comment">%% 定义中间的 kernel 节点</span>
+    K0<span class="token text string">["kernel()"]</span>
+    K1<span class="token text string">["kernel()"]</span>
+    K2<span class="token text string">["kernel()"]</span>
+    K3<span class="token text string">["kernel()"]</span>
+    KN<span class="token text string">["kernel()"]</span>
+    
+    <span class="token comment">%% 定义底部的 Warp 节点</span>
+    W0<span class="token text string">["Warp 0"]</span>
+    W1<span class="token text string">["Warp 1"]</span>
+    W2<span class="token text string">["Warp 2"]</span>
+    W3<span class="token text string">["Warp 3"]</span>
+    WN<span class="token text string">["Warp N"]</span>
+    
+    <span class="token comment">%% 定义结束节点</span>
+    <span class="token keyword">End</span><span class="token text string">("exit()")</span>
+    
+    <span class="token comment">%% 建立连接关系 (从上到下)</span>
+    Start <span class="token arrow operator">--></span> K0
+    Start <span class="token arrow operator">--></span> K1
+    Start <span class="token arrow operator">--></span> K2
+    Start <span class="token arrow operator">--></span> K3
+    Start <span class="token arrow operator">--></span> KN
+    
+    K0 <span class="token arrow operator">--></span> W0
+    K1 <span class="token arrow operator">--></span> W1
+    K2 <span class="token arrow operator">--></span> W2
+    K3 <span class="token arrow operator">--></span> W3
+    KN <span class="token arrow operator">--></span> WN
+    
+    W0 <span class="token arrow operator">--></span> End
+    W1 <span class="token arrow operator">--></span> End
+    W2 <span class="token arrow operator">--></span> End
+    W3 <span class="token arrow operator">--></span> End
+    WN <span class="token arrow operator">--></span> End
+    <span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>对于矩阵乘法、图像处理和图形渲染这样，每个<code>warp</code>(线程束)对不同的数据做相同的事，的任务，刚才的模型可以工作的很好</p>
+<p>随着GPU 程序变得越来越复杂，开发者使用<code>warp specialization</code>(线程束特化)来并发地激活一个程序中的不同部分</p>
+<pre class="line-numbers language-mermaid" data-language="mermaid"><code class="language-mermaid"><span class="token keyword">graph</span> TD
+    <span class="token comment">%% 定义顶部入口</span>
+    Start<span class="token text string">("launch_by_cpu()")</span>
+    
+    <span class="token comment">%% 定义中间的 kernel 节点</span>
+    K0<span class="token text string">["kernel()"]</span>
+    K1<span class="token text string">["kernel()"]</span>
+    K2<span class="token text string">["kernel()"]</span>
+    K3<span class="token text string">["kernel()"]</span>
+    KN<span class="token text string">["kernel()"]</span>
+    
+    <span class="token comment">%% 中间层</span>
+    N0<span class="token text string">["a0"]</span>
+    N1<span class="token text string">["b0"]</span>
+    N2<span class="token text string">["c0"]</span>
+    N3<span class="token text string">["d0"]</span>
+    N4<span class="token text string">["n0"]</span>
+
+    <span class="token comment">%% 定义底部的 Warp 节点</span>
+    W0<span class="token text string">["Warp 0"]</span>
+    W1<span class="token text string">["Warp 1"]</span>
+    W2<span class="token text string">["Warp 2"]</span>
+    W3<span class="token text string">["Warp 3"]</span>
+    WN<span class="token text string">["Warp N"]</span>
+    
+    <span class="token comment">%% 定义结束节点</span>
+    <span class="token keyword">End</span><span class="token text string">("exit()")</span>
+    
+    <span class="token comment">%% 建立连接关系 (从上到下)</span>
+    Start <span class="token arrow operator">--></span> K0
+    Start <span class="token arrow operator">--></span> K1
+    Start <span class="token arrow operator">--></span> K2
+    Start <span class="token arrow operator">--></span> K3
+    Start <span class="token arrow operator">--></span> KN
+    
+    K0 <span class="token arrow operator">--></span> N0 <span class="token arrow operator">--></span> W0
+    K1 <span class="token arrow operator">--></span> N1 <span class="token arrow operator">--></span> W1
+    K2 <span class="token arrow operator">--></span> N2 <span class="token arrow operator">--></span> W2
+    K3 <span class="token arrow operator">--></span> N3 <span class="token arrow operator">--></span> W3
+    KN <span class="token arrow operator">--></span> N4 <span class="token arrow operator">--></span> WN
+    
+    W0 <span class="token arrow operator">--></span> End
+    W1 <span class="token arrow operator">--></span> End
+    W2 <span class="token arrow operator">--></span> End
+    W3 <span class="token arrow operator">--></span> End
+    WN <span class="token arrow operator">--></span> End<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="函数即程序"><a href="#函数即程序" class="headerlink" title="函数即程序"></a>函数即程序</h2><p>大部分CPU程序以一个确定的main函数作为程序的入口，显然可以称为“函数即程序”</p>
+<p>而大部分GPU程序模型也用一个函数作为入口点，程序员写下这个函数就好像它只会执行一次，但是实际上硬件会把他并发启动成千上万次。GPU的<code>kernels</code>看起来和正常的CPU函数相似，但表现得很不同：</p>
+<pre class="line-numbers language-rust" data-language="rust"><code class="language-rust"><span class="token comment">// CUDA C kernel</span>
+__global__ void <span class="token function">scale</span><span class="token punctuation">(</span>float<span class="token operator">*</span> data<span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">// This code is executed thousands of times in parallel,</span>
+    <span class="token comment">// each with the same function parameters, but different values for the global</span>
+    <span class="token comment">// indexes such as `blockIdx` and `threadIdx`.</span>
+    int i <span class="token operator">=</span> blockIdx<span class="token punctuation">.</span>x <span class="token operator">*</span> blockDim<span class="token punctuation">.</span>x <span class="token operator">+</span> threadIdx<span class="token punctuation">.</span>x<span class="token punctuation">;</span>
+    data<span class="token punctuation">[</span>i<span class="token punctuation">]</span> <span class="token operator">*=</span> <span class="token number">2</span><span class="token punctuation">.</span>0f<span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>这种看起来和实际运行的不匹配就是造成GPU编程困难的主要原因，无论是程序员还是编译器都无法只通过代码轻易推断出程序的行为</p>
+<p>在实践中，这就需要程序员为其负责，手动保证索引正确、避免竞争</p>
+<p>GPU程序在rust里也是同样的模式：<br><pre class="line-numbers language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">use</span> <span class="token namespace">core<span class="token punctuation">::</span>arch<span class="token punctuation">::</span>nvptx<span class="token punctuation">::</span></span><span class="token operator">*</span><span class="token punctuation">;</span>
+ 
+<span class="token keyword">pub</span> <span class="token keyword">unsafe</span> <span class="token keyword">extern</span> <span class="token string">"ptx-kernel"</span> <span class="token keyword">fn</span> <span class="token function-definition function">scale</span><span class="token punctuation">(</span>data<span class="token punctuation">:</span> <span class="token operator">*</span><span class="token keyword">mut</span> <span class="token keyword">f32</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token comment">// This code is executed thousands of times in parallel,</span>
+    <span class="token comment">// each with the same function parameters, but different values</span>
+    <span class="token comment">// for the global indexes such as `_block_idx_x` and `_thread_idx_x`.</span>
+    <span class="token keyword">let</span> i <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token function">_block_idx_x</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">*</span> <span class="token function">_block_dim_x</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">+</span> <span class="token function">_thread_idx_x</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">as</span> <span class="token keyword">usize</span><span class="token punctuation">;</span>
+    <span class="token operator">*</span>data<span class="token punctuation">.</span><span class="token function">add</span><span class="token punctuation">(</span>i<span class="token punctuation">)</span> <span class="token operator">*=</span> <span class="token number">2.0</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><br>因为这个函数会被执行无数次，每次只有几个全局变量不同，所以rust的所有权系统没法工作了，需要打上unsafe的标记，同时无可避免地使用裸指针</p>
+<p><code>然而理想的情况是rust的安全保障也能拓展适配到GPU上</code></p>
+<p>第一个方案是引入新的类型和用法去匹配GPU具体的语义，但是这会创造一个新的和原有rust分离的编程模型，导致原先的rust生态不适配，不是作者想要的</p>
+<p>第二个方案是教会rust编译器分析GPU行为，这是一个很长很重的工程，由rust编译器团队逐步推进，但是作者现在就想写safe的GPU代码</p>
+<p>第三个方案是用CPU模拟运行，用<code>miri</code>一类的工具去考虑可能的UB，但是总有些情况是模拟不到的，专业的说叫<code>leaky abstraction</code>。理想的最终状态是GPU程序表现地就像CPU程序一样，这样rust编译器可以如常地分析其行为</p>
+<p>单函数kernel 入口点由于并发是隐式的使得实现很难，而显式并发模型对于程序员和编译器都更容易分析，<code>threads</code> 线程就是这样的模型</p>
+<h2 id="为什么要支持std-thread于GPU"><a href="#为什么要支持std-thread于GPU" class="headerlink" title="为什么要支持std::thread于GPU"></a>为什么要支持<code>std::thread</code>于GPU</h2><p>rust主要用两种并发模型，异步future和threads</p>
+<p>作者的<a href="https://www.vectorware.com/blog/async-await-on-gpu/">这一篇博客</a>演示了如何实现<code>async/await</code>在GPU上</p>
+<p>然而很多rust生态是围绕着thread建立的，比如常用的有线程池<code>rayon</code>，异步运行时<code>tokio</code>和一些并行库等等，支持threads可以释放当前生态的很大潜力</p>
+<h2 id="为什么不只解决把std-thread映射到-GPU-threads"><a href="#为什么不只解决把std-thread映射到-GPU-threads" class="headerlink" title="为什么不只解决把std::thread映射到 GPU threads"></a>为什么不只解决把<code>std::thread</code>映射到 GPU threads</h2><p>在warp(线程束)里，GPU有很多个threads，又称为lanes(通道)，一个很明显的方法是吗<code>std::thread</code>映射到这些lanes之一</p>
+<p>然而这两者不是一回事，一个GPU thread更像是一个CPU的SIMD 通道而不是一个可以独立执行的上下文</p>
+<p>一个CPU 线程有自己的栈、PC并且可以被独立调度，但是GPU的lanes在一个warp里同步运行，直接映射有违语义</p>
+<p>同时也会变慢，当一个warp里的lanes选择了不同的分支时，GPU硬件会掩盖不活跃的lanes并且把它们顺序执行，称为<code>divergence</code>，于是并发地优势荡然无存</p>
+<h2 id="世界第一：GPU上的std-thread"><a href="#世界第一：GPU上的std-thread" class="headerlink" title="世界第一：GPU上的std::thread"></a>世界第一：GPU上的<code>std::thread</code></h2><p>终于来到了本文的重点，作者完成的工作，将<code>std::thread</code>搬到了GPU上，其用法和正常的CPU程序完全一样：</p>
+<pre class="line-numbers language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">use</span> <span class="token namespace">std<span class="token punctuation">::</span></span>thread<span class="token punctuation">;</span>
+ 
+<span class="token keyword">fn</span> <span class="token function-definition function">main</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">let</span> a <span class="token operator">=</span> <span class="token namespace">thread<span class="token punctuation">::</span></span><span class="token function">spawn</span><span class="token punctuation">(</span><span class="token closure-params"><span class="token closure-punctuation punctuation">|</span><span class="token closure-punctuation punctuation">|</span></span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">let</span> <span class="token keyword">mut</span> sum <span class="token operator">=</span> <span class="token number">0u64</span><span class="token punctuation">;</span>
+        <span class="token keyword">for</span> i <span class="token keyword">in</span> <span class="token number">0</span><span class="token punctuation">..</span><span class="token number">1000</span> <span class="token punctuation">&#123;</span>
+            sum <span class="token operator">+=</span> i<span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        sum
+    <span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+ 
+    <span class="token keyword">let</span> b <span class="token operator">=</span> <span class="token namespace">thread<span class="token punctuation">::</span></span><span class="token function">spawn</span><span class="token punctuation">(</span><span class="token closure-params"><span class="token closure-punctuation punctuation">|</span><span class="token closure-punctuation punctuation">|</span></span> <span class="token punctuation">&#123;</span>
+        <span class="token keyword">let</span> <span class="token keyword">mut</span> product <span class="token operator">=</span> <span class="token number">1u64</span><span class="token punctuation">;</span>
+        <span class="token keyword">for</span> i <span class="token keyword">in</span> <span class="token number">1</span><span class="token punctuation">..</span><span class="token number">20</span> <span class="token punctuation">&#123;</span>
+            product <span class="token operator">*=</span> i<span class="token punctuation">;</span>
+        <span class="token punctuation">&#125;</span>
+        product
+    <span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+ 
+    <span class="token keyword">let</span> sum <span class="token operator">=</span> a<span class="token punctuation">.</span><span class="token function">join</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">unwrap</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">let</span> factorial <span class="token operator">=</span> b<span class="token punctuation">.</span><span class="token function">join</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">unwrap</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+ 
+    <span class="token macro property">println!</span><span class="token punctuation">(</span><span class="token string">"sum: &#123;sum&#125;, factorial: &#123;factorial&#125;"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>一个线程算累加，一个算阶乘，主线程等算完输出，看起来平平无奇，作者接下来放出来一个运行演示，依旧看起来和CPU程序没什么两样</p>
+<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><p>之所以<code>std::thread</code>能在GPU上被支持主要源于三个关键的观察</p>
+<ol>
+<li><p>Warps 可以表现得和CPU线程相似：每一个warp都有自己的PC、自己的寄存器文件，同时可以和其它warp独立执行。GPU的warp调度器在warp之间的转换和操作系统调度器在线程之间的切换很像，在CPU上thread能做什么，warp也能做到</p>
+</li>
+<li><p>一个GPU的kernel不必在启动时就是并发的。默认的GPU执行模型同时启动所有warp，但是其实并不需要他们一开始就做有用的工作。通过从一个warp开始，让其它warp按序启用，就可以恢复到CPU的执行模型</p>
+</li>
+<li><p>线程束特化(warp specialization)是不需要语言支持的手动线程分区。GPU开发者已经把不同的任务分配给不同的warp了，<code>std::thread</code>是同样的概念，额外内置了语言提供的所有权、类型检查、生命周期保证的接口</p>
+</li>
+</ol>
+<p>于是作者把每个<code>std::thread</code>映射到一个GPU<code>warp</code>，当kernel启动时，只有Warp 0运行main，其余休眠。通过调用<code>thread::spawn()</code>唤醒一个休眠的warp来运行一个派生的闭包，调用<code>thread::join()</code>阻塞一个父warp直到其子warp结束</p>
+<p>随着<code>warp-as-thread</code>模型就位，剩余部分的<code>std::thread</code>也就自然而然了</p>
+<p><code>thread::current()</code>返回一个当前warp的标识符，<code>thread::sleep()</code>使得当前warp休眠，<code>thread::yield_now()</code>把这个warp返回到调度器，线程名、id和构建器模式都按照预期地构建</p>
+<p>作者的实现针对于英伟达GPU，但是这套方法并非是对CUDA特有的.Vulkan 有subgroups的概念，HIP/ROCm 也有wavefronts，这两者都可以被用作实现同样的<code>warp-as-thread</code>映射   </p>
+<h2 id="优点"><a href="#优点" class="headerlink" title="优点"></a>优点</h2><p>最大的优点就是程序员不需要去思考<code>warps</code> <code>blocks</code> 或是<code>grids</code>了，可以就像在CPU上用使用线程一样使用GPU，把GPU的工作原理抽象出去了</p>
+<p>另一个优点则是架构上避免了warp内串行导致的<code>divergence</code>。<code>thread::spawn()</code>把一个闭包映射到一个warp。每个lane在这个warp里都运行相同的代码，所以绝不会产生分支。最坏的情况下一个warp里只有一个lane在工作，但即使这样也比<code>divergent</code>好，因为闲着只会浪费空间而分支会导致串行。需要跨lane执行的代码仍然可以使用<code>warp_shuffle_idx</code>一类的函数显式地进行</p>
+<p>更重要的是，这样一来rust的借用检查和生命周期就能工作了！</p>
+<h2 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h2><p>warps是有限的资源，分出太多线程会用尽可用的warp，接着要么排队要么崩溃。然而实践中这并不是太大的问题，因为大部分rust代码已经对硬件做了适应，可以查询可用的warp/thread数量</p>
+<p>线程同步的代价变得更加高昂。锁、条件变量和其它阻塞原语需要warp水平的调度决策，这会降低吞吐量</p>
+<p>每个thread会消耗一整个warp，如果生成的代码没有用完lanes，GPU就是没有充分利用的，这对于复杂的任务是可以接受的，但是对于简单的并行任务是一种浪费，数据并行可能会更合适</p>
+<p>空闲的warp没有任务，也是一种浪费</p>
+<p>最后，每个线程的栈内存需要从GPU的内存中分配，这比CPU内存更受限，递归栈变深会耗尽可用的内存，而默认的CUDA栈对于复杂应用来说又太小必须调整</p>
+<h2 id="其它"><a href="#其它" class="headerlink" title="其它"></a>其它</h2><p>这篇博客发表在<code>VectorWare</code>公司的官网上，作者是他的创始人<a href="https://github.com/legneato">LegNeato</a>，rust生态里的又一位神仙人物</p>
+<p>VectorWare这家公司主打GPU原生，进入首页上来就是<code>We are at the start of a new software industry.</code></p>
+<p>作者并没有提一个warp里，如何让thread利用上若干lanes，大概就是默认只用一个lane，作者说对于复杂任务是可以接受的，因为对于一个GPU有上万个lanes，512个warp，而CPU如何能达到512 core，所以依然是可以接受的。</p>
+<p>同时关于串行，因为所有lanes是完全同步的，所以分支就是完全的浪费，分支越多越浪费，完全可以丢给另外的warp，而warp是相当充裕的，同时还有cache问题</p>
+<p>嗯，还有很多东西并不能完全理解。看来GPU领域值我得学习的内容还有很多</p>
+]]></content>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;p&gt;&lt;a href=&quot;https://www.vectorware.com/blog/threads-on-gpu/&quot;&gt;原文网址&lt;/a&gt;&lt;/p&gt;
+&lt;h1 id=&quot;Rust-threads-on-the-GPU&quot;&gt;&lt;a</summary>
+        
+      
+    
+    
+    
+    <category term="温馨的阅读时光" scheme="https://aucept.in/categories/%E6%B8%A9%E9%A6%A8%E7%9A%84%E9%98%85%E8%AF%BB%E6%97%B6%E5%85%89/"/>
+    
+    
+    <category term="rust" scheme="https://aucept.in/tags/rust/"/>
+    
+    <category term="GPU" scheme="https://aucept.in/tags/GPU/"/>
+    
+  </entry>
+  
+  <entry>
     <title>用lvim迈向终端全栈</title>
     <link href="https://aucept.in/2026/03/25/%E7%94%A8lvim%E5%AE%8C%E6%88%90%E4%BD%9C%E4%B8%9A/"/>
     <id>https://aucept.in/2026/03/25/%E7%94%A8lvim%E5%AE%8C%E6%88%90%E4%BD%9C%E4%B8%9A/</id>
     <published>2026-03-25T13:23:24.000Z</published>
-    <updated>2026-03-26T02:54:42.998Z</updated>
+    <updated>2026-03-26T02:58:23.628Z</updated>
     
     <content type="html"><![CDATA[<p>本系列的上一篇用wezterm、fish和tmux大大改善了终端的使用体验，随着最近对vim的操作变得熟练，以前依旧要依赖GUI的IDE似乎也可以搬进终端里了</p>
 <p>故事的起因是有些作业相比于手写，还是打字更舒服，但是学校的作业平台又不能直接提交markdown，于是……</p>
