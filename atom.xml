@@ -6,7 +6,7 @@
   <link href="https://aucept.in/atom.xml" rel="self"/>
   
   <link href="https://aucept.in/"/>
-  <updated>2026-03-28T14:30:14.804Z</updated>
+  <updated>2026-04-11T14:13:57.957Z</updated>
   <id>https://aucept.in/</id>
   
   <author>
@@ -16,6 +16,120 @@
   
   <generator uri="https://hexo.io/">Hexo</generator>
   <follow_challenge><feedId>230229871042106368</feedId><userId>230228883350077440</userId></follow_challenge>
+  
+  <entry>
+    <title>How We Built Postgres Compatibility in Rust: pgwire and DataFusion</title>
+    <link href="https://aucept.in/2026/04/11/How-We-Built-Postgres-Compatibility-in-Rust-pgwire-and-DataFusion/"/>
+    <id>https://aucept.in/2026/04/11/How-We-Built-Postgres-Compatibility-in-Rust-pgwire-and-DataFusion/</id>
+    <published>2026-04-11T09:39:38.000Z</published>
+    <updated>2026-04-11T14:13:57.957Z</updated>
+    
+    <content type="html"><![CDATA[<p>原文：<a href="https://greptime.com/blogs/2026-04-01-greptimedb-postgresql-compatibility">How We Built Postgres Compatibility in Rust: pgwire and DataFusion</a></p>
+<h2 id="背景：Greptime"><a href="#背景：Greptime" class="headerlink" title="背景：Greptime"></a>背景：Greptime</h2><p>中文名是格睿科技，其实应该反过介绍，因为这是一家中国公司，自研数据库开发，用于解决可观测性特点等等，<a href="https://greptime.cn/about">官网</a></p>
+<p>本文的作者正是这家公司的CTO</p>
+<p>让我们回到本文的重点，他的这篇博客</p>
+<h2 id="引入：两种模式"><a href="#引入：两种模式" class="headerlink" title="引入：两种模式"></a>引入：两种模式</h2><p>Pg很火，rust也很火，那么如何结合二者？作者认为主要有两种方式：</p>
+<ul>
+<li>自底向上的，主要用<code>pgrx</code>库以插件的形式把rust生态引入PostgreSQL，典型案例比如<a href="https://www.paradedb.com/">ParadaDB</a></li>
+<li>自顶向下的，通过模拟协议和接口实现另类的“Postgres”，作者的Greptime DB就属于此类</li>
+</ul>
+<h2 id="接口：Postgres-Protocol"><a href="#接口：Postgres-Protocol" class="headerlink" title="接口：Postgres Protocol"></a>接口：Postgres Protocol</h2><p>狭义上,Postgres Protocol指的是基于TCP协议的和pg server端通信用的应用层协议，这也是事实上连接到数据库时在TCP层发生的事</p>
+<p>总体而言，协议主要包含以下五部分：</p>
+<ul>
+<li>Startup: 在连接建立时，握手交换信息和各种身份认证机制</li>
+<li>Simple Query: 基于文本的查询和回应</li>
+<li>Extended Query: 扩展查询，即预编译，可以把语句和参数分开传</li>
+<li>Copy: 导入/导出大量数据</li>
+<li>Cancel: 处理终止信号</li>
+</ul>
+<p>实际上这五类是作者总结概括之后的，实际上会分的更加琐碎</p>
+<p>为了实现比较完整的pg兼容性，狭义上的这些协议只是第一层，还需要支持广义的协议，包括：</p>
+<ul>
+<li>Query Language: SQL方言和关键函数</li>
+<li>Data Type System: 建立一个到pg独有的类型的映射</li>
+<li>pg_catalog Metadata: 对元数据信息系统的支持</li>
+</ul>
+<h2 id="架构：优缺点"><a href="#架构：优缺点" class="headerlink" title="架构：优缺点"></a>架构：优缺点</h2><p>相比于自己设计一套协议，复用pg的有很多优点：</p>
+<ul>
+<li>已经证明的可靠性</li>
+<li>解锁无尽的工具: 不同语言的驱动、管理工具、BI(Business Intelligence) Tools等等直接用PostgreSQL的已经非常完善的生态即可</li>
+<li>允许把<code>Federated Queries</code>作为一个FDW的数据源: FDW(Foreign Data Wrapper)，外部数据包装器，所以这个特性简单的说就是可以把GreptimeDB挂载到Pg上，甚至可以对两个数据库的表做JOIN操作</li>
+</ul>
+<p>当然也有缺点：</p>
+<ul>
+<li>Row-Oriented: Pg是关系型数据库，其协议设计时也是面向行传输的，而GreptimeDB却是按列处理的，这就需要一次转换</li>
+<li>取消查询机制: 查询取消机制和pg的进程模型绑定，所以很麻烦且有安全风险</li>
+<li>对于拓展查询的类型猜测: 拓展查询需要数据库在不实际执行时对表达式里的参数做类型推断，SQLite和DuckDB就没有提供这种API，因而做不到这种层面的兼容</li>
+</ul>
+<h2 id="实现：pgwire"><a href="#实现：pgwire" class="headerlink" title="实现：pgwire"></a>实现：pgwire</h2><p>GreptimeDB 用了作者写的<code>pgwire</code>库和<code>DataFusion</code>生态完成了实现</p>
+<h3 id="传输层协议支持"><a href="#传输层协议支持" class="headerlink" title="传输层协议支持"></a>传输层协议支持</h3><p>如果把pg的应用层协议类比http，那么<code>pgwire</code>就像<code>hyper</code>甚至<code>axum</code>。用户可以为不同程度的pg兼容性选择性的使用</p>
+<p>以simple query为例，这个子协议甚至不假设用户的输入是SQL。<code>pgwire</code>提供了两个水平的api：</p>
+<ul>
+<li>Low-level API: SimpleQueryHandler::on_query: 重点关注消息级别的处理和语义。</li>
+<li>High-level API: SimpleQueryHandler::do_query: 重点关注数据级别的处理和语义。</li>
+</ul>
+<pre class="line-numbers language-rust" data-language="rust"><code class="language-rust"><span class="token attribute attr-name">#[async_trait]</span>
+<span class="token keyword">impl</span> <span class="token class-name">SimpleQueryHandler</span> <span class="token keyword">for</span> <span class="token class-name">EchoHandler</span> <span class="token punctuation">&#123;</span>
+    <span class="token keyword">async</span> <span class="token keyword">fn</span> <span class="token function-definition function">do_query</span><span class="token operator">&lt;</span><span class="token class-name">C</span><span class="token operator">></span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">self</span><span class="token punctuation">,</span> _client<span class="token punctuation">:</span> <span class="token operator">&amp;</span><span class="token keyword">mut</span> <span class="token class-name">C</span><span class="token punctuation">,</span> query<span class="token punctuation">:</span> <span class="token operator">&amp;</span><span class="token keyword">str</span><span class="token punctuation">)</span> <span class="token punctuation">-></span>
+    <span class="token class-name">PgWireResult</span><span class="token operator">&lt;</span><span class="token class-name">Vec</span><span class="token operator">&lt;</span><span class="token class-name">Response</span><span class="token operator">>></span>
+    <span class="token keyword">where</span>
+        <span class="token class-name">C</span><span class="token punctuation">:</span> <span class="token class-name">ClientInfo</span> <span class="token operator">+</span> <span class="token class-name">Sink</span><span class="token operator">&lt;</span><span class="token class-name">PgWireBackendMessage</span><span class="token operator">></span> <span class="token operator">+</span> <span class="token class-name">Unpin</span> <span class="token operator">+</span> <span class="token class-name">Send</span> <span class="token operator">+</span> <span class="token class-name">Sync</span><span class="token punctuation">,</span>
+        <span class="token class-name">C</span><span class="token punctuation">::</span><span class="token class-name">Error</span><span class="token punctuation">:</span> <span class="token class-name">Debug</span><span class="token punctuation">,</span>
+        <span class="token class-name">PgWireError</span><span class="token punctuation">:</span> <span class="token class-name">From</span><span class="token operator">&lt;&lt;</span><span class="token class-name">C</span> <span class="token keyword">as</span> <span class="token class-name">Sink</span><span class="token operator">&lt;</span><span class="token class-name">PgWireBackendMessage</span><span class="token operator">>></span><span class="token punctuation">::</span><span class="token class-name">Error</span><span class="token operator">></span>
+    <span class="token punctuation">&#123;</span>
+        <span class="token keyword">let</span> query <span class="token operator">=</span> query<span class="token punctuation">.</span><span class="token function">to_string</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">let</span> f1 <span class="token operator">=</span> <span class="token class-name">FieldInfo</span><span class="token punctuation">::</span><span class="token function">new</span><span class="token punctuation">(</span><span class="token string">"input"</span><span class="token punctuation">.</span><span class="token function">into</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token class-name">None</span><span class="token punctuation">,</span> <span class="token class-name">None</span><span class="token punctuation">,</span> <span class="token class-name">Type</span><span class="token punctuation">::</span><span class="token constant">VARCHAR</span><span class="token punctuation">,</span>
+        <span class="token class-name">FieldFormat</span><span class="token punctuation">::</span><span class="token class-name">Text</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">let</span> schema <span class="token operator">=</span> <span class="token class-name">Arc</span><span class="token punctuation">::</span><span class="token function">new</span><span class="token punctuation">(</span><span class="token macro property">vec!</span><span class="token punctuation">[</span>f1<span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">let</span> data <span class="token operator">=</span> <span class="token macro property">vec!</span><span class="token punctuation">[</span><span class="token class-name">Some</span><span class="token punctuation">(</span>query<span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+        <span class="token keyword">let</span> <span class="token keyword">mut</span> encoder <span class="token operator">=</span> <span class="token class-name">DataRowEncoder</span><span class="token punctuation">::</span><span class="token function">new</span><span class="token punctuation">(</span>schema<span class="token punctuation">.</span><span class="token function">clone</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token keyword">let</span> data_row_stream <span class="token operator">=</span> <span class="token namespace">stream<span class="token punctuation">::</span></span><span class="token function">iter</span><span class="token punctuation">(</span>data<span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token keyword">move</span> <span class="token closure-params"><span class="token closure-punctuation punctuation">|</span>r<span class="token closure-punctuation punctuation">|</span></span> <span class="token punctuation">&#123;</span>
+            encoder<span class="token punctuation">.</span><span class="token function">encode_field</span><span class="token punctuation">(</span><span class="token operator">&amp;</span>r<span class="token punctuation">)</span><span class="token operator">?</span><span class="token punctuation">;</span>
+            <span class="token class-name">Ok</span><span class="token punctuation">(</span>encoder<span class="token punctuation">.</span><span class="token function">take_row</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token class-name">Ok</span><span class="token punctuation">(</span><span class="token macro property">vec!</span><span class="token punctuation">[</span><span class="token class-name">Response</span><span class="token punctuation">::</span><span class="token class-name">Query</span><span class="token punctuation">(</span><span class="token class-name">QueryResponse</span><span class="token punctuation">::</span><span class="token function">new</span><span class="token punctuation">(</span>
+            schema<span class="token punctuation">,</span>
+            data_row_stream<span class="token punctuation">,</span>
+        <span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+    <span class="token punctuation">&#125;</span>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>忽略掉泛型以及相应的若干特征，函数体内做的逻辑还是比较清晰的：</p>
+<p>创建一列，字段名input，类型字符串，用Arc包装，把用户的查询用Option包一下，vec!处理一下发给encoder得到字节流，这样有表头有数据，就可以发给客户端了</p>
+<p>运行参考：<br><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">❯ psql <span class="token parameter variable">-h</span> <span class="token number">127.0</span>.0.1 <span class="token parameter variable">-p</span> <span class="token number">5432</span> <span class="token parameter variable">-U</span> postgres
+psql <span class="token punctuation">(</span><span class="token number">18.1</span>, server <span class="token number">16.6</span>-pgwire-0.38.2<span class="token punctuation">)</span>
+Type <span class="token string">"help"</span> <span class="token keyword">for</span> help.
+
+<span class="token assign-left variable">postgres</span><span class="token operator">=</span><span class="token comment"># hello world;</span>
+  input
+--------------
+ hello world<span class="token punctuation">;</span>
+<span class="token punctuation">(</span><span class="token number">1</span> row<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><br>嗯，不是SQL也可以</p>
+<h3 id="pg-catalog支持"><a href="#pg-catalog支持" class="headerlink" title="pg_catalog支持"></a>pg_catalog支持</h3><p>更深的兼容需要元数据支持，这就是需要pg_catalog的地方了</p>
+<p>pg_catalog需要一系列系统表和视图，而这需要建立在查询引擎之上</p>
+<p>GreptimeDB使用<code>DataFusion</code>查询引擎，于是作者维护了一个<code>datafusion-postgres</code>项目作为pgwire DataFusion和 Arrow数据格式的适配器</p>
+<p>然而作者表示这个工作实在是太复杂了，他们只专注于了五张主要的表（<code>pg_database</code> <code>pg_namespace</code> <code>pg_tables</code> <code>pg_class</code> <code>pg_attributes</code>），把其余的留给了社区</p>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>作者把pg的兼容做成了可复用的库，这意味这不仅GreptimeDB可以用，其他数据基础设施也可以用它构建一个”Postgres-like”生态</p>
+]]></content>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;p&gt;原文：&lt;a href=&quot;https://greptime.com/blogs/2026-04-01-greptimedb-postgresql-compatibility&quot;&gt;How We Built Postgres Compatibility in Rust:</summary>
+        
+      
+    
+    
+    
+    <category term="温馨的阅读时光" scheme="https://aucept.in/categories/%E6%B8%A9%E9%A6%A8%E7%9A%84%E9%98%85%E8%AF%BB%E6%97%B6%E5%85%89/"/>
+    
+    
+    <category term="rust" scheme="https://aucept.in/tags/rust/"/>
+    
+    <category term="postgreSQL" scheme="https://aucept.in/tags/postgreSQL/"/>
+    
+  </entry>
   
   <entry>
     <title>Rust threads on the GPU</title>
