@@ -6,7 +6,7 @@
   <link href="https://aucept.in/atom.xml" rel="self"/>
   
   <link href="https://aucept.in/"/>
-  <updated>2026-07-20T12:15:53.055Z</updated>
+  <updated>2026-07-19T15:50:10.733Z</updated>
   <id>https://aucept.in/</id>
   
   <author>
@@ -16,46 +16,6 @@
   
   <generator uri="https://hexo.io/">Hexo</generator>
   <follow_challenge><feedId>230229871042106368</feedId><userId>230228883350077440</userId></follow_challenge>
-  
-  <entry>
-    <title>组网小实践</title>
-    <link href="https://aucept.in/2026/07/20/%E7%BB%84%E7%BD%91%E5%B0%8F%E5%AE%9E%E8%B7%B5/"/>
-    <id>https://aucept.in/2026/07/20/%E7%BB%84%E7%BD%91%E5%B0%8F%E5%AE%9E%E8%B7%B5/</id>
-    <published>2026-07-20T05:27:20.000Z</published>
-    <updated>2026-07-20T12:15:53.055Z</updated>
-    
-    <content type="html"><![CDATA[<p>买了一个Beryl AX (GL-MT3000)和一个树莓派 5b 8G，既然如此顺便组个网吧</p>
-<h2 id="路由器">路由器</h2>
-<p>首先来玩一下这台Beryl AX,他的目标是成为这个局域网的出口</p>
-<p>通电开机，连无线网，连路由器。</p>
-<p>跑一下测速……由于方差过大，既然整体大差不差，就不纠结细节了。</p>
-<p>接入tailscale, 直接gui操作即可</p>
-<h2 id="树莓派">树莓派</h2>
-]]></content>
-    
-    
-      
-      
-        
-        
-    <summary type="html">&lt;p&gt;买了一个Beryl AX (GL-MT3000)和一个树莓派 5b 8G，既然如此顺便组个网吧&lt;/p&gt;
-&lt;h2 id=&quot;路由器&quot;&gt;路由器&lt;/h2&gt;
-&lt;p&gt;首先来玩一下这台Beryl</summary>
-        
-      
-    
-    
-    
-    <category term="生命在于折腾" scheme="https://aucept.in/categories/%E7%94%9F%E5%91%BD%E5%9C%A8%E4%BA%8E%E6%8A%98%E8%85%BE/"/>
-    
-    
-    <category term="tailscale" scheme="https://aucept.in/tags/tailscale/"/>
-    
-    <category term="Beryl AX" scheme="https://aucept.in/tags/Beryl-AX/"/>
-    
-    <category term="Raspberry Pi 5" scheme="https://aucept.in/tags/Raspberry-Pi-5/"/>
-    
-  </entry>
   
   <entry>
     <title>Moving a Rust WebRTC SFU to thread-per-core</title>
