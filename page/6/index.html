@@ -1,278 +1,307 @@
-<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>Auceptin's Blog</title><meta name="author" content="Auceptin"><meta name="copyright" content="Auceptin"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta property="og:type" content="website">
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#6d5dfc">
+<title>Auceptin&#39;s Blog</title>
+<meta name="description" content="Auceptin 的个人博客">
+<link rel="canonical" href="https://aucept.in/page/6/index.html">
+<link rel="icon" type="image/png" href="/icon.png">
+<link rel="apple-touch-icon" href="/icon.png">
+<link rel="alternate" type="application/atom+xml" title="Auceptin&#39;s Blog" href="/atom.xml">
+<meta property="og:type" content="website">
 <meta property="og:title" content="Auceptin&#39;s Blog">
+<meta property="og:description" content="Auceptin 的个人博客">
 <meta property="og:url" content="https://aucept.in/page/6/index.html">
-<meta property="og:site_name" content="Auceptin&#39;s Blog">
-<meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://aucept.in/img/auceptin-icon.png">
-<meta property="article:author" content="Auceptin">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://aucept.in/img/auceptin-icon.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://aucept.in/page/6/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
-    (() => {
-      
-    const saveToLocal = {
-      set: (key, value, ttl) => {
-        if (!ttl) return
-        const expiry = Date.now() + ttl * 86400000
-        localStorage.setItem(key, JSON.stringify({ value, expiry }))
-      },
-      get: key => {
-        const itemStr = localStorage.getItem(key)
-        if (!itemStr) return undefined
-        const { value, expiry } = JSON.parse(itemStr)
-        if (Date.now() > expiry) {
-          localStorage.removeItem(key)
-          return undefined
-        }
-        return value
-      }
-    }
+<meta property="og:image" content="https://aucept.in/image/cover58_star.png">
+<script>
+  (function () {
+    try {
+      var saved = localStorage.getItem('shileyuan-color-scheme') || localStorage.getItem('aurora-color-scheme');
+      if (saved) localStorage.setItem('shileyuan-color-scheme', saved);
+      var dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.dataset.theme = dark ? 'dark' : 'light';
 
-    window.btf = {
-      saveToLocal,
-      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
-        const script = document.createElement('script')
-        script.src = url
-        script.async = true
-        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
-        script.onload = script.onreadystatechange = () => {
-          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
-        }
-        script.onerror = reject
-        document.head.appendChild(script)
-      }),
-      getCSS: (url, id) => new Promise((resolve, reject) => {
-        const link = document.createElement('link')
-        link.rel = 'stylesheet'
-        link.href = url
-        if (id) link.id = id
-        link.onload = link.onreadystatechange = () => {
-          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
-        }
-        link.onerror = reject
-        document.head.appendChild(link)
-      }),
-      addGlobalFn: (key, fn, name = false, parent = window) => {
-        if (!false && key.startsWith('pjax')) return
-        const globalFn = parent.globalFn || {}
-        globalFn[key] = globalFn[key] || {}
-        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
-        parent.globalFn = globalFn
-      }
-    }
-  
-      
-      const activateDarkMode = () => {
-        document.documentElement.setAttribute('data-theme', 'dark')
-        if (document.querySelector('meta[name="theme-color"]') !== null) {
-          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
-        }
-      }
-      const activateLightMode = () => {
-        document.documentElement.setAttribute('data-theme', 'light')
-        if (document.querySelector('meta[name="theme-color"]') !== null) {
-          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'ffffff')
-        }
-      }
-
-      btf.activateDarkMode = activateDarkMode
-      btf.activateLightMode = activateLightMode
-
-      const theme = saveToLocal.get('theme')
-    
-          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
-        
-      
-      const asideStatus = saveToLocal.get('aside-status')
-      if (asideStatus !== undefined) {
-        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
-      }
-    
-      
-    const detectApple = () => {
-      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
-        document.documentElement.classList.add('apple')
-      }
-    }
-    detectApple()
-  
-    })()
-  </script><script>const GLOBAL_CONFIG = {
-  root: '/',
-  algolia: undefined,
-  localSearch: undefined,
-  translate: undefined,
-  highlight: {"plugin":"prismjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
-  copy: {
-    success: '复制成功',
-    error: '复制失败',
-    noSupport: '浏览器不支持'
-  },
-  relativeDate: {
-    homepage: false,
-    post: false
-  },
-  runtime: '',
-  dateSuffix: {
-    just: '刚刚',
-    min: '分钟前',
-    hour: '小时前',
-    day: '天前',
-    month: '个月前'
-  },
-  copyright: undefined,
-  lightbox: 'null',
-  Snackbar: undefined,
-  infinitegrid: {
-    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
-    buttonText: '加载更多'
-  },
-  isPhotoFigcaption: false,
-  islazyloadPlugin: false,
-  isAnchor: false,
-  percent: {
-    toc: true,
-    rightside: false,
-  },
-  autoDarkmode: false
-}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
-  title: 'Auceptin\'s Blog',
-  isHighlightShrink: false,
-  isToc: false,
-  pageType: 'home'
-}</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prism-themes@1.9.0/themes/prism-dracula.min.css" id="prism-light-theme"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-twilight.min.css" id="prism-dark-theme" disabled><style>
-  /* 根据 Butterfly 主题切换代码高亮样式 */
-  [data-theme="dark"] #prism-light-theme {
-    display: none !important;
-  }
-  [data-theme="light"] #prism-dark-theme {
-    display: block !important;
-  }
-  html:not([data-theme]) #prism-dark-theme {
-    display: none !important;
-
-  
-  /* 数学公式美化样式 */
-  .MathJax_Display {
-    margin: 1.5em 0 !important;
-    text-align: center !important;
-  }
-  
-  .MathJax {
-    font-size: 1.1em !important;
-  }
-  
-  /* 行内公式样式 */
-  .MathJax_Preview {
-    color: inherit;
-  }
-  
-  /* 块级公式容器美化 */
-  .MathJax_Display {
-    background: rgba(0,0,0,0.02);
-    border-radius: 8px;
-    padding: 15px 20px;
-    margin: 20px 0;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    border-left: 4px solid #49b1f5;
-  }
-  
-  /* 暗色模式下的公式样式 */
-  [data-theme="dark"] .MathJax_Display {
-    background: rgba(255,255,255,0.05);
-    border-left-color: #1f2937;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-  }
-  
-  /* 公式编号样式 */
-  .MathJax .mjx-math .mjx-mrow .mjx-mtable .mjx-label {
-    color: #666;
-    font-size: 0.9em;
-  }
-  
-  /* 提升公式清晰度 */
-  .MathJax svg {
-    max-width: 100% !important;
-    height: auto !important;
-  }
-</style>
-<meta name="generator" content="Hexo 7.3.0"><link rel="alternate" href="/atom.xml" title="Auceptin's Blog" type="application/atom+xml">
-</head><body><div id="web_bg" style="background-color: #f5f5f5;"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/auceptin-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">54</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">44</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/friends/"><span> Friends</span></a></div></div></div></div><div class="page" id="body-wrap"><header class="full_page" id="page-header" style="background-image: url(/img/index.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Auceptin's Blog</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/friends/"><span> Friends</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="site-info"><h1 id="site-title">Auceptin's Blog</h1></div><div id="scroll-down"><i class="fas fa-angle-down scroll-down-effects"></i></div></header><main class="layout" id="content-inner"><div class="recent-posts nc" id="recent-posts"><div class="recent-post-items"><div class="recent-post-item"><div class="post_cover left"><a href="/2025/05/24/%E5%B0%8F%E7%8E%8B%E5%AD%90%EF%BC%88%E4%B8%80%EF%BC%89/" title="睡前故事：小王子（一）"><img class="post-bg" src="/image/cover1_cat.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="睡前故事：小王子（一）"></a></div><div class="recent-post-info"><a class="article-title" href="/2025/05/24/%E5%B0%8F%E7%8E%8B%E5%AD%90%EF%BC%88%E4%B8%80%EF%BC%89/" title="睡前故事：小王子（一）">睡前故事：小王子（一）</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-05-24T15:46:37.000Z" title="发表于 2025-05-24 23:46:37">2025-05-24</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E7%9D%A1%E5%89%8D%E6%95%85%E4%BA%8B/">睡前故事</a></span></div><div class="content">...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/2025/05/22/%E7%9D%A1%E7%BE%8E%E4%BA%BA/" title="睡前故事：睡美人"><img class="post-bg" src="/image/cover5_beauty.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="睡前故事：睡美人"></a></div><div class="recent-post-info"><a class="article-title" href="/2025/05/22/%E7%9D%A1%E7%BE%8E%E4%BA%BA/" title="睡前故事：睡美人">睡前故事：睡美人</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-05-21T16:17:06.000Z" title="发表于 2025-05-22 00:17:06">2025-05-22</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E7%9D%A1%E5%89%8D%E6%95%85%E4%BA%8B/">睡前故事</a></span></div><div class="content">...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/2025/05/17/%E7%8B%BC%E6%9D%A5%E4%BA%86/" title="睡前故事：狼来了"><img class="post-bg" src="/image/cover4_horse.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="睡前故事：狼来了"></a></div><div class="recent-post-info"><a class="article-title" href="/2025/05/17/%E7%8B%BC%E6%9D%A5%E4%BA%86/" title="睡前故事：狼来了">睡前故事：狼来了</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-05-17T02:02:02.000Z" title="发表于 2025-05-17 10:02:02">2025-05-17</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E7%9D%A1%E5%89%8D%E6%95%85%E4%BA%8B/">睡前故事</a></span></div><div class="content">从前，有个放羊娃，每天都沿着I/O桥去CPU放羊 一天，他看到有一个数据读，头也不回地跑到主存大声喊：“读来了！读来了！快缓存啊！”主存一收到数据读的信号，急忙把一块数据拿出来放到总线上，然后往L3、L2、L1层层缓存，边准备边喊：“不要怕，孩子，SRAM会帮你的！” 然而加载单元读了一个数据就停了，接下来是一连串的cache...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/2025/05/13/CSAPP-3-69/" title="CSAPP 3.69"><img class="post-bg" src="/image/cover6_bear.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="CSAPP 3.69"></a></div><div class="recent-post-info"><a class="article-title" href="/2025/05/13/CSAPP-3-69/" title="CSAPP 3.69">CSAPP 3.69</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-05-13T11:20:00.000Z" title="发表于 2025-05-13 19:20:00">2025-05-13</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/CSAPP/">CSAPP</a></span></div><div class="content">题目： 解答：AT&amp;T快淘汰吧 问题有两个，一个是确定每个b结构体里有几个a结构体，一个是确定a结构体的内容，即确定idx和x的类型，思路上就是看汇编算偏移量，去和已知的代码匹配 第3行的 add (%rsi), %ecx 明显对应着 bp-&gt;first + bp-&gt;last，所以第一行相当于告诉了 CNT个a结构体和first共占0x120 = 288字节，抛去int类型的first就是284字节 第4行用到了重要的参数i，存在rdi寄存器里，运算后rax = 5i 第5行 rax = rsi + 8 * rax 新的rax里存的是bp开始后的40i的地址，而i是a结构体数组的索引，所以每个a结构体占40字节 第6行 将rax的值+8移动到rdx，这个8字节的偏移显然是跳过idx，idx占8字节，是long类型 第8行 rax + rdx * 8...</div></div></div></div><nav id="pagination"><div class="pagination"><a class="extend prev" rel="prev" href="/page/5/#content-inner"><i class="fas fa-chevron-left fa-fw"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/#content-inner">5</a><span class="page-number current">6</span></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/auceptin-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Auceptin</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">54</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">44</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/auceptinFang"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">welcome to my blog! <br> Contact：me@aucept.in</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/07/25/Hardening-Rust-Code-For-Production/" title="Hardening Rust Code"><img src="/image/cover59_apple.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Hardening Rust Code"/></a><div class="content"><a class="title" href="/2026/07/25/Hardening-Rust-Code-For-Production/" title="Hardening Rust Code">Hardening Rust Code</a><time datetime="2026-07-25T06:09:00.000Z" title="发表于 2026-07-25 14:09:00">2026-07-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/07/19/Moving%20a%20Rust%20WebRTC%20SFU%20to%20thread-per-core/" title="Moving a Rust WebRTC SFU to thread-per-core"><img src="/image/cover58_star.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Moving a Rust WebRTC SFU to thread-per-core"/></a><div class="content"><a class="title" href="/2026/07/19/Moving%20a%20Rust%20WebRTC%20SFU%20to%20thread-per-core/" title="Moving a Rust WebRTC SFU to thread-per-core">Moving a Rust WebRTC SFU to thread-per-core</a><time datetime="2026-07-19T15:00:00.000Z" title="发表于 2026-07-19 23:00:00">2026-07-19</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/07/18/spider-solitaire/" title="Spider Solitaire"><img src="/image/cover61_ghost.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Spider Solitaire"/></a><div class="content"><a class="title" href="/2026/07/18/spider-solitaire/" title="Spider Solitaire">Spider Solitaire</a><time datetime="2026-07-18T12:00:00.000Z" title="发表于 2026-07-18 20:00:00">2026-07-18</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/05/16/Macro-in-rust/" title="Macro in rust"><img src="/image/cover57_sword.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Macro in rust"/></a><div class="content"><a class="title" href="/2026/05/16/Macro-in-rust/" title="Macro in rust">Macro in rust</a><time datetime="2026-05-16T05:46:25.000Z" title="发表于 2026-05-16 13:46:25">2026-05-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/05/15/All-the-ways-to-mock-your-Rust-code/" title="All the ways to mock your Rust code"><img src="/image/cover49_lazy.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="All the ways to mock your Rust code"/></a><div class="content"><a class="title" href="/2026/05/15/All-the-ways-to-mock-your-Rust-code/" title="All the ways to mock your Rust code">All the ways to mock your Rust code</a><time datetime="2026-05-15T06:25:20.000Z" title="发表于 2026-05-15 14:25:20">2026-05-15</time></div></div></div></div><div class="card-widget card-categories"><div class="item-headline">
-            <i class="fas fa-folder-open"></i>
-            <span>分类</span>
-            
-          </div>
-          <ul class="card-category-list" id="aside-cat-list">
-            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/CSAPP/"><span class="card-category-list-name">CSAPP</span><span class="card-category-list-count">3</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/OSTEP/"><span class="card-category-list-name">OSTEP</span><span class="card-category-list-count">5</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/ctf/"><span class="card-category-list-name">ctf</span><span class="card-category-list-count">5</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/noita/"><span class="card-category-list-name">noita</span><span class="card-category-list-count">2</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/problem-solution/"><span class="card-category-list-name">problem & solution</span><span class="card-category-list-count">1</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84rust%E4%B9%8B%E6%97%85/"><span class="card-category-list-name">从0开始的rust之旅</span><span class="card-category-list-count">11</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E5%AD%A6%E4%B9%A0%E7%94%9F%E6%B4%BB/"><span class="card-category-list-name">学习生活</span><span class="card-category-list-count">8</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E5%AE%B6%E8%A6%81%E6%9C%89%E5%AE%B6%E7%9A%84%E6%A0%B7%E5%AD%90/"><span class="card-category-list-name">家要有家的样子</span><span class="card-category-list-count">2</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E6%B8%A9%E9%A6%A8%E7%9A%84%E9%98%85%E8%AF%BB%E6%97%B6%E5%85%89/"><span class="card-category-list-name">温馨的阅读时光</span><span class="card-category-list-count">9</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E7%9D%A1%E5%89%8D%E6%95%85%E4%BA%8B/"><span class="card-category-list-name">睡前故事</span><span class="card-category-list-count">6</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E9%9A%8F%E7%AC%94/"><span class="card-category-list-name">随笔</span><span class="card-category-list-count">1</span></a></li>
-          </ul></div><div class="card-widget card-tags"><div class="item-headline"><i class="fas fa-tags"></i><span>标签</span></div><div class="card-tag-cloud"><a href="/tags/macro/" style="font-size: 1.1em; color: #999">macro</a> <a href="/tags/%E6%B1%87%E7%BC%96/" style="font-size: 1.23em; color: #999ea6">汇编</a> <a href="/tags/eBPF/" style="font-size: 1.1em; color: #999">eBPF</a> <a href="/tags/%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91/" style="font-size: 1.1em; color: #999">后端开发</a> <a href="/tags/vim/" style="font-size: 1.1em; color: #999">vim</a> <a href="/tags/test/" style="font-size: 1.17em; color: #999c9f">test</a> <a href="/tags/xml/" style="font-size: 1.1em; color: #999">xml</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80/" style="font-size: 1.1em; color: #999">编程语言</a> <a href="/tags/%E7%AE%97%E6%B3%95/" style="font-size: 1.1em; color: #999">算法</a> <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%BC%80%E5%8F%91/" style="font-size: 1.1em; color: #999">软件开发</a> <a href="/tags/concurrency-model/" style="font-size: 1.1em; color: #999">concurrency model</a> <a href="/tags/tauri/" style="font-size: 1.1em; color: #999">tauri</a> <a href="/tags/pwn/" style="font-size: 1.37em; color: #99a4b2">pwn</a> <a href="/tags/Spider-Solitaire/" style="font-size: 1.1em; color: #999">Spider Solitaire</a> <a href="/tags/postgreSQL/" style="font-size: 1.17em; color: #999c9f">postgreSQL</a> <a href="/tags/noita/" style="font-size: 1.23em; color: #999ea6">noita</a> <a href="/tags/terminal/" style="font-size: 1.1em; color: #999">terminal</a> <a href="/tags/CSAPP/" style="font-size: 1.3em; color: #99a1ac">CSAPP</a> <a href="/tags/tokio/" style="font-size: 1.1em; color: #999">tokio</a> <a href="/tags/%E6%A0%88/" style="font-size: 1.1em; color: #999">栈</a> <a href="/tags/orw/" style="font-size: 1.1em; color: #999">orw</a> <a href="/tags/rust/" style="font-size: 1.5em; color: #99a9bf">rust</a> <a href="/tags/%E6%8E%92%E5%BA%8F/" style="font-size: 1.1em; color: #999">排序</a> <a href="/tags/%E5%AD%98%E5%82%A8%E5%99%A8/" style="font-size: 1.1em; color: #999">存储器</a> <a href="/tags/docker/" style="font-size: 1.1em; color: #999">docker</a> <a href="/tags/%E9%80%86%E5%90%91/" style="font-size: 1.1em; color: #999">逆向</a> <a href="/tags/%E9%80%86%E5%90%91%E5%B7%A5%E7%A8%8B/" style="font-size: 1.1em; color: #999">逆向工程</a> <a href="/tags/%E5%AF%BB%E8%B7%AF/" style="font-size: 1.1em; color: #999">寻路</a> <a href="/tags/mod-dev/" style="font-size: 1.1em; color: #999">mod_dev</a> <a href="/tags/%E7%9D%A1%E5%89%8D%E6%95%85%E4%BA%8B/" style="font-size: 1.43em; color: #99a6b9">睡前故事</a> <a href="/tags/%E9%93%BE%E8%A1%A8/" style="font-size: 1.17em; color: #999c9f">链表</a> <a href="/tags/lua/" style="font-size: 1.23em; color: #999ea6">lua</a> <a href="/tags/git/" style="font-size: 1.1em; color: #999">git</a> <a href="/tags/wezterm/" style="font-size: 1.17em; color: #999c9f">wezterm</a> <a href="/tags/%E5%AE%9E%E9%AA%8C/" style="font-size: 1.17em; color: #999c9f">实验</a> <a href="/tags/%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8F/" style="font-size: 1.1em; color: #999">内网穿透</a> <a href="/tags/OSTEP/" style="font-size: 1.37em; color: #99a4b2">OSTEP</a> <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" style="font-size: 1.37em; color: #99a4b2">操作系统</a> <a href="/tags/OAuth/" style="font-size: 1.1em; color: #999">OAuth</a> <a href="/tags/OIDC/" style="font-size: 1.1em; color: #999">OIDC</a></div></div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站信息</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">54</div></div><div class="webinfo-item"><div class="item-name">本站访客数 :</div><div class="item-count" id="busuanzi_value_site_uv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">本站总浏览量 :</div><div class="item-count" id="busuanzi_value_site_pv"><i class="fa-solid fa-spinner fa-spin"></i></div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2026-07-26T07:04:23.660Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer" style="background-image: url(/img/foot.jpg);"><div id="footer-wrap"><div class="copyright">&copy;2025 - 2026 By Auceptin</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
-  const runMermaid = ele => {
-    window.loadMermaid = true
-    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
-
-    ele.forEach((item, index) => {
-      const mermaidSrc = item.firstElementChild
-      const mermaidThemeConfig = `%%{init:{ 'theme':'${theme}'}}%%\n`
-      const mermaidID = `mermaid-${index}`
-      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
-
-      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
-      const renderMermaid = svg => {
-        mermaidSrc.insertAdjacentHTML('afterend', svg)
-      }
-
-      // mermaid v9 and v10 compatibility
-      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
-    })
-  }
-
-  const codeToMermaid = () => {
-    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
-    if (codeMermaidEle.length === 0) return
-
-    codeMermaidEle.forEach(ele => {
-      const preEle = document.createElement('pre')
-      preEle.className = 'mermaid-src'
-      preEle.hidden = true
-      preEle.textContent = ele.textContent
-      const newEle = document.createElement('div')
-      newEle.className = 'mermaid-wrap'
-      newEle.appendChild(preEle)
-      ele.parentNode.replaceWith(newEle)
-    })
-  }
-
-  const loadMermaid = () => {
-    if (true) codeToMermaid()
-    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
-    if ($mermaid.length === 0) return
-
-    const runMermaidFn = () => runMermaid($mermaid)
-    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
-    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaidFn)
-  }
-
-  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
-  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
-})()</script></div><script>
-  // 动态切换代码高亮主题
-  function switchPrismTheme() {
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    const lightTheme = document.getElementById('prism-light-theme');
-    const darkTheme = document.getElementById('prism-dark-theme');
-    
-    if (lightTheme && darkTheme) {
-      lightTheme.disabled = isDark;
-      darkTheme.disabled = !isDark;
-    }
-  }
-  
-  // 页面加载时执行
-  document.addEventListener('DOMContentLoaded', switchPrismTheme);
-  
-  // 监听主题切换
-  const observer = new MutationObserver(switchPrismTheme);
-  observer.observe(document.documentElement, {
-    attributes: true,
-    attributeFilter: ['data-theme']
-  });
+    } catch (error) {}
+  })();
 </script>
-<script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
+<style>:root { --accent: #6d5dfc; }</style>
+<link rel="stylesheet" href="/css/style.css">
+<style id="shileyuan-mutable-css">
+  body { --scene: 1; }
+  body.is-home { --accent: #6d5dfc; }
+  .hero-copy h1 em, .home-hero .eyebrow { color: var(--accent); }
+  .home-hero .button.primary { background: var(--accent); }
+  .hero-copy h1 { letter-spacing: -0.055em; }
+  .post-card { border-radius: 22px; }
+  .post-grid { gap: 24px; }
+  .site-header, .live-css-token { backdrop-filter: blur(22px); }
+  .avatar-wrap { rotate: 3deg; }
+  .avatar-wrap img { filter: saturate(1.08); }
+  .orbit { border-style: dashed; }
+</style>
+
+  <meta name="generator" content="Hexo 7.3.0"></head>
+  <body class="is-home is-list">
+    <div class="reading-progress" aria-hidden="true"><span id="reading-progress-bar"></span></div>
+    <header class="site-header" id="site-header">
+  <div class="header-inner">
+    <a class="brand" href="/" aria-label="Auceptin&#39;s Blog 首页">
+      <span class="brand-mark"><img src="/icon.png" alt=""></span>
+      <span class="brand-text">Auceptin&#39;s Blog</span>
+    </a>
+
+    <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+      <span></span><span></span><span></span><span class="sr-only">打开导航</span>
+    </button>
+
+    <nav class="site-nav" id="site-nav" aria-label="主导航">
+      
+        
+        <a class="nav-link active" href="/">首页</a>
+      
+        
+        <a class="nav-link " href="/archives/">归档</a>
+      
+        
+        <a class="nav-link " href="/categories/">分类</a>
+      
+        
+        <a class="nav-link " href="/tags/">标签</a>
+      
+        
+        <a class="nav-link " href="/friends/">友链</a>
+      
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="切换深色模式">
+        <span class="theme-icon-light">☀</span><span class="theme-icon-dark">☾</span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+
+    <main class="site-main">
+      <section class="home-hero page-shell">
+  <div class="hero-copy">
+    <p class="eyebrow">HELLO, I AM AUCEPTIN</p>
+    <h1>计算机，代码<br><em>可能没有生活</em></h1>
+    <p class="hero-description">just 留下一点痕迹</p>
+    <div class="hero-actions">
+      <a class="button primary" href="#latest">开始阅读</a>
+      <a class="button ghost" href="/archives/">浏览归档</a>
+    </div>
+  </div>
+  <div class="hero-visual" id="live-css-playground">
+    <div class="orbit orbit-one"></div>
+    <div class="orbit orbit-two"></div>
+    <div class="avatar-wrap" aria-hidden="true"><img src="/img/auceptin-icon.png" alt=""></div>
+
+    <div class="live-css-token token-color" data-selector="body.is-home" data-property="--accent" data-default="#6d5dfc">
+      <span class="live-css-grip" aria-hidden="true">⠿</span>
+      <code><b>color</b>: <input class="live-css-value" value="#6d5dfc" size="7" aria-label="强调色">;</code>
+      <span class="live-css-palette" aria-label="快速选择强调色">
+        <button type="button" data-color="#6d5dfc" style="--swatch:#6d5dfc" aria-label="紫色"></button>
+        <button type="button" data-color="#e58b42" style="--swatch:#e58b42" aria-label="黄昏橙"></button>
+        <button type="button" data-color="#2b9eb3" style="--swatch:#2b9eb3" aria-label="青色"></button>
+        <button type="button" data-color="#fa0555" style="--swatch:#fa0555" aria-label="玫红"></button>
+        <button type="button" data-color="#4c9a68" style="--swatch:#4c9a68" aria-label="绿色"></button>
+      </span>
+      <small>body.is-home · all accents</small>
+    </div>
+    <div class="live-css-token token-radius" data-selector=".post-card" data-property="border-radius" data-default="22px" data-step="2" data-min="0" data-max="80">
+      <span class="live-css-grip" aria-hidden="true">⠿</span>
+      <code><b>border-radius</b>: <input class="live-css-value" value="22px" size="5" aria-label="文章卡片圆角">;</code>
+      <small>.post-card</small>
+    </div>
+    <div class="live-css-token token-blur" data-selector=".site-header, .live-css-token" data-property="backdrop-filter" data-default="blur(22px)" data-step="4" data-min="0" data-max="60">
+      <span class="live-css-grip" aria-hidden="true">⠿</span>
+      <code><b>backdrop-filter</b>: <input class="live-css-value" value="blur(22px)" size="10" aria-label="玻璃模糊程度">;</code>
+      <span class="live-css-options" aria-label="常用玻璃模糊程度">
+        <button type="button" data-value="none">none</button>
+        <button type="button" data-value="blur(10px)">soft</button>
+        <button type="button" data-value="blur(30px)">glass</button>
+      </span>
+      <small>.site-header + .live-css-token</small>
+    </div>
+    <div class="live-css-token token-rotate" data-selector=".avatar-wrap" data-property="rotate" data-default="3deg" data-step="1" data-min="-30" data-max="30">
+      <span class="live-css-grip" aria-hidden="true">⠿</span>
+      <code><b>rotate</b>: <input class="live-css-value" value="3deg" size="4" aria-label="头像旋转角度">;</code>
+      <small>.avatar-wrap</small>
+    </div>
+    <div class="live-css-token token-spacing" data-selector=".hero-copy h1" data-property="letter-spacing" data-default="-0.055em" data-step="0.005" data-min="-0.2" data-max="0.2">
+      <span class="live-css-grip" aria-hidden="true">⠿</span>
+      <code><b>letter-spacing</b>: <input class="live-css-value" value="-0.055em" size="8" aria-label="标题字距">;</code>
+      <small>.hero-copy h1</small>
+    </div>
+    <div class="live-css-token token-gap" data-selector=".post-grid" data-property="gap" data-default="24px" data-step="2" data-min="0" data-max="80">
+      <span class="live-css-grip" aria-hidden="true">⠿</span>
+      <code><b>gap</b>: <input class="live-css-value" value="24px" size="4" aria-label="文章网格间距">;</code>
+      <small>.post-grid</small>
+    </div>
+    <div class="live-css-token token-filter" data-selector=".avatar-wrap img" data-property="filter" data-default="saturate(1.08)">
+      <span class="live-css-grip" aria-hidden="true">⠿</span>
+      <code><b>filter</b>: <input class="live-css-value" value="saturate(1.08)" size="13" aria-label="头像饱和度">;</code>
+      <span class="live-css-options" aria-label="常用头像滤镜">
+        <button type="button" data-value="saturate(1.08)">vivid</button>
+        <button type="button" data-value="grayscale(1)">mono</button>
+        <button type="button" data-value="sepia(.6)">warm</button>
+        <button type="button" data-value="none">none</button>
+      </span>
+      <small>.avatar-wrap img</small>
+    </div>
+    <div class="live-css-token token-orbit" data-selector=".orbit" data-property="border-style" data-default="dashed">
+      <span class="live-css-grip" aria-hidden="true">⠿</span>
+      <code><b>border-style</b>: <input class="live-css-value" value="dashed" size="6" aria-label="轨道边框样式">;</code>
+      <span class="live-css-options" aria-label="常用边框样式">
+        <button type="button" data-value="dashed">dash</button>
+        <button type="button" data-value="solid">solid</button>
+        <button type="button" data-value="dotted">dot</button>
+        <button type="button" data-value="none">none</button>
+      </span>
+      <small>.orbit</small>
+    </div>
+    <div class="live-css-token token-scene" data-selector="body" data-property="--scene" data-default="1" data-step="1" data-min="0" data-max="1">
+      <span class="live-css-grip" aria-hidden="true">⠿</span>
+      <code><b>--scene</b>: <input class="live-css-value" value="1" size="1" aria-label="背景场景开关">;</code>
+      <small>body::before + body::after</small>
+    </div>
+    <div class="live-css-delete-hint" aria-hidden="true">松手：删除这条 CSS</div>
+    <button class="live-css-reset" type="button" hidden>↺ restore.css()</button>
+  </div>
+</section>
+
+<section class="home-presence page-shell">
+  <div class="presence-label"><i></i><span>SITE PULSE</span></div>
+  <div class="site-stats">
+    <div class="site-stat">
+      <small>访客</small><span id="busuanzi_container_site_uv"><strong id="busuanzi_value_site_uv">—</strong></span>
+    </div>
+    <div class="site-stat">
+      <small>浏览</small><span id="busuanzi_container_site_pv"><strong id="busuanzi_value_site_pv">—</strong></span>
+    </div>
+    <div class="site-stat"><small>文章</small><span><strong>54</strong></span></div>
+  </div>
+  <span class="presence-divider" aria-hidden="true"></span>
+  <nav class="presence-contact" aria-label="联系方式">
+    <a href="mailto:me@aucept.in"><span>me@aucept.in</span> ↗</a>
+    <a href="https://github.com/auceptinFang" target="_blank" rel="noopener"><span>GitHub</span> ↗</a>
+  </nav>
+</section>
+
+<section class="latest-section page-shell" id="latest">
+  <div class="section-heading">
+    <div><p class="eyebrow">LATEST NOTES</p><h2>最近更新</h2></div>
+    <a href="/archives/">查看全部 →</a>
+  </div>
+  <div class="post-grid">
+    
+<article class="post-card">
+  
+    <a class="post-card-cover" href="/2025/05/24/%E5%B0%8F%E7%8E%8B%E5%AD%90%EF%BC%88%E4%B8%80%EF%BC%89/" tabindex="-1" aria-hidden="true">
+      <img src="/image/cover1_cat.png" alt="" loading="lazy">
+    </a>
+  
+  <div class="post-card-body">
+    <div class="post-meta">
+      <time datetime="2025-05-24T15:46:37.000Z">2025-05-24</time>
+      
+        <span aria-hidden="true">·</span>
+        <a href="/categories/%E7%9D%A1%E5%89%8D%E6%95%85%E4%BA%8B/">睡前故事</a>
+      
+    </div>
+    <h2 class="post-card-title"><a href="/2025/05/24/%E5%B0%8F%E7%8E%8B%E5%AD%90%EF%BC%88%E4%B8%80%EF%BC%89/">睡前故事：小王子（一）</a></h2>
+    <p class="post-card-summary">小王子活动的空间很小，这个pid为612的进程只有十六位的地址空间。虽然操作系统总是大手大脚地分配虚拟地址，但对小王子来说，十六位已经足够， 我们也不需要去纠结为什么64位的系统上会有如此狭小的内存空间了。 在小王子的进程上，就像其他所有进程一样，有好函数与坏函数，可是，函数的内容是难以预料的，它们…</p>
+    <a class="read-more" href="/2025/05/24/%E5%B0%8F%E7%8E%8B%E5%AD%90%EF%BC%88%E4%B8%80%EF%BC%89/">阅读全文 <span>→</span></a>
+  </div>
+</article>
+
+<article class="post-card">
+  
+    <a class="post-card-cover" href="/2025/05/22/%E7%9D%A1%E7%BE%8E%E4%BA%BA/" tabindex="-1" aria-hidden="true">
+      <img src="/image/cover5_beauty.png" alt="" loading="lazy">
+    </a>
+  
+  <div class="post-card-body">
+    <div class="post-meta">
+      <time datetime="2025-05-21T16:17:06.000Z">2025-05-22</time>
+      
+        <span aria-hidden="true">·</span>
+        <a href="/categories/%E7%9D%A1%E5%89%8D%E6%95%85%E4%BA%8B/">睡前故事</a>
+      
+    </div>
+    <h2 class="post-card-title"><a href="/2025/05/22/%E7%9D%A1%E7%BE%8E%E4%BA%BA/">睡前故事：睡美人</a></h2>
+    <p class="post-card-summary">从前有一个国王，在一个进程上运行多年一直没有孩子。他每天向操作系统请求，希望给他一个孩子。 有一天，王后做着循环时，惊讶地发现自己做了一个错误的分支预测，清理掉错误的命令，她来到了一处未曾访问的内存，听见操作系统对她说，“你的愿望就要实现了，很快你就会有一个女孩。” 在约一百个时钟周期后，王后就fo…</p>
+    <a class="read-more" href="/2025/05/22/%E7%9D%A1%E7%BE%8E%E4%BA%BA/">阅读全文 <span>→</span></a>
+  </div>
+</article>
+
+<article class="post-card">
+  
+    <a class="post-card-cover" href="/2025/05/17/%E7%8B%BC%E6%9D%A5%E4%BA%86/" tabindex="-1" aria-hidden="true">
+      <img src="/image/cover4_horse.png" alt="" loading="lazy">
+    </a>
+  
+  <div class="post-card-body">
+    <div class="post-meta">
+      <time datetime="2025-05-17T02:02:02.000Z">2025-05-17</time>
+      
+        <span aria-hidden="true">·</span>
+        <a href="/categories/%E7%9D%A1%E5%89%8D%E6%95%85%E4%BA%8B/">睡前故事</a>
+      
+    </div>
+    <h2 class="post-card-title"><a href="/2025/05/17/%E7%8B%BC%E6%9D%A5%E4%BA%86/">睡前故事：狼来了</a></h2>
+    <p class="post-card-summary">从前，有个放羊娃，每天都沿着I/O桥去CPU放羊 一天，他看到有一个数据读，头也不回地跑到主存大声喊：“读来了！读来了！快缓存啊！”主存一收到数据读的信号，急忙把一块数据拿出来放到总线上，然后往L3、L2、L1层层缓存，边准备边喊：“不要怕，孩子，SRAM会帮你的！” 然而加载单元读了一个数据就停了…</p>
+    <a class="read-more" href="/2025/05/17/%E7%8B%BC%E6%9D%A5%E4%BA%86/">阅读全文 <span>→</span></a>
+  </div>
+</article>
+
+<article class="post-card">
+  
+    <a class="post-card-cover" href="/2025/05/13/CSAPP-3-69/" tabindex="-1" aria-hidden="true">
+      <img src="/image/cover6_bear.png" alt="" loading="lazy">
+    </a>
+  
+  <div class="post-card-body">
+    <div class="post-meta">
+      <time datetime="2025-05-13T11:20:00.000Z">2025-05-13</time>
+      
+        <span aria-hidden="true">·</span>
+        <a href="/categories/CSAPP/">CSAPP</a>
+      
+    </div>
+    <h2 class="post-card-title"><a href="/2025/05/13/CSAPP-3-69/">CSAPP 3.69</a></h2>
+    <p class="post-card-summary">题目： 解答： AT&amp;amp;T快淘汰吧 问题有两个，一个是确定每个b结构体里有几个a结构体，一个是确定a结构体的内容，即确定idx和x的类型，思路上就是看汇编算偏移量，去和已知的代码匹配 第3行的 add (%rsi), %ecx 明显对应着 bp-&amp;gt;first + bp-&amp;gt;last，…</p>
+    <a class="read-more" href="/2025/05/13/CSAPP-3-69/">阅读全文 <span>→</span></a>
+  </div>
+</article>
+
+  </div>
+  
+  <nav class="pagination" aria-label="分页导航">
+    <a class="extend prev" rel="prev" href="/page/5/">←</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><a class="page-number" href="/page/5/">5</a><span class="page-number current">6</span>
+  </nav>
+
+
+</section>
+
+    </main>
+
+    <footer class="site-footer">
+  <div class="footer-inner">
+    <div>
+      © 2025–2026
+      Auceptin
+    </div>
+    <div>Built with Hexo · Paradise Lost</div>
+  </div>
+</footer>
+
+    <button class="back-to-top" id="back-to-top" type="button" aria-label="返回顶部">↑</button>
+    <script src="/js/theme.js"></script>
+    
+      <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    
+  </body>
+</html>

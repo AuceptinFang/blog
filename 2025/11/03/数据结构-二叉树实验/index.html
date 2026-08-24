@@ -1,222 +1,107 @@
-<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>数据结构-二叉树实验 | Auceptin's Blog</title><meta name="author" content="Auceptin"><meta name="copyright" content="Auceptin"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="ffffff"><meta name="description" content="二叉树的建立与遍历[问题描述] 建立一棵二叉树，并对其进行遍历(先序、中序、后序)，打印输出遍历结果。 [基本要求] 从键盘接受输入(先序)，以二叉链表作为存储结构，建立二叉树(以先序来建立)，并采用递归算法对其进行遍历(先序、中序、后序)，将遍历结果打印输出 第一轮，先定义数据结构与创建： struct BinaryTree &#123;     data : Option&lt;char&gt;,">
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#6d5dfc">
+<title>数据结构-二叉树实验 · Auceptin&#39;s Blog</title>
+<meta name="description" content="Auceptin 的个人博客">
+<link rel="canonical" href="https://aucept.in/2025/11/03/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E4%BA%8C%E5%8F%89%E6%A0%91%E5%AE%9E%E9%AA%8C/">
+<link rel="icon" type="image/png" href="/icon.png">
+<link rel="apple-touch-icon" href="/icon.png">
+<link rel="alternate" type="application/atom+xml" title="Auceptin&#39;s Blog" href="/atom.xml">
 <meta property="og:type" content="article">
-<meta property="og:title" content="数据结构-二叉树实验">
-<meta property="og:url" content="https://aucept.in/2025/11/03/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E4%BA%8C%E5%8F%89%E6%A0%91%E5%AE%9E%E9%AA%8C/index.html">
-<meta property="og:site_name" content="Auceptin&#39;s Blog">
-<meta property="og:description" content="二叉树的建立与遍历[问题描述] 建立一棵二叉树，并对其进行遍历(先序、中序、后序)，打印输出遍历结果。 [基本要求] 从键盘接受输入(先序)，以二叉链表作为存储结构，建立二叉树(以先序来建立)，并采用递归算法对其进行遍历(先序、中序、后序)，将遍历结果打印输出 第一轮，先定义数据结构与创建： struct BinaryTree &#123;     data : Option&lt;char&gt;,">
-<meta property="og:locale" content="zh_CN">
+<meta property="og:title" content="数据结构-二叉树实验 · Auceptin&#39;s Blog">
+<meta property="og:description" content="Auceptin 的个人博客">
+<meta property="og:url" content="https://aucept.in/2025/11/03/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E4%BA%8C%E5%8F%89%E6%A0%91%E5%AE%9E%E9%AA%8C/">
 <meta property="og:image" content="https://aucept.in/image/cover38_halloween.jpg">
-<meta property="article:published_time" content="2025-11-03T03:02:43.000Z">
-<meta property="article:modified_time" content="2026-07-17T07:53:25.460Z">
-<meta property="article:author" content="Auceptin">
-<meta property="article:tag" content="rust">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://aucept.in/image/cover38_halloween.jpg"><script type="application/ld+json">{
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  "headline": "数据结构-二叉树实验",
-  "url": "https://aucept.in/2025/11/03/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E4%BA%8C%E5%8F%89%E6%A0%91%E5%AE%9E%E9%AA%8C/",
-  "image": "https://aucept.in/image/cover38_halloween.jpg",
-  "datePublished": "2025-11-03T03:02:43.000Z",
-  "dateModified": "2026-07-17T07:53:25.460Z",
-  "author": [
-    {
-      "@type": "Person",
-      "name": "Auceptin",
-      "url": "https://aucept.in/"
-    }
-  ]
-}</script><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://aucept.in/2025/11/03/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84-%E4%BA%8C%E5%8F%89%E6%A0%91%E5%AE%9E%E9%AA%8C/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
-    (() => {
-      
-    const saveToLocal = {
-      set: (key, value, ttl) => {
-        if (!ttl) return
-        const expiry = Date.now() + ttl * 86400000
-        localStorage.setItem(key, JSON.stringify({ value, expiry }))
-      },
-      get: key => {
-        const itemStr = localStorage.getItem(key)
-        if (!itemStr) return undefined
-        const { value, expiry } = JSON.parse(itemStr)
-        if (Date.now() > expiry) {
-          localStorage.removeItem(key)
-          return undefined
-        }
-        return value
-      }
-    }
+<script>
+  (function () {
+    try {
+      var saved = localStorage.getItem('shileyuan-color-scheme') || localStorage.getItem('aurora-color-scheme');
+      if (saved) localStorage.setItem('shileyuan-color-scheme', saved);
+      var dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.dataset.theme = dark ? 'dark' : 'light';
 
-    window.btf = {
-      saveToLocal,
-      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
-        const script = document.createElement('script')
-        script.src = url
-        script.async = true
-        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
-        script.onload = script.onreadystatechange = () => {
-          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
-        }
-        script.onerror = reject
-        document.head.appendChild(script)
-      }),
-      getCSS: (url, id) => new Promise((resolve, reject) => {
-        const link = document.createElement('link')
-        link.rel = 'stylesheet'
-        link.href = url
-        if (id) link.id = id
-        link.onload = link.onreadystatechange = () => {
-          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
-        }
-        link.onerror = reject
-        document.head.appendChild(link)
-      }),
-      addGlobalFn: (key, fn, name = false, parent = window) => {
-        if (!false && key.startsWith('pjax')) return
-        const globalFn = parent.globalFn || {}
-        globalFn[key] = globalFn[key] || {}
-        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
-        parent.globalFn = globalFn
-      }
-    }
-  
-      
-      const activateDarkMode = () => {
-        document.documentElement.setAttribute('data-theme', 'dark')
-        if (document.querySelector('meta[name="theme-color"]') !== null) {
-          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
-        }
-      }
-      const activateLightMode = () => {
-        document.documentElement.setAttribute('data-theme', 'light')
-        if (document.querySelector('meta[name="theme-color"]') !== null) {
-          document.querySelector('meta[name="theme-color"]').setAttribute('content', 'ffffff')
-        }
-      }
-
-      btf.activateDarkMode = activateDarkMode
-      btf.activateLightMode = activateLightMode
-
-      const theme = saveToLocal.get('theme')
-    
-          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
-        
-      
-      const asideStatus = saveToLocal.get('aside-status')
-      if (asideStatus !== undefined) {
-        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
-      }
-    
-      
-    const detectApple = () => {
-      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
-        document.documentElement.classList.add('apple')
-      }
-    }
-    detectApple()
-  
-    })()
-  </script><script>const GLOBAL_CONFIG = {
-  root: '/',
-  algolia: undefined,
-  localSearch: undefined,
-  translate: undefined,
-  highlight: {"plugin":"prismjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
-  copy: {
-    success: '复制成功',
-    error: '复制失败',
-    noSupport: '浏览器不支持'
-  },
-  relativeDate: {
-    homepage: false,
-    post: false
-  },
-  runtime: '',
-  dateSuffix: {
-    just: '刚刚',
-    min: '分钟前',
-    hour: '小时前',
-    day: '天前',
-    month: '个月前'
-  },
-  copyright: undefined,
-  lightbox: 'null',
-  Snackbar: undefined,
-  infinitegrid: {
-    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
-    buttonText: '加载更多'
-  },
-  isPhotoFigcaption: false,
-  islazyloadPlugin: false,
-  isAnchor: false,
-  percent: {
-    toc: true,
-    rightside: false,
-  },
-  autoDarkmode: false
-}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
-  title: '数据结构-二叉树实验',
-  isHighlightShrink: false,
-  isToc: true,
-  pageType: 'post'
-}</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prism-themes@1.9.0/themes/prism-dracula.min.css" id="prism-light-theme"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-twilight.min.css" id="prism-dark-theme" disabled><style>
-  /* 根据 Butterfly 主题切换代码高亮样式 */
-  [data-theme="dark"] #prism-light-theme {
-    display: none !important;
-  }
-  [data-theme="light"] #prism-dark-theme {
-    display: block !important;
-  }
-  html:not([data-theme]) #prism-dark-theme {
-    display: none !important;
-
-  
-  /* 数学公式美化样式 */
-  .MathJax_Display {
-    margin: 1.5em 0 !important;
-    text-align: center !important;
-  }
-  
-  .MathJax {
-    font-size: 1.1em !important;
-  }
-  
-  /* 行内公式样式 */
-  .MathJax_Preview {
-    color: inherit;
-  }
-  
-  /* 块级公式容器美化 */
-  .MathJax_Display {
-    background: rgba(0,0,0,0.02);
-    border-radius: 8px;
-    padding: 15px 20px;
-    margin: 20px 0;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    border-left: 4px solid #49b1f5;
-  }
-  
-  /* 暗色模式下的公式样式 */
-  [data-theme="dark"] .MathJax_Display {
-    background: rgba(255,255,255,0.05);
-    border-left-color: #1f2937;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-  }
-  
-  /* 公式编号样式 */
-  .MathJax .mjx-math .mjx-mrow .mjx-mtable .mjx-label {
-    color: #666;
-    font-size: 0.9em;
-  }
-  
-  /* 提升公式清晰度 */
-  .MathJax svg {
-    max-width: 100% !important;
-    height: auto !important;
-  }
+    } catch (error) {}
+  })();
+</script>
+<style>:root { --accent: #6d5dfc; }</style>
+<link rel="stylesheet" href="/css/style.css">
+<style id="shileyuan-mutable-css">
+  body { --scene: 1; }
+  body.is-home { --accent: #6d5dfc; }
+  .hero-copy h1 em, .home-hero .eyebrow { color: var(--accent); }
+  .home-hero .button.primary { background: var(--accent); }
+  .hero-copy h1 { letter-spacing: -0.055em; }
+  .post-card { border-radius: 22px; }
+  .post-grid { gap: 24px; }
+  .site-header, .live-css-token { backdrop-filter: blur(22px); }
+  .avatar-wrap { rotate: 3deg; }
+  .avatar-wrap img { filter: saturate(1.08); }
+  .orbit { border-style: dashed; }
 </style>
-<meta name="generator" content="Hexo 7.3.0"><link rel="alternate" href="/atom.xml" title="Auceptin's Blog" type="application/atom+xml">
-</head><body><div id="web_bg" style="background-color: #f5f5f5;"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/auceptin-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">54</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">44</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/friends/"><span> Friends</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/image/cover2_square.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Auceptin's Blog</span></a><a class="nav-page-title" href="/"><span class="site-name">数据结构-二叉树实验</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> Home</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><span> Categories</span></a></div><div class="menus_item"><a class="site-page" href="/friends/"><span> Friends</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">数据结构-二叉树实验</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-11-03T03:02:43.000Z" title="发表于 2025-11-03 11:02:43">2025-11-03</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-07-17T07:53:25.460Z" title="更新于 2026-07-17 15:53:25">2026-07-17</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84rust%E4%B9%8B%E6%97%85/">从0开始的rust之旅</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h2 id="二叉树的建立与遍历"><a href="#二叉树的建立与遍历" class="headerlink" title="二叉树的建立与遍历"></a>二叉树的建立与遍历</h2><pre class="line-numbers language-text" data-language="text"><code class="language-text">[问题描述]
+
+  <meta name="generator" content="Hexo 7.3.0"></head>
+  <body class="is-post">
+    <div class="reading-progress" aria-hidden="true"><span id="reading-progress-bar"></span></div>
+    <header class="site-header" id="site-header">
+  <div class="header-inner">
+    <a class="brand" href="/" aria-label="Auceptin&#39;s Blog 首页">
+      <span class="brand-mark"><img src="/icon.png" alt=""></span>
+      <span class="brand-text">Auceptin&#39;s Blog</span>
+    </a>
+
+    <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+      <span></span><span></span><span></span><span class="sr-only">打开导航</span>
+    </button>
+
+    <nav class="site-nav" id="site-nav" aria-label="主导航">
+      
+        
+        <a class="nav-link " href="/">首页</a>
+      
+        
+        <a class="nav-link " href="/archives/">归档</a>
+      
+        
+        <a class="nav-link " href="/categories/">分类</a>
+      
+        
+        <a class="nav-link " href="/tags/">标签</a>
+      
+        
+        <a class="nav-link " href="/friends/">友链</a>
+      
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="切换深色模式">
+        <span class="theme-icon-light">☀</span><span class="theme-icon-dark">☾</span>
+      </button>
+    </nav>
+  </div>
+</header>
+
+
+    <main class="site-main">
+      
+<article class="article-shell">
+  <header class="article-hero has-cover" style="--cover-image: url('/image/cover2_square.png')">
+    <div class="article-hero-overlay"></div>
+    <div class="article-hero-inner">
+      <h1>数据结构-二叉树实验</h1>
+      <div class="post-meta light-meta article-hero-meta">
+        <span>发表于<time datetime="2025-11-03T03:02:43.000Z">2025-11-03</time></span>
+        <span aria-hidden="true">|</span>
+        <span>更新于<time datetime="2026-07-17T07:53:25.460Z">2026-07-17</time></span>
+        <span aria-hidden="true">|</span><a href="/categories/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E7%9A%84rust%E4%B9%8B%E6%97%85/">从0开始的rust之旅</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="article-layout">
+    <div class="article-container">
+      <div class="article-content" id="article-content"><h2 id="二叉树的建立与遍历">二叉树的建立与遍历</h2>
+<pre class="line-numbers language-text" data-language="text"><code class="language-text">[问题描述]
 建立一棵二叉树，并对其进行遍历(先序、中序、后序)，打印输出遍历结果。
 [基本要求]
 从键盘接受输入(先序)，以二叉链表作为存储结构，建立二叉树(以先序来建立)，并采用递归算法对其进行遍历(先序、中序、后序)，将遍历结果打印输出<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
@@ -270,7 +155,8 @@
 <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>把data字段设计为可以为空了，实际上是不必要的，init函数也完全可以把data作为参数……不管了就这么设计了</p>
 <p>传递data参数很有说法，最初想的是每次递归舍弃第一位，只传递剩余的切片，但是涉及右子树行不通，于是把data改为可变的，然后每次create都删去一位，类似于全局变量效果</p>
-<p>运行测试看到输出：<br><pre class="line-numbers language-text" data-language="text"><code class="language-text">running 1 test
+<p>运行测试看到输出：</p>
+<pre class="line-numbers language-text" data-language="text"><code class="language-text">running 1 test
 insert: A
 insert: B
 insert: C
@@ -286,8 +172,9 @@ insert: F
 return
 return
 return
-test tests::test_create ... ok<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></p>
-<p>第二轮，递归完成遍历<br><pre class="line-numbers language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">fn</span> <span class="token function-definition function">pre_order_traverse</span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">self</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+test tests::test_create ... ok<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>第二轮，递归完成遍历</p>
+<pre class="line-numbers language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">fn</span> <span class="token function-definition function">pre_order_traverse</span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">self</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
     <span class="token keyword">if</span> <span class="token keyword">self</span><span class="token punctuation">.</span>data <span class="token operator">==</span> <span class="token class-name">None</span> <span class="token punctuation">&#123;</span>
         <span class="token keyword">return</span><span class="token punctuation">;</span>
     <span class="token punctuation">&#125;</span>
@@ -341,8 +228,10 @@ test tests::test_create ... ok<span aria-hidden="true" class="line-numbers-rows"
     t<span class="token punctuation">.</span><span class="token function">in_order_traverse</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     t<span class="token punctuation">.</span><span class="token function">post_order_traverse</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     t<span class="token punctuation">.</span><span class="token function">pre_order_traverse</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><br>很常规的递归写法，由于self不需要可变，一切都很顺利，测试结果也符合预期</p>
-<h2 id="打印二叉树结构"><a href="#打印二叉树结构" class="headerlink" title="打印二叉树结构"></a>打印二叉树结构</h2><pre class="line-numbers language-text" data-language="text"><code class="language-text">按凹入表形式横向打印二叉树结构，即二叉树的根在屏幕的最左边，二叉树的左子树在屏幕的下边，二叉树的右子树在屏幕的上边。
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>很常规的递归写法，由于self不需要可变，一切都很顺利，测试结果也符合预期</p>
+<h2 id="打印二叉树结构">打印二叉树结构</h2>
+<pre class="line-numbers language-text" data-language="text"><code class="language-text">按凹入表形式横向打印二叉树结构，即二叉树的根在屏幕的最左边，二叉树的左子树在屏幕的下边，二叉树的右子树在屏幕的上边。
 
 [实现提示]
 利用 RDL 遍历方法;(中序遍历右子树、根节点、中序遍历左子树 RDL)利用结点的深度控制横向位置。<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
@@ -374,7 +263,8 @@ test tests::test_create ... ok<span aria-hidden="true" class="line-numbers-rows"
 
         t<span class="token punctuation">.</span><span class="token function">print</span><span class="token punctuation">(</span><span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
-<p>结果:<br><pre class="line-numbers language-text" data-language="text"><code class="language-text">running 1 test
+<p>结果:</p>
+<pre class="line-numbers language-text" data-language="text"><code class="language-text">running 1 test
     G
   C
     F
@@ -382,8 +272,9 @@ A
     E
   B
     D
-test tests::test_print ... ok<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></p>
-<h2 id="采用非递归算法实现二叉树的遍历"><a href="#采用非递归算法实现二叉树的遍历" class="headerlink" title="采用非递归算法实现二叉树的遍历"></a>采用非递归算法实现二叉树的遍历</h2><p>非递归，需要借助一点技巧，也就是栈。正常递归时会将下一个要执行的指令地址入栈，由于前序遍历先访问当前节点，所以可以模拟这个过程</p>
+test tests::test_print ... ok<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="采用非递归算法实现二叉树的遍历">采用非递归算法实现二叉树的遍历</h2>
+<p>非递归，需要借助一点技巧，也就是栈。正常递归时会将下一个要执行的指令地址入栈，由于前序遍历先访问当前节点，所以可以模拟这个过程</p>
 <pre class="line-numbers language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">fn</span> <span class="token function-definition function">pre_order</span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">self</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
     <span class="token keyword">let</span> <span class="token keyword">mut</span> stack <span class="token punctuation">:</span> <span class="token class-name">Vec</span><span class="token operator">&lt;</span><span class="token operator">&amp;</span><span class="token class-name">BinaryTree</span><span class="token operator">></span> <span class="token operator">=</span> <span class="token class-name">Vec</span><span class="token punctuation">::</span><span class="token function">new</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
@@ -407,7 +298,8 @@ test tests::test_print ... ok<span aria-hidden="true" class="line-numbers-rows">
     <span class="token punctuation">&#125;</span>
 <span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>先把下一个要访问的节点入栈（右子树），再访问当前节点及（左子树）</p>
-<p>后序遍历先访问的节点后输出，所以可以再用一个栈来模拟<br><pre class="line-numbers language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">fn</span> <span class="token function-definition function">post_order</span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">self</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+<p>后序遍历先访问的节点后输出，所以可以再用一个栈来模拟</p>
+<pre class="line-numbers language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">fn</span> <span class="token function-definition function">post_order</span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">self</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
     <span class="token keyword">let</span> <span class="token keyword">mut</span> stack1 <span class="token operator">=</span> <span class="token class-name">Vec</span><span class="token punctuation">::</span><span class="token function">new</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token keyword">let</span> <span class="token keyword">mut</span> stack2 <span class="token operator">=</span> <span class="token class-name">Vec</span><span class="token punctuation">::</span><span class="token function">new</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
@@ -431,9 +323,10 @@ test tests::test_print ... ok<span aria-hidden="true" class="line-numbers-rows">
             <span class="token macro property">println!</span><span class="token punctuation">(</span><span class="token string">"&#123;&#125;"</span><span class="token punctuation">,</span>data<span class="token punctuation">)</span><span class="token punctuation">;</span>
         <span class="token punctuation">&#125;</span>
     <span class="token punctuation">&#125;</span>
-<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></p>
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>优先输出的是左下方的，所以先访问右子树，左子树先入栈</p>
-<p>中序遍历，左中右。沿着左子树走到叶节点，将过程中访问的节点入栈，然后访问该叶节点，往上追溯访问上一个节点，访问其右子树，如果遇到None则重新从栈pop<br><pre class="line-numbers language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">fn</span> <span class="token function-definition function">in_order</span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">self</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
+<p>中序遍历，左中右。沿着左子树走到叶节点，将过程中访问的节点入栈，然后访问该叶节点，往上追溯访问上一个节点，访问其右子树，如果遇到None则重新从栈pop</p>
+<pre class="line-numbers language-rust" data-language="rust"><code class="language-rust"><span class="token keyword">fn</span> <span class="token function-definition function">in_order</span><span class="token punctuation">(</span><span class="token operator">&amp;</span><span class="token keyword">self</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span>
     <span class="token keyword">let</span> <span class="token keyword">mut</span> stack <span class="token operator">=</span> <span class="token class-name">Vec</span><span class="token punctuation">::</span><span class="token function">new</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token keyword">let</span> <span class="token keyword">mut</span> current <span class="token operator">=</span> <span class="token class-name">Some</span><span class="token punctuation">(</span><span class="token keyword">self</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
@@ -450,7 +343,9 @@ test tests::test_print ... ok<span aria-hidden="true" class="line-numbers-rows">
             current <span class="token operator">=</span> node<span class="token punctuation">.</span>right<span class="token punctuation">.</span><span class="token function">as_ref</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token closure-params"><span class="token closure-punctuation punctuation">|</span>n<span class="token closure-punctuation punctuation">|</span></span> <span class="token operator">&amp;</span><span class="token operator">*</span><span class="token operator">*</span>n<span class="token punctuation">)</span><span class="token punctuation">;</span>
         <span class="token punctuation">&#125;</span>
     <span class="token punctuation">&#125;</span>
-<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre><br>测试：<br><pre class="line-numbers language-text" data-language="text"><code class="language-text">#[test]
+<span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<p>测试：</p>
+<pre class="line-numbers language-text" data-language="text"><code class="language-text">#[test]
 fn test_pre_order()&#123;
     let mut t = BinaryTree::init();
     let mut s = "ABC  DE G  F   ";
@@ -458,152 +353,46 @@ fn test_pre_order()&#123;
     //t.pre_order();
     //t.post_order();
     t.in_order();
-&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></p>
-</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/rust/">rust</a></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/10/26/moectf-2025/" title="Moectf 2025"><img class="cover" src="/image/cover36_door.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Moectf 2025</div></div><div class="info-2"><div class="info-item-1">一份迟到的不必要的WP，同时也是回顾si进pwn的世界的第一个月 0 二进制漏洞审计入门指北真正的梦开始的地方，从熟悉流程开始，题目里把解题脚本直接给了出来：from pwn import *                                    # 导入 pwntools。 context(arch='amd64', os='linux', log_level='debug') # 一些基本的配置。  # 有时我们需要在本地调试运行程序，需要配置 context.terminal。详见入门指北。  # io = process('./pwn')             # 在本地运行程序。 # gdb.attach(io)                    # 启动 GDB io = connect(???, ???)              # 与在线环境交互。 io.sendline(b'114511')              # 什么时候用 send 什么时候用 sendline？  payload  = p32(0xdeadbeef)    ...</div></div></div></a><a class="pagination-related" href="/2025/11/12/wezterm%E9%85%8D%E7%BD%AE/" title="wezterm配置"><img class="cover" src="/image/cover39_wand.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">wezterm配置</div></div><div class="info-2"><div class="info-item-1">每天看着暗红色的终端喜新厌旧了，感觉流离用的fish命令提示功能，还有在别人博客上经常看到的暗蓝色的都好酷，正如本文的分类，家要有家的样子，遂重新配置我的终端！ 为什么选wezterm呢？因为它用rust实现，用lua写配置文件——因为喜欢 官方安装文档 配置需要在~下创建一个配置文件.wezterm.lua，windows在%USERPROFILE%下 嗯，用lua做配置文件，也就意味着配置参数里可以塞很多复杂的逻辑，极其灵活，赞 贴一下我的：local wezterm = require 'wezterm' local config = &#123;&#125;  -- 基础设置 config.enable_tab_bar = true config.hide_tab_bar_if_only_one_tab = true config.use_fancy_tab_bar = true  -- false 为简洁样式 config.tab_bar_at_bottom = false  -- true 将标签栏放底部 config.tab_max_width = 25   --...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2026/05/15/All-the-ways-to-mock-your-Rust-code/" title="All the ways to mock your Rust code"><img class="cover" src="/image/cover49_lazy.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-05-15</div><div class="info-item-2">All the ways to mock your Rust code</div></div><div class="info-2"><div class="info-item-1">本文来源 起因你试图用rust写一个k8s控制器，你意识到直接写完出错了不好诊断，你决定emit一些事件以获取一些上下文，你运行了所有测试并期待通过，你认为这是一定的因为你什么都没改…… 但是测试挂了，因为单元测试里根本就没有运行着k8s server，请求根本收不到 What do????? 以上正是本文作者在做Simkube项目时遇到的实际问题，作者花了大量的时间探索一个测试的最佳实践，于是有了这篇博客：all the ways to mock a network call in Rust 本文也触及了作者在写代码时最烦的一点: “DON’T MAKE ME MAKE MY PRODUCTION CODE WORSE JUST TO MAKE IT EASIER TO TEST, COMMA JERK”（”千万别逼我为了方便测试，就把老子的生产代码改得一团糟，【此处顿号】你个混蛋！” Gemini...</div></div></div></a><a class="pagination-related" href="/2026/03/14/Compendium_Adding-eBPF-for-Kernel-Level-Visibility/" title="Compendium Adding eBPF for Kernel-Level Visibility"><img class="cover" src="/image/cover50_she.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-03-14</div><div class="info-item-2">Compendium Adding eBPF for Kernel-Level Visibility</div></div><div class="info-2"><div class="info-item-1">新分类，其实是读各路文章的笔记 原文网址Compendium: Adding eBPF for Kernel-Level Visibility，发表在This Week in Rust上，作者介绍了自己的学习项目Compendium Introductionptrace 可以拦截syscall，跟踪文件描述符，监控内存以及产出交互式的报告，但是无法获知syscall之后系统内核里发生了什么。比如对于write系统调用，ptrace可以获知写了多少字节，但是无法得知块设备为了完成这次I/O操作实际花了多长时间 eBPF通过附加程序在内核跟踪点，使得测量调度延迟和块设备延迟成为可能 Why eBPF? What Ptrace Can’t SeePtrace在syscall的入口和出口进行拦截，获知参数和返回值以及之间的时间，因此得以构建出I/O、内存、网络活动的图景，但是还有些内核层面的东西是不可见的： 调度延迟：当你的进程被唤醒时，比如一次I/O结束、锁被释放或者传来信号，它不会立刻开始运行，而是进入一个运行队列等待调度器给它分到一个CPU...</div></div></div></a><a class="pagination-related" href="/2026/04/11/How-We-Built-Postgres-Compatibility-in-Rust-pgwire-and-DataFusion/" title="How We Built Postgres Compatibility in Rust: pgwire and DataFusion"><img class="cover" src="/image/cover55_grey.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-11</div><div class="info-item-2">How We Built Postgres Compatibility in Rust: pgwire and DataFusion</div></div><div class="info-2"><div class="info-item-1">原文：How We Built Postgres Compatibility in Rust: pgwire and DataFusion 背景：Greptime中文名是格睿科技，其实应该反过介绍，因为这是一家中国公司，自研数据库开发，用于解决可观测性特点等等，官网 本文的作者正是这家公司的CTO 让我们回到本文的重点，他的这篇博客 引入：两种模式Pg很火，rust也很火，那么如何结合二者？作者认为主要有两种方式：  自底向上的，主要用pgrx库以插件的形式把rust生态引入PostgreSQL，典型案例比如ParadaDB 自顶向下的，通过模拟协议和接口实现另类的“Postgres”，作者的Greptime DB就属于此类  接口：Postgres Protocol狭义上,Postgres Protocol指的是基于TCP协议的和pg server端通信用的应用层协议，这也是事实上连接到数据库时在TCP层发生的事 总体而言，协议主要包含以下五部分：  Startup: 在连接建立时，握手交换信息和各种身份认证机制 Simple Query:...</div></div></div></a><a class="pagination-related" href="/2026/04/25/Extend-Rust-s-Testing/" title="Extend Rust&#39;s Testing"><img class="cover" src="/image/cover56_qaq.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-04-25</div><div class="info-item-2">Extend Rust&#39;s Testing</div></div><div class="info-2"><div class="info-item-1">本文内容来源:《Rust for Rustaceans》第六章 Rust testing mechanismtesting harnessrust中常用的测试分为两类，内置在代码文件的单元测试，和独立的tests目录的集成测试。当运行cargo test时，cargo会传一个--test标志给rustc，告诉它要产出一个测试二进制，依据cfg使得测试可以依据特定条件触发，同时生成一个test harness——一个会在运行时触发所有test函数的，精心生成的main函数 harness 用一个过程宏把所有#[test]标记的函数转化为一个测试描述符，然后暴露给main函数。harness 会扫描所有函数、运行、捕获结果并打印输出 对于集成测试，唯一的区别是它们会被编译成独立的crate，只能访问main模块的pub部分，不包含#[cfg(test)]标识的函数。同时，对于每个tests目录下的文件，会生成一个独立的harness，不包括子目录里的，他们被默认为辅助代码。 如果想要把tests/的子目录下的文件也编译成一个harness，则需要把文件名命名为main.rs ...</div></div></div></a><a class="pagination-related" href="/2026/07/19/Moving%20a%20Rust%20WebRTC%20SFU%20to%20thread-per-core/" title="Moving a Rust WebRTC SFU to thread-per-core"><img class="cover" src="/image/cover58_star.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-19</div><div class="info-item-2">Moving a Rust WebRTC SFU to thread-per-core</div></div><div class="info-2"><div class="info-item-1">原文：Moving a Rust WebRTC SFU to thread-per-core 概述：作者最近将他们的 WebRTC SFU 服务从 Tokio 默认的多线程工作窃取模型切换到了 thread-per-core（每核一线程）架构，将 P99.99 端到端延迟从偶尔冲到 70 ms 降至稳定的 10 ms，同时将系统容量提高了 25%。这里的 P99.99 是指 99.99% 的延迟样本不超过该值。 WebRTC SFUWebRTC SFU，即 Web Real-Time Communication Selective Forwarding Unit，基于 WebRTC 协议的选择性转发单元。比如三人彼此视频聊天，这个项目承担的就是接收并转发视频数据流的工作，因此需要高性能和极低的延迟。 早期设计第一版 SFU 基于 Rust 的 Tokio 多线程调度器实现，并依照 CSP 并发模型建立了最直观的抽象：每个 participant、room、controller 和 API 都有对应的 task，这些任务通过 channel...</div></div></div></a><a class="pagination-related" href="/2026/07/25/Hardening-Rust-Code-For-Production/" title="Hardening Rust Code"><img class="cover" src="/image/cover59_apple.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2026-07-25</div><div class="info-item-2">Hardening Rust Code</div></div><div class="info-2"><div class="info-item-1">本周在this week in rust上看到了好几篇有意思的文章，话题也比较接近，干脆整理在一起吧  Patterns for Defensive Programming in Rust Hardening Rust Code For Production  原计划还有一篇，由于篇幅很长且重合度较高故只留网址不写了  Rust service hardening and production checklist  防御性编程indexing into a vectorif !matching_users.is_empty() &#123;     let existing_user = &amp;matching_users[0];     // ... &#125; 虽然看起来没问题，但是访问matching_user的合法性全系于前面的条件检查，一旦逻辑复杂就容易遗忘 match matching_users.as_slice() &#123;     [] => todo!("What to do if no users found!?"),    ...</div></div></div></a></div></div><hr class="custom-hr"/><div id="post-comment"><div class="comment-head"><div class="comment-headline"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div></div><div class="comment-wrap"><div><div id="giscus-wrap"></div></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/auceptin-icon.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Auceptin</div><div class="author-info-description"></div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">54</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">44</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/auceptinFang"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">welcome to my blog! <br> Contact：me@aucept.in</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E5%8F%89%E6%A0%91%E7%9A%84%E5%BB%BA%E7%AB%8B%E4%B8%8E%E9%81%8D%E5%8E%86"><span class="toc-number">1.</span> <span class="toc-text">二叉树的建立与遍历</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%93%E5%8D%B0%E4%BA%8C%E5%8F%89%E6%A0%91%E7%BB%93%E6%9E%84"><span class="toc-number">2.</span> <span class="toc-text">打印二叉树结构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%87%87%E7%94%A8%E9%9D%9E%E9%80%92%E5%BD%92%E7%AE%97%E6%B3%95%E5%AE%9E%E7%8E%B0%E4%BA%8C%E5%8F%89%E6%A0%91%E7%9A%84%E9%81%8D%E5%8E%86"><span class="toc-number">3.</span> <span class="toc-text">采用非递归算法实现二叉树的遍历</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/07/25/Hardening-Rust-Code-For-Production/" title="Hardening Rust Code"><img src="/image/cover59_apple.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Hardening Rust Code"/></a><div class="content"><a class="title" href="/2026/07/25/Hardening-Rust-Code-For-Production/" title="Hardening Rust Code">Hardening Rust Code</a><time datetime="2026-07-25T06:09:00.000Z" title="发表于 2026-07-25 14:09:00">2026-07-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/07/19/Moving%20a%20Rust%20WebRTC%20SFU%20to%20thread-per-core/" title="Moving a Rust WebRTC SFU to thread-per-core"><img src="/image/cover58_star.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Moving a Rust WebRTC SFU to thread-per-core"/></a><div class="content"><a class="title" href="/2026/07/19/Moving%20a%20Rust%20WebRTC%20SFU%20to%20thread-per-core/" title="Moving a Rust WebRTC SFU to thread-per-core">Moving a Rust WebRTC SFU to thread-per-core</a><time datetime="2026-07-19T15:00:00.000Z" title="发表于 2026-07-19 23:00:00">2026-07-19</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/07/18/spider-solitaire/" title="Spider Solitaire"><img src="/image/cover61_ghost.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Spider Solitaire"/></a><div class="content"><a class="title" href="/2026/07/18/spider-solitaire/" title="Spider Solitaire">Spider Solitaire</a><time datetime="2026-07-18T12:00:00.000Z" title="发表于 2026-07-18 20:00:00">2026-07-18</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/05/16/Macro-in-rust/" title="Macro in rust"><img src="/image/cover57_sword.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Macro in rust"/></a><div class="content"><a class="title" href="/2026/05/16/Macro-in-rust/" title="Macro in rust">Macro in rust</a><time datetime="2026-05-16T05:46:25.000Z" title="发表于 2026-05-16 13:46:25">2026-05-16</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/05/15/All-the-ways-to-mock-your-Rust-code/" title="All the ways to mock your Rust code"><img src="/image/cover49_lazy.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="All the ways to mock your Rust code"/></a><div class="content"><a class="title" href="/2026/05/15/All-the-ways-to-mock-your-Rust-code/" title="All the ways to mock your Rust code">All the ways to mock your Rust code</a><time datetime="2026-05-15T06:25:20.000Z" title="发表于 2026-05-15 14:25:20">2026-05-15</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url(/img/foot.jpg);"><div id="footer-wrap"><div class="copyright">&copy;2025 - 2026 By Auceptin</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.3.5</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><a id="to_comment" href="#post-comment" title="前往评论"><i class="fas fa-comments"></i></a><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"><script>(() => {
-  const runMermaid = ele => {
-    window.loadMermaid = true
-    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+&#125;<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre></div>
 
-    ele.forEach((item, index) => {
-      const mermaidSrc = item.firstElementChild
-      const mermaidThemeConfig = `%%{init:{ 'theme':'${theme}'}}%%\n`
-      const mermaidID = `mermaid-${index}`
-      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+      
+        <div class="article-tags">
+          <a href="/tags/rust/"># rust</a>
+        </div>
+      
 
-      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
-      const renderMermaid = svg => {
-        mermaidSrc.insertAdjacentHTML('afterend', svg)
-      }
+      <nav class="post-nav" aria-label="相邻文章">
+        <a class="post-nav-item prev" href="/2025/11/12/wezterm%E9%85%8D%E7%BD%AE/"><span>上一篇</span><strong>wezterm配置</strong></a>
+        <a class="post-nav-item next" href="/2025/10/26/moectf-2025/"><span>下一篇</span><strong>Moectf 2025</strong></a>
+      </nav>
+    </div>
 
-      // mermaid v9 and v10 compatibility
-      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
-    })
-  }
+    <aside class="post-toc" id="post-toc" aria-label="文章目录" hidden>
+      <div class="post-toc-inner">
+        <header><span>ON THIS PAGE</span><strong id="post-toc-count">00</strong></header>
+        <nav class="post-toc-nav" id="post-toc-nav"></nav>
+        <div class="post-toc-progress"><i id="post-toc-progress"></i></div>
+      </div>
+    </aside>
+  </div>
+</article>
 
-  const codeToMermaid = () => {
-    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
-    if (codeMermaidEle.length === 0) return
+    </main>
 
-    codeMermaidEle.forEach(ele => {
-      const preEle = document.createElement('pre')
-      preEle.className = 'mermaid-src'
-      preEle.hidden = true
-      preEle.textContent = ele.textContent
-      const newEle = document.createElement('div')
-      newEle.className = 'mermaid-wrap'
-      newEle.appendChild(preEle)
-      ele.parentNode.replaceWith(newEle)
-    })
-  }
+    <footer class="site-footer">
+  <div class="footer-inner">
+    <div>
+      © 2025–2026
+      Auceptin
+    </div>
+    <div>Built with Hexo · Paradise Lost</div>
+  </div>
+</footer>
 
-  const loadMermaid = () => {
-    if (true) codeToMermaid()
-    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
-    if ($mermaid.length === 0) return
-
-    const runMermaidFn = () => runMermaid($mermaid)
-    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
-    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaidFn)
-  }
-
-  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
-  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
-})()</script><script>(() => {
-  const isShuoshuo = GLOBAL_CONFIG_SITE.pageType === 'shuoshuo'
-  const option = null
-
-  const getGiscusTheme = theme => theme === 'dark' ? 'dark' : 'light'
-
-  const createScriptElement = config => {
-    const ele = document.createElement('script')
-    Object.entries(config).forEach(([key, value]) => {
-      ele.setAttribute(key, value)
-    })
-    return ele
-  }
-
-  const loadGiscus = (el = document, key) => {
-    const mappingConfig = isShuoshuo
-      ? { 'data-mapping': 'specific', 'data-term': key }
-      : { 'data-mapping': (option && option['data-mapping']) || 'pathname' }
-
-    const giscusConfig = {
-      src: 'https://giscus.app/client.js',
-      'data-repo': 'AuceptinFang/blog',
-      'data-repo-id': 'R_kgDOO_UAjA',
-      'data-category-id': 'DIC_kwDOO_UAjM4Cr3mL',
-      'data-theme': getGiscusTheme(document.documentElement.getAttribute('data-theme')),
-      'data-reactions-enabled': '1',
-      crossorigin: 'anonymous',
-      async: true,
-      ...option,
-      ...mappingConfig
-    }
-
-    const scriptElement = createScriptElement(giscusConfig)
-
-    el.querySelector('#giscus-wrap').appendChild(scriptElement)
-
-    if (isShuoshuo) {
-      window.shuoshuoComment.destroyGiscus = () => {
-        if (el.children.length) {
-          el.innerHTML = ''
-          el.classList.add('no-comment')
-        }
-      }
-    }
-  }
-
-  const changeGiscusTheme = theme => {
-    const iframe = document.querySelector('#giscus-wrap iframe')
-    if (iframe) {
-      const message = {
-        giscus: {
-          setConfig: {
-            theme: getGiscusTheme(theme)
-          }
-        }
-      }
-      iframe.contentWindow.postMessage(message, 'https://giscus.app')
-    }
-  }
-
-  btf.addGlobalFn('themeChange', changeGiscusTheme, 'giscus')
-
-  if (isShuoshuo) {
-    'Giscus' === 'Giscus'
-      ? window.shuoshuoComment = { loadComment: loadGiscus }
-      : window.loadOtherComment = loadGiscus
-    return
-  }
-
-  if ('Giscus' === 'Giscus' || !false) {
-    if (false) btf.loadComment(document.getElementById('giscus-wrap'), loadGiscus)
-    else loadGiscus()
-  } else {
-    window.loadOtherComment = loadGiscus
-  }
-})()</script></div><script>
-  // 动态切换代码高亮主题
-  function switchPrismTheme() {
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    const lightTheme = document.getElementById('prism-light-theme');
-    const darkTheme = document.getElementById('prism-dark-theme');
+    <button class="back-to-top" id="back-to-top" type="button" aria-label="返回顶部">↑</button>
+    <script src="/js/theme.js"></script>
     
-    if (lightTheme && darkTheme) {
-      lightTheme.disabled = isDark;
-      darkTheme.disabled = !isDark;
-    }
-  }
-  
-  // 页面加载时执行
-  document.addEventListener('DOMContentLoaded', switchPrismTheme);
-  
-  // 监听主题切换
-  const observer = new MutationObserver(switchPrismTheme);
-  observer.observe(document.documentElement, {
-    attributes: true,
-    attributeFilter: ['data-theme']
-  });
-</script>
-<script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
+      <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    
+  </body>
+</html>
