@@ -418,6 +418,7 @@ pre:hover > .copy-code { opacity: 1; }
 .post-nav-item span { color: var(--muted); font-size: 12px; }
 .post-nav-item strong { display: -webkit-box; overflow: hidden; margin-top: 5px; line-height: 1.45; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .post-nav-item:hover { color: var(--accent); border-color: var(--accent); }
+.post-comments { min-height: 160px; margin-top: 46px; padding-top: 38px; border-top: 1px solid var(--line); }
 .post-toc { position: sticky; top: 100px; min-width: 0; grid-column: 3; align-self: start; }
 .post-toc-inner { padding-left: 18px; border-left: 1px solid var(--line); }
 .post-toc-inner > header { display: flex; margin-bottom: 15px; align-items: center; justify-content: space-between; }

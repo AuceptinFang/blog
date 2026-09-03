@@ -92,7 +92,7 @@
       <div class="post-meta light-meta article-hero-meta">
         <span>发表于<time datetime="2026-03-25T13:23:24.000Z">2026-03-25</time></span>
         <span aria-hidden="true">|</span>
-        <span>更新于<time datetime="2026-07-17T07:53:25.463Z">2026-07-17</time></span>
+        <span>更新于<time datetime="2026-08-25T04:13:11.079Z">2026-08-25</time></span>
         <span aria-hidden="true">|</span><a href="/categories/%E5%AE%B6%E8%A6%81%E6%9C%89%E5%AE%B6%E7%9A%84%E6%A0%B7%E5%AD%90/">家要有家的样子</a>
       </div>
     </div>
@@ -123,7 +123,7 @@
 <p>于是可以<space> m + m在浏览器里打开预览，同时可以用浏览器自带的打印功能保存为pdf</p>
 <h2 id="更多lvim操作">更多lvim操作</h2>
 <p><code>space + e</code> 打开目录 <code>a</code>新建文件，可以方便地编辑多个文件</p>
-<p><code>ctrl + \</code>打开浮窗终端，默认应该是insert模式，如果不是按<code>i</code>进入。这样写完代码运行，一般情况下就不用单开一页了</p>
+<p><code>ctrl + /</code>打开浮窗终端，默认应该是insert模式，如果不是按<code>i</code>进入。这样写完代码运行，一般情况下就不用单开一页了</p>
 <p><code>gd</code> go to definition，跳转到函数定义，可以跨文件操作，<code>K</code> 查看声明</p>
 <p><code>ctrl w + v</code>竖直分屏，<code>ctrl + 左右方向</code>移动窗口</p>
 <h3 id="还有一揽子vim快捷键">还有一揽子vim快捷键</h3>
@@ -166,6 +166,180 @@ table<span class="token punctuation">.</span><span class="token function">insert
     window<span class="token punctuation">:</span><span class="token function">set_config_overrides</span><span class="token punctuation">(</span>overrides<span class="token punctuation">)</span>
   <span class="token keyword">end</span><span class="token punctuation">)</span><span class="token punctuation">,</span>
 <span class="token punctuation">&#125;</span><span class="token punctuation">)</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+<h2 id="二编">二编</h2>
+<p>2026.8.25</p>
+<p>三个月前从在wsl玩这些变成了在纯linux下玩, 感觉就像从住在别人家回到了自己家, 还是很舒服的</p>
+<p>从wezterm 搬到了kitty, 原因是运行codex 时卡得不行, 再排查了散热CPU内存等问题后, 一搜发现wezterm的性能问题一直饱受诟病</p>
+<p>从我的体验来看, wezterm确有很大的问题, 跳车了</p>
+<p>lvim在同学的推荐下换成了lazyvim, 开箱即用, 使用体验还是不错的, 比已经多年无人维护的lunarvim强</p>
+<p>贴个kitty的配置文件吧</p>
+<pre class="line-numbers language-conf" data-language="conf"><code class="language-conf"># -----------------------------------------------------------------------------
+# Shell and terminal capabilities
+# -----------------------------------------------------------------------------
+shell fish
+term xterm-kitty
+shell_integration no-cursor
+
+# Native Wayland keeps Fcitx5 IME working in the current KDE session.
+linux_display_server wayland
+wayland_enable_ime yes
+
+# -----------------------------------------------------------------------------
+# Font
+# -----------------------------------------------------------------------------
+font_family family&#x3D;&quot;Cascadia Code&quot; features&#x3D;&quot;+calt +clig +liga&quot;
+bold_font auto
+italic_font auto
+bold_italic_font auto
+font_size 14.0
+
+# Match WezTerm&#39;s 1.2 line height and normal cell width.
+modify_font cell_height 120%
+modify_font cell_width 100%
+
+# WezTerm used Windows CJK fallbacks. On this Arch installation the native
+# monospace Chinese fallback is Noto Sans Mono CJK SC. Keep Nerd Font symbols
+# in Cascadia Code NF without changing the primary text font.
+symbol_map U+3000-U+30FF,U+31F0-U+31FF,U+3400-U+4DBF,U+4E00-U+9FFF,U+F900-U+FAFF,U+20000-U+2FA1F Noto Sans Mono CJK SC
+symbol_map U+E000-U+F8FF,U+F0000-U+FFFFD,U+100000-U+10FFFD Cascadia Code NF
+
+# -----------------------------------------------------------------------------
+# Window and layout
+# -----------------------------------------------------------------------------
+remember_window_size no
+initial_window_width 120c
+initial_window_height 30c
+window_padding_width 0 10 10 10
+placement_strategy top-left
+confirm_os_window_close 0
+hide_window_decorations no
+
+enabled_layouts splits,stack,fat,tall,grid
+active_border_color #7aa2f7
+inactive_border_color #414868
+
+# -----------------------------------------------------------------------------
+# Tabs
+# -----------------------------------------------------------------------------
+tab_bar_edge top
+tab_bar_min_tabs 2
+tab_bar_style powerline
+tab_powerline_style slanted
+tab_title_max_length 25
+tab_title_template &quot; &#123;title&#125; &quot;
+active_tab_title_template &quot; 󰆍 &#123;title&#125; &quot;
+tab_bar_background #16161e
+active_tab_foreground #1a1b26
+active_tab_background #7aa2f7
+active_tab_font_style bold
+inactive_tab_foreground #a9b1d6
+inactive_tab_background #292e42
+inactive_tab_font_style normal
+
+# -----------------------------------------------------------------------------
+# Cursor, scrollback and rendering
+# -----------------------------------------------------------------------------
+cursor_shape block
+cursor_blink_interval 0.5
+cursor_beam_thickness 1.5
+cursor_underline_thickness 2.0
+
+scrollback_lines 5000
+scrollbar never
+
+# Lower latency than the old 60 FPS WezTerm setup while retaining vsync.
+repaint_delay 5
+input_delay 1
+sync_to_monitor yes
+
+# -----------------------------------------------------------------------------
+# Tokyo Night
+# -----------------------------------------------------------------------------
+foreground #c0caf5
+background #1a1b26
+selection_foreground #c0caf5
+selection_background #33467c
+cursor #c0caf5
+cursor_text_color #1a1b26
+url_color #73daca
+
+color0  #15161e
+color8  #414868
+color1  #f7768e
+color9  #f7768e
+color2  #9ece6a
+color10 #9ece6a
+color3  #e0af68
+color11 #e0af68
+color4  #7aa2f7
+color12 #7aa2f7
+color5  #bb9af7
+color13 #bb9af7
+color6  #7dcfff
+color14 #7dcfff
+color7  #a9b1d6
+color15 #c0caf5
+
+background_opacity 0.93
+dynamic_background_opacity yes
+
+# -----------------------------------------------------------------------------
+# Mouse
+# -----------------------------------------------------------------------------
+copy_on_select clipboard
+mouse_map right press ungrabbed paste_from_clipboard
+mouse_map ctrl+left click ungrabbed mouse_handle_click selection link
+
+# -----------------------------------------------------------------------------
+# Key bindings migrated from WezTerm
+# -----------------------------------------------------------------------------
+
+# Font size
+map ctrl+alt+equal change_font_size all +1.0
+map ctrl+alt+plus  change_font_size all +1.0
+map ctrl+alt+minus change_font_size all -1.0
+map ctrl+0 change_font_size all 0
+
+# Reload. WezTerm assigned Ctrl+Shift+L twice; pane-right wins there, so reload
+# moves to Ctrl+Shift+R and Ctrl+Shift+L remains pane navigation.
+map ctrl+shift+r load_config_file
+
+# Tabs; inherit the working directory of the active pane.
+map ctrl+shift+t new_tab_with_cwd
+map ctrl+shift+n new_tab_with_cwd
+map ctrl+shift+w close_tab
+map ctrl+tab next_tab
+map ctrl+shift+tab previous_tab
+
+map alt+1 goto_tab 1
+map alt+2 goto_tab 2
+map alt+3 goto_tab 3
+map alt+4 goto_tab 4
+map alt+5 goto_tab 5
+map alt+6 goto_tab 6
+map alt+7 goto_tab 7
+
+# Splits; inherit the active pane&#39;s working directory.
+map ctrl+shift+\ launch --location&#x3D;vsplit --cwd&#x3D;current
+map ctrl+shift+&#96;  launch --location&#x3D;hsplit --cwd&#x3D;current
+map ctrl+shift+x close_window
+
+map ctrl+shift+h neighboring_window left
+map ctrl+shift+l neighboring_window right
+map ctrl+shift+k neighboring_window up
+map ctrl+shift+j neighboring_window down
+
+# Clipboard, scrollback and window controls
+map alt+c copy_to_clipboard
+map ctrl+shift+v paste_from_clipboard
+map ctrl+shift+f search_scrollback
+map ctrl+alt+k clear_terminal clear active
+map alt+enter toggle_fullscreen
+
+# Dynamic opacity
+map alt+minus set_background_opacity -0.03
+map alt+equal set_background_opacity +0.03
+<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 </div>
 
       
@@ -178,6 +352,13 @@ table<span class="token punctuation">.</span><span class="token function">insert
         <a class="post-nav-item prev" href="/2026/03/28/Rust-threads-on-the-GPU/"><span>上一篇</span><strong>Rust threads on the GPU</strong></a>
         <a class="post-nav-item next" href="/2026/03/21/Using-Rust-and-Postgres-for-everything-patterns-learned-over-the-years/"><span>下一篇</span><strong>Using Rust and Postgres for everything: patterns learned over the years</strong></a>
       </nav>
+
+      
+        <section class="post-comments" aria-label="评论区">
+          <div id="byr-comments"></div>
+          <script async src="https://comments.byr.pub/embed.js" data-site="YUpHFyDrO3w"></script>
+        </section>
+      
     </div>
 
     <aside class="post-toc" id="post-toc" aria-label="文章目录" hidden>
