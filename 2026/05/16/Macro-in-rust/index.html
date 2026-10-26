@@ -108,7 +108,7 @@
 <li><a target="_blank" rel="noopener" href="https://danielkeep.github.io/tlborm/book/README.html">The Little Book of Rust Macros</a></li>
 <li>Rust for Rustaceans 第七章 Macro</li>
 </ul>
-<h1>basic</h1>
+<h1 id="basic">basic</h1>
 <p>宏是什么？</p>
 <ul>
 <li>是用来生成代码的代码，所以宏编程又叫元编程(meta programming)</li>
@@ -316,7 +316,7 @@
 <li>引入一些很重的依赖，写过程宏需要的<code>syn</code> crate在所有feature都开启的情况下需要数十秒的时间编译，所以应当关闭不需要的feature，同时在debug模式下编译</li>
 <li>容易在不知不觉间生成大量的代码</li>
 </ul>
-<h1>mechanism</h1>
+<h1 id="mechanism">mechanism</h1>
 <p>以上的内容可以对宏有个大致的认识，但是还不够，对于宏如何工作，我们还是一无所知，这也导致编写过程宏变得困难</p>
 <h2 id="声明宏-2">声明宏</h2>
 <p>编译器处理源代码的第一步，是把代码字符处理成一个个<code>token</code>。这一步只有数字、标点、字符串、标识符的区分，不在乎变量名和关键字的差别，空格和注释也会在这一步被舍弃掉。</p>
@@ -338,7 +338,7 @@
 <p>假设使用了<code>name_as_debug(u31)</code>，报错显然是发生在宏内部的，但是用户期望报错能定位到实际调用处。此处的<code>$t</code>的span是实际上映射到它的代码的，这个信息一直可以关联到最终的编译错误，于是报错信息里因此包含了用户代码的错误信息。</p>
 <p>span可以结合<code>compile_error!</code>宏，让自定义错误信息也能追溯到用户代码。</p>
 <p>rust宏的卫生性也得益于span。当我们构建一个<code>Ident</code>(标识符) token 时，也同时为它提供了一个span，其决定了这个标识符的作用域。如果用<code>Span::call_site()</code>，意思是把这个变量当做在调用处声明的，等于是直接暴露在外部作用域，完全没有卫生性。如果用<code>Span::mixed_site()</code>，意思是把变量当做在宏内部声明的，局部变量就可以对外隐藏，是卫生的，但是对于<code>types</code> <code>moduels</code>等等其它东西依然是外部可访问的，因而是<code>mixed</code></p>
-<h1>procedural macros workshop</h1>
+<h1 id="procedural-macros-workshop">procedural macros workshop</h1>
 <p>终于来到了写过程宏这一步。</p>
 <p>rust宏领域里那个绕不开的名字，<code>syn</code>和<code>quote</code>和<code>proc-macro2</code>三个重量级库的作者，<code>David Tolnay</code>有一个练习题项目<code>procedural macros workshop</code>，用来讲解如何写过程宏再合适不过。</p>
 <h2 id="一点理论知识">一点理论知识</h2>

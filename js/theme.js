@@ -96,12 +96,16 @@
     });
 
     if (postToc && postTocNav) {
-      tocHeadings = Array.from(article.querySelectorAll('h2, h3, h4'));
+      tocHeadings = Array.from(article.querySelectorAll('h1, h2, h3, h4, h5, h6')).filter(function (heading) {
+        return heading.textContent.trim();
+      });
+      // 缩进按文章里实际出现的标题级别排位，# 开头和 ## 开头的文章都从第一级开始
+      var tocLevels = Array.from(new Set(tocHeadings.map(function (heading) { return heading.tagName; }))).sort();
       tocHeadings.forEach(function (heading, index) {
         if (!heading.id) heading.id = 'section-' + (index + 1);
         var link = document.createElement('a');
         link.href = '#' + heading.id;
-        link.className = 'toc-level-' + heading.tagName.slice(1);
+        link.className = 'toc-depth-' + Math.min(4, tocLevels.indexOf(heading.tagName) + 1);
         link.textContent = heading.textContent.trim().replace(/\s+/g, ' ');
         link.title = link.textContent;
         link.addEventListener('click', function (event) {

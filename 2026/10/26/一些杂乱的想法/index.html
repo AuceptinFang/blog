@@ -101,7 +101,7 @@
   <div class="article-layout">
     <div class="article-container">
       <div class="article-content" id="article-content"><p>几度提笔想写点什么，但总是abort，请原谅本文的话题跨度</p>
-<h1>ai</h1>
+<h1 id="ai">ai</h1>
 <p>总是绕不开这个话题</p>
 <h2 id="人机协同">人机协同</h2>
 <p>最近见到了很多人对<code>vibe coding</code>各式各样的观点。</p>
@@ -143,7 +143,7 @@
 <p><code>增加输出</code> 思考内容也是输出的一部分，拉高思考就可以得到更多输出价格，不过也就仅此而已了，这个操作空间不大。</p>
 <p><code>拖长任务轮次</code>：如果目标只是把token那一栏堆得高高的，就要换个思路。根据刚才的数据，输入是毫无疑问的主要来源，更具体而言，测一轮鹈鹕一问一答，思考得久但吃不了多少token。实时computer use每次都请求并快速响应，不仅上下文很快就满了，轮次和持续时间也长。而且一旦触发了上下文压缩缓存命中也受影响，再好不过了。</p>
 <p>所以最终结论很朴素：开一个大仓库，给一个不需要人理解的又长又模糊的任务，最好agent自己可测试，开好auto、fast、max然后去睡觉，嗯<code>goal</code>是对的。</p>
-<h1>rust</h1>
+<h1 id="rust">rust</h1>
 <h2 id="modules-or-crates">modules or crates</h2>
 <p>前段时间读了两个项目，代码量都在十万行rust这个数量级，但是组织方式区别还是蛮大的。一个拆分成了十数个crates，另一个则是一整个crate。</p>
 <p>crate是编译和分发的单元（事实上编译和分发二者并不天然绑定，后者更合适的称呼是package，只是习惯上都叫作crate），如果某些部分需要独立分发，拆分天经地义</p>
@@ -161,7 +161,7 @@
 <li>dead_code : 不解释了</li>
 </ul>
 <p>有时间单独整理整理吧，这里可写的太多了</p>
-<h1>一些比赛</h1>
+<h1 id="一些比赛">一些比赛</h1>
 <h2 id="hpc">hpc</h2>
 <p>超算队选拔赛开始了，token烧不完的主办方拿出了 [AI] model 1 （GPT-6-astra）作为斩杀线开始了全自动解题，领先一众选手，然后是[AI] model 2（deepseek v4.1f），model 2.1（搭载了dsh），model 3（glm-5.3）和短短几小时斩杀了所有人满分登顶的model 4（fable 5.1）</p>
 <p>这就是我作为[AI] model 5 （opus 5.5） 入场前的局面了。接下来opus5.5 成功全自动地将fable 5.1 斩杀，满分登顶。</p>
@@ -173,7 +173,7 @@
 <p>和hpc被agent斩杀类似，这种反馈明确目标清晰的东西，agent最喜欢了。</p>
 <p>显然当前这些比赛还没有找到一个和agent和平相处的方法，不知道未来会发展成什么样子</p>
 <p>羽：直接面试吧</p>
-<h1>大修网</h1>
+<h1 id="大修网">大修网</h1>
 <p>羽推荐了<a target="_blank" rel="noopener" href="https://tailscale.com/blog/how-nat-traversal-works">这篇文章</a>，严肃阅读学习</p>
 <p>自从开始折腾服务器上线服务，就恶补计算机网络运维知识，每天看着时不时掉线的服务与莫名其妙超高的延迟就来气。</p>
 <p>现有的服务器网络架构大概是这么一堆：</p>
@@ -211,7 +211,7 @@
 <p>那么只要在mac的候选地址里加上树莓派对应的出口就可以了，官方客户端里有个现成开关 TS_DEBUG_PRETENDPOINT，借助一个公开的STUN服务器探测一下树莓派到我的出口即可</p>
 </blockquote>
 <p>很好啊，效果立竿见影，本来肉眼可见的延迟消失了。接下来在后台维持一个保活脚本，这条链路就算修好了！</p>
-<h1>项目</h1>
+<h1 id="项目">项目</h1>
 <p>这能说吗，这好像不能说。</p>
 <h2 id="worktree-与-diff">worktree 与 diff</h2>
 <p>如何愉快（一点也不）地看diff呢，不同的人有不同的偏好，我当然是lazyvim插件派：</p>

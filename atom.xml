@@ -25,7 +25,7 @@
     <updated>2026-10-26T12:13:46.933Z</updated>
     
     <content type="html"><![CDATA[<p>几度提笔想写点什么，但总是abort，请原谅本文的话题跨度</p>
-<h1>ai</h1>
+<h1 id="ai">ai</h1>
 <p>总是绕不开这个话题</p>
 <h2 id="人机协同">人机协同</h2>
 <p>最近见到了很多人对<code>vibe coding</code>各式各样的观点。</p>
@@ -67,7 +67,7 @@
 <p><code>增加输出</code> 思考内容也是输出的一部分，拉高思考就可以得到更多输出价格，不过也就仅此而已了，这个操作空间不大。</p>
 <p><code>拖长任务轮次</code>：如果目标只是把token那一栏堆得高高的，就要换个思路。根据刚才的数据，输入是毫无疑问的主要来源，更具体而言，测一轮鹈鹕一问一答，思考得久但吃不了多少token。实时computer use每次都请求并快速响应，不仅上下文很快就满了，轮次和持续时间也长。而且一旦触发了上下文压缩缓存命中也受影响，再好不过了。</p>
 <p>所以最终结论很朴素：开一个大仓库，给一个不需要人理解的又长又模糊的任务，最好agent自己可测试，开好auto、fast、max然后去睡觉，嗯<code>goal</code>是对的。</p>
-<h1>rust</h1>
+<h1 id="rust">rust</h1>
 <h2 id="modules-or-crates">modules or crates</h2>
 <p>前段时间读了两个项目，代码量都在十万行rust这个数量级，但是组织方式区别还是蛮大的。一个拆分成了十数个crates，另一个则是一整个crate。</p>
 <p>crate是编译和分发的单元（事实上编译和分发二者并不天然绑定，后者更合适的称呼是package，只是习惯上都叫作crate），如果某些部分需要独立分发，拆分天经地义</p>
@@ -85,7 +85,7 @@
 <li>dead_code : 不解释了</li>
 </ul>
 <p>有时间单独整理整理吧，这里可写的太多了</p>
-<h1>一些比赛</h1>
+<h1 id="一些比赛">一些比赛</h1>
 <h2 id="hpc">hpc</h2>
 <p>超算队选拔赛开始了，token烧不完的主办方拿出了 [AI] model 1 （GPT-6-astra）作为斩杀线开始了全自动解题，领先一众选手，然后是[AI] model 2（deepseek v4.1f），model 2.1（搭载了dsh），model 3（glm-5.3）和短短几小时斩杀了所有人满分登顶的model 4（fable 5.1）</p>
 <p>这就是我作为[AI] model 5 （opus 5.5） 入场前的局面了。接下来opus5.5 成功全自动地将fable 5.1 斩杀，满分登顶。</p>
@@ -97,7 +97,7 @@
 <p>和hpc被agent斩杀类似，这种反馈明确目标清晰的东西，agent最喜欢了。</p>
 <p>显然当前这些比赛还没有找到一个和agent和平相处的方法，不知道未来会发展成什么样子</p>
 <p>羽：直接面试吧</p>
-<h1>大修网</h1>
+<h1 id="大修网">大修网</h1>
 <p>羽推荐了<a href="https://tailscale.com/blog/how-nat-traversal-works">这篇文章</a>，严肃阅读学习</p>
 <p>自从开始折腾服务器上线服务，就恶补计算机网络运维知识，每天看着时不时掉线的服务与莫名其妙超高的延迟就来气。</p>
 <p>现有的服务器网络架构大概是这么一堆：</p>
@@ -135,7 +135,7 @@
 <p>那么只要在mac的候选地址里加上树莓派对应的出口就可以了，官方客户端里有个现成开关 TS_DEBUG_PRETENDPOINT，借助一个公开的STUN服务器探测一下树莓派到我的出口即可</p>
 </blockquote>
 <p>很好啊，效果立竿见影，本来肉眼可见的延迟消失了。接下来在后台维持一个保活脚本，这条链路就算修好了！</p>
-<h1>项目</h1>
+<h1 id="项目">项目</h1>
 <p>这能说吗，这好像不能说。</p>
 <h2 id="worktree-与-diff">worktree 与 diff</h2>
 <p>如何愉快（一点也不）地看diff呢，不同的人有不同的偏好，我当然是lazyvim插件派：</p>
@@ -166,7 +166,7 @@
         
         
     <summary type="html">&lt;p&gt;几度提笔想写点什么，但总是abort，请原谅本文的话题跨度&lt;/p&gt;
-&lt;h1&gt;ai&lt;/h1&gt;
+&lt;h1 id=&quot;ai&quot;&gt;ai&lt;/h1&gt;
 &lt;p&gt;总是绕不开这个话题&lt;/p&gt;
 &lt;h2 id=&quot;人机协同&quot;&gt;人机协同&lt;/h2&gt;
 &lt;p&gt;最近见到了很多人对&lt;code&gt;vibe</summary>
@@ -1257,7 +1257,7 @@ main: <span class="token function">service</span> keeps running<span aria-hidden
 <li><a href="https://danielkeep.github.io/tlborm/book/README.html">The Little Book of Rust Macros</a></li>
 <li>Rust for Rustaceans 第七章 Macro</li>
 </ul>
-<h1>basic</h1>
+<h1 id="basic">basic</h1>
 <p>宏是什么？</p>
 <ul>
 <li>是用来生成代码的代码，所以宏编程又叫元编程(meta programming)</li>
@@ -1465,7 +1465,7 @@ main: <span class="token function">service</span> keeps running<span aria-hidden
 <li>引入一些很重的依赖，写过程宏需要的<code>syn</code> crate在所有feature都开启的情况下需要数十秒的时间编译，所以应当关闭不需要的feature，同时在debug模式下编译</li>
 <li>容易在不知不觉间生成大量的代码</li>
 </ul>
-<h1>mechanism</h1>
+<h1 id="mechanism">mechanism</h1>
 <p>以上的内容可以对宏有个大致的认识，但是还不够，对于宏如何工作，我们还是一无所知，这也导致编写过程宏变得困难</p>
 <h2 id="声明宏-2">声明宏</h2>
 <p>编译器处理源代码的第一步，是把代码字符处理成一个个<code>token</code>。这一步只有数字、标点、字符串、标识符的区分，不在乎变量名和关键字的差别，空格和注释也会在这一步被舍弃掉。</p>
@@ -1487,7 +1487,7 @@ main: <span class="token function">service</span> keeps running<span aria-hidden
 <p>假设使用了<code>name_as_debug(u31)</code>，报错显然是发生在宏内部的，但是用户期望报错能定位到实际调用处。此处的<code>$t</code>的span是实际上映射到它的代码的，这个信息一直可以关联到最终的编译错误，于是报错信息里因此包含了用户代码的错误信息。</p>
 <p>span可以结合<code>compile_error!</code>宏，让自定义错误信息也能追溯到用户代码。</p>
 <p>rust宏的卫生性也得益于span。当我们构建一个<code>Ident</code>(标识符) token 时，也同时为它提供了一个span，其决定了这个标识符的作用域。如果用<code>Span::call_site()</code>，意思是把这个变量当做在调用处声明的，等于是直接暴露在外部作用域，完全没有卫生性。如果用<code>Span::mixed_site()</code>，意思是把变量当做在宏内部声明的，局部变量就可以对外隐藏，是卫生的，但是对于<code>types</code> <code>moduels</code>等等其它东西依然是外部可访问的，因而是<code>mixed</code></p>
-<h1>procedural macros workshop</h1>
+<h1 id="procedural-macros-workshop">procedural macros workshop</h1>
 <p>终于来到了写过程宏这一步。</p>
 <p>rust宏领域里那个绕不开的名字，<code>syn</code>和<code>quote</code>和<code>proc-macro2</code>三个重量级库的作者，<code>David Tolnay</code>有一个练习题项目<code>procedural macros workshop</code>，用来讲解如何写过程宏再合适不过。</p>
 <h2 id="一点理论知识">一点理论知识</h2>
@@ -2961,7 +2961,7 @@ main: <span class="token function">service</span> keeps running<span aria-hidden
     <updated>2026-07-17T07:53:25.433Z</updated>
     
     <content type="html"><![CDATA[<p>本文内容来源:《Rust for Rustaceans》第六章</p>
-<h1>Rust testing mechanism</h1>
+<h1 id="Rust-testing-mechanism">Rust testing mechanism</h1>
 <h2 id="testing-harness">testing harness</h2>
 <p>rust中常用的测试分为两类，内置在代码文件的单元测试，和独立的tests目录的集成测试。当运行<code>cargo test</code>时，cargo会传一个<code>--test</code>标志给rustc，告诉它要产出一个测试二进制，依据cfg使得测试可以依据特定条件触发，同时生成一个<code>test harness</code>——一个会在运行时触发所有test函数的，精心生成的main函数</p>
 <p>harness 用一个过程宏把所有<code>#[test]</code>标记的函数转化为一个测试描述符，然后暴露给main函数。harness 会扫描所有函数、运行、捕获结果并打印输出</p>
@@ -3118,7 +3118,7 @@ main: <span class="token function">service</span> keeps running<span aria-hidden
 <span class="token comment">/// ```</span>
 <span class="token keyword">pub</span> <span class="token keyword">fn</span> <span class="token function-definition function">dangerous_operation</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>用法类似，should_panic断言里面的代码会panic，no_run只检查编译问题不运行，compile_fail断言会编译错误(但是不提供报错的原因)</p>
-<h1>Additional Testing Tools</h1>
+<h1 id="Additional-Testing-Tools">Additional Testing Tools</h1>
 <h2 id="linting">linting</h2>
 <p>代码规范检查，rustc自带有一些检查，比如编译时无数次告诉你哪些声明没有用到等等</p>
 <p>但是在rust里提到Linting，大名鼎鼎的<code>clippy</code>是绝对绕不开的话题</p>
@@ -3236,7 +3236,7 @@ main: <span class="token function">service</span> keeps running<span aria-hidden
         
         
     <summary type="html">&lt;p&gt;本文内容来源:《Rust for Rustaceans》第六章&lt;/p&gt;
-&lt;h1&gt;Rust testing mechanism&lt;/h1&gt;
+&lt;h1 id=&quot;Rust-testing-mechanism&quot;&gt;Rust testing mechanism&lt;/h1&gt;
 &lt;h2 id=&quot;testing-harness&quot;&gt;testing</summary>
         
       
@@ -3384,7 +3384,7 @@ Type <span class="token string">"help"</span> <span class="token keyword">for</s
     <updated>2026-07-25T15:47:13.612Z</updated>
     
     <content type="html"><![CDATA[<p><a href="https://www.vectorware.com/blog/threads-on-gpu/">原文网址</a></p>
-<h1>Rust threads on the GPU</h1>
+<h1 id="Rust-threads-on-the-GPU">Rust threads on the GPU</h1>
 <p>作者完成了一项重大的成就：把为CPU设计的线程映射到了GPU上</p>
 <h2 id="执行模型">执行模型</h2>
 <p>CPU 和 GPU 执行程序时从根本上不同，CPU程序从一个单独的线程出发，然后按需要派生出若干额外线程，每个线程彼此独立地运行，由程序员管理并发</p>
@@ -3583,7 +3583,7 @@ __global__ void <span class="token function">scale</span><span class="token punc
         
         
     <summary type="html">&lt;p&gt;&lt;a href=&quot;https://www.vectorware.com/blog/threads-on-gpu/&quot;&gt;原文网址&lt;/a&gt;&lt;/p&gt;
-&lt;h1&gt;Rust threads on the</summary>
+&lt;h1 id=&quot;Rust-threads-on-the-GPU&quot;&gt;Rust threads on the</summary>
         
       
     
@@ -12613,7 +12613,7 @@ MAX_POW   <span class="token operator">=</span> <span class="token number">13</s
 <p>并非文章，一个服务器赞助机构</p>
 <h2 id="zlibrary"><a href="https://z-library.sk/">zlibrary</a></h2>
 <p>也并非文章，想去下本电子书结果一头撞进盗版，故留一份正版的网址</p>
-<h1>rust</h1>
+<h1 id="rust">rust</h1>
 <p>这得单开一个大标题</p>
 <h2 id="trpl"><a href="https://doc.rust-lang.org/book/">trpl</a></h2>
 <p>镇楼</p>
@@ -13128,7 +13128,7 @@ A.如何向函数传递复数参数？</p>
     <updated>2026-07-17T07:53:25.452Z</updated>
     
     <content type="html"><![CDATA[<p>实验内容大概是用U盘，在电脑的虚拟机上安装一个操作系统</p>
-<h1>ROUND 1</h1>
+<h1 id="ROUND-1">ROUND 1</h1>
 <h2 id="制作U盘引导盘">制作U盘引导盘</h2>
 <p>第一步是下载U盘引导制作软件，选择<a href="https://www.dabaicai.com/">大白菜</a>了</p>
 <p>1.4G，一百五十号人在一个教室里一起下载，带宽再大也不够用啊……去隔壁几分钟解决</p>
@@ -13153,7 +13153,7 @@ A.如何向函数传递复数参数？</p>
 <p>win+X进入磁盘管理</p>
 <p>C盘压缩卷，然后输入一部分空间得到一块未分配区域，然后新定义一块盘<br>
 <img src="/image/log0_disk.png" alt="p1"></p>
-<h1>ROUND 2</h1>
+<h1 id="ROUND-2">ROUND 2</h1>
 <p>某些环节讨巧了，再来一次，这次换linux，选的arch</p>
 <p>看着docker run -it archlinux和wsl --install archlinux陷入沉思，装windows绕个圈子还有些道理，linux显得好傻</p>
 <h2 id="重新下载系统">重新下载系统</h2>
@@ -13193,7 +13193,7 @@ A.如何向函数传递复数参数？</p>
         
         
     <summary type="html">&lt;p&gt;实验内容大概是用U盘，在电脑的虚拟机上安装一个操作系统&lt;/p&gt;
-&lt;h1&gt;ROUND 1&lt;/h1&gt;
+&lt;h1 id=&quot;ROUND-1&quot;&gt;ROUND 1&lt;/h1&gt;
 &lt;h2 id=&quot;制作U盘引导盘&quot;&gt;制作U盘引导盘&lt;/h2&gt;
 &lt;p&gt;第一步是下载U盘引导制作软件，选择&lt;a</summary>
         
@@ -14124,7 +14124,7 @@ gettimeofday()对你来说不够精确，可以考虑利用 x86 机器提供的 
     <published>2025-06-25T11:13:55.000Z</published>
     <updated>2026-07-17T07:53:25.442Z</updated>
     
-    <content type="html"><![CDATA[<h1>第五章课后题</h1>
+    <content type="html"><![CDATA[<h1 id="第五章课后题">第五章课后题</h1>
 <h2 id="第1题"><strong>第1题</strong></h2>
 <blockquote>
 <p>编写一个调用 fork()的程序。在调用 fork()之前，让主进程访问一个变量（例如 x）<br>
@@ -14555,11 +14555,10 @@ wait的对象默认是子进程，而子进程没fork是没有子进程的</p>
       
         
         
-    <summary type="html">&lt;h1&gt;第五章课后题&lt;/h1&gt;
+    <summary type="html">&lt;h1 id=&quot;第五章课后题&quot;&gt;第五章课后题&lt;/h1&gt;
 &lt;h2 id=&quot;第1题&quot;&gt;&lt;strong&gt;第1题&lt;/strong&gt;&lt;/h2&gt;
 &lt;blockquote&gt;
-&lt;p&gt;编写一个调用 fork()的程序。在调用 fork()之前，让主进程访问一个变量（例如 x）&lt;br&gt;
-并将其值设置为某个值（例如</summary>
+&lt;p&gt;编写一个调用 fork()的程序。在调用 fork()之前，让主进程访问一个变量（例如</summary>
         
       
     
@@ -15366,7 +15365,7 @@ ret<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span>
     <published>2025-06-24T13:23:55.000Z</published>
     <updated>2026-07-17T07:53:25.441Z</updated>
     
-    <content type="html"><![CDATA[<h1>第四章课后题</h1>
+    <content type="html"><![CDATA[<h1 id="第四章课后题">第四章课后题</h1>
 <blockquote>
 <p>课后实验在github上——指导书纯英文无汉化，罢了罢了</p>
 </blockquote>
@@ -15668,7 +15667,7 @@ Time        PID: <span class="token number">0</span>        PID: <span class="to
       
         
         
-    <summary type="html">&lt;h1&gt;第四章课后题&lt;/h1&gt;
+    <summary type="html">&lt;h1 id=&quot;第四章课后题&quot;&gt;第四章课后题&lt;/h1&gt;
 &lt;blockquote&gt;
 &lt;p&gt;课后实验在github上——指导书纯英文无汉化，罢了罢了&lt;/p&gt;
 &lt;/blockquote&gt;

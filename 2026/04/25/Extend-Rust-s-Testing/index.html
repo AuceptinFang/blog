@@ -101,7 +101,7 @@
   <div class="article-layout">
     <div class="article-container">
       <div class="article-content" id="article-content"><p>本文内容来源:《Rust for Rustaceans》第六章</p>
-<h1>Rust testing mechanism</h1>
+<h1 id="Rust-testing-mechanism">Rust testing mechanism</h1>
 <h2 id="testing-harness">testing harness</h2>
 <p>rust中常用的测试分为两类，内置在代码文件的单元测试，和独立的tests目录的集成测试。当运行<code>cargo test</code>时，cargo会传一个<code>--test</code>标志给rustc，告诉它要产出一个测试二进制，依据cfg使得测试可以依据特定条件触发，同时生成一个<code>test harness</code>——一个会在运行时触发所有test函数的，精心生成的main函数</p>
 <p>harness 用一个过程宏把所有<code>#[test]</code>标记的函数转化为一个测试描述符，然后暴露给main函数。harness 会扫描所有函数、运行、捕获结果并打印输出</p>
@@ -258,7 +258,7 @@
 <span class="token comment">/// ```</span>
 <span class="token keyword">pub</span> <span class="token keyword">fn</span> <span class="token function-definition function">dangerous_operation</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">&#123;</span><span class="token punctuation">&#125;</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
 <p>用法类似，should_panic断言里面的代码会panic，no_run只检查编译问题不运行，compile_fail断言会编译错误(但是不提供报错的原因)</p>
-<h1>Additional Testing Tools</h1>
+<h1 id="Additional-Testing-Tools">Additional Testing Tools</h1>
 <h2 id="linting">linting</h2>
 <p>代码规范检查，rustc自带有一些检查，比如编译时无数次告诉你哪些声明没有用到等等</p>
 <p>但是在rust里提到Linting，大名鼎鼎的<code>clippy</code>是绝对绕不开的话题</p>
